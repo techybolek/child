@@ -1,0 +1,145 @@
+2025-10-09 17:24:58,872 - root - INFO - ======================================================================
+2025-10-09 17:24:58,872 - root - INFO - TEXAS CHILD CARE SOLUTIONS SCRAPER - OPTION 5: SMART HYBRID
+2025-10-09 17:24:58,872 - root - INFO - ======================================================================
+2025-10-09 17:24:58,872 - root - INFO - Dry run mode: True
+2025-10-09 17:24:58,872 - root - INFO - Target domains: texaschildcaresolutions.org, twc.state.tx.us, twc.texas.gov, childcare.twc.texas.gov, wfsgc.org
+2025-10-09 17:24:58,873 - root - INFO - 
+2025-10-09 17:24:58,873 - __main__ - INFO - ============================================================
+2025-10-09 17:24:58,873 - __main__ - INFO - PHASE 1: SCRAPING
+2025-10-09 17:24:58,873 - __main__ - INFO - ============================================================
+2025-10-09 17:24:58,873 - scraper - INFO - Starting scrape with 3 seed URLs
+2025-10-09 17:24:58,873 - scraper - INFO - Dry run: True, Max pages: 5
+2025-10-09 17:24:58,873 - scraper - INFO - Scraping: https://texaschildcaresolutions.org/financial-assistance-for-child-care
+2025-10-09 17:24:58,873 - scraper - DEBUG - Fetching with requests: https://texaschildcaresolutions.org/financial-assistance-for-child-care
+2025-10-09 17:24:58,875 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): texaschildcaresolutions.org:443
+2025-10-09 17:25:00,461 - urllib3.connectionpool - DEBUG - https://texaschildcaresolutions.org:443 "GET /financial-assistance-for-child-care HTTP/1.1" 301 None
+2025-10-09 17:25:00,786 - urllib3.connectionpool - DEBUG - https://texaschildcaresolutions.org:443 "GET /financial-assistance-for-child-care/ HTTP/1.1" 200 None
+2025-10-09 17:25:00,801 - scraper - INFO - Skipping thin content (20 words): https://texaschildcaresolutions.org/financial-assistance-for-child-care
+2025-10-09 17:25:02,301 - scraper - INFO - Progress: 0 pages scraped, 0 documents extracted, 0 PDFs extracted, 0 errors, 2 in queue, 3.4s elapsed
+2025-10-09 17:25:02,302 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care
+2025-10-09 17:25:02,302 - scraper - DEBUG - Fetching with requests: https://www.twc.texas.gov/programs/child-care
+2025-10-09 17:25:02,302 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): www.twc.texas.gov:443
+2025-10-09 17:25:02,520 - urllib3.connectionpool - DEBUG - https://www.twc.texas.gov:443 "GET /programs/child-care HTTP/1.1" 200 19196
+2025-10-09 17:25:02,543 - scraper - DEBUG - Saved page content to /home/tromanow/COHORT/TX/scraped_content/raw/pages/8ff3e46c390957abbc366075903b9476.json
+2025-10-09 17:25:02,543 - scraper - DEBUG - Skipping non-child-care TWC URL: https://childcare.twc.texas.gov/find/register?mode=signup
+2025-10-09 17:25:02,543 - scraper - DEBUG - Skipping non-child-care TWC URL: https://childcare.twc.texas.gov/find/welcome
+2025-10-09 17:25:02,543 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/programs/texas-rising-star
+2025-10-09 17:25:02,896 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/find-locations
+2025-10-09 17:25:02,897 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/data-reports/agency-reports
+2025-10-09 17:25:02,897 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/data-reports
+2025-10-09 17:25:02,897 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/policy-letters
+2025-10-09 17:25:02,897 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/agency/commission-meetings
+2025-10-09 17:25:02,897 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ogc/mtg24/commission-meeting-material-061824-item11b-ccdf-ffy2025-2027-state-plan-twc.pdf
+2025-10-09 17:25:02,897 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/2025-2027-tx-state-plan-stakeholder-input-twc.pdf
+2025-10-09 17:25:02,897 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/stakeholder-input-trs-twc.pdf
+2025-10-09 17:25:02,897 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/programs/texas-rising-star/2023-workgroup
+2025-10-09 17:25:02,897 - scraper - INFO - Found 8 new links
+2025-10-09 17:25:04,397 - scraper - INFO - Scraping: https://childcare.twc.texas.gov
+2025-10-09 17:25:04,397 - scraper - INFO - Initializing Playwright browser...
+2025-10-09 17:25:04,397 - asyncio - DEBUG - Using selector: EpollSelector
+2025-10-09 17:25:05,098 - scraper - DEBUG - Fetching with Playwright: https://childcare.twc.texas.gov
+2025-10-09 17:25:09,745 - scraper - INFO - Skipping thin content (20 words): https://childcare.twc.texas.gov
+2025-10-09 17:25:11,246 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care-prekindergarten-partnerships
+2025-10-09 17:25:11,246 - scraper - DEBUG - Fetching with requests: https://www.twc.texas.gov/programs/child-care-prekindergarten-partnerships
+2025-10-09 17:25:11,279 - urllib3.connectionpool - DEBUG - https://www.twc.texas.gov:443 "GET /programs/child-care-prekindergarten-partnerships HTTP/1.1" 200 18212
+2025-10-09 17:25:11,299 - scraper - DEBUG - Saved page content to /home/tromanow/COHORT/TX/scraped_content/raw/pages/f36d8146cab11b76777ca3c9e3867214.json
+2025-10-09 17:25:11,300 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/pre-k-partnership-template-v2-revised.xlsx
+2025-10-09 17:25:11,300 - scraper - INFO - Found 0 new links
+2025-10-09 17:25:12,800 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/for-parents
+2025-10-09 17:25:12,800 - scraper - DEBUG - Fetching with requests: https://www.twc.texas.gov/programs/child-care/for-parents
+2025-10-09 17:25:12,866 - urllib3.connectionpool - DEBUG - https://www.twc.texas.gov:443 "GET /programs/child-care/for-parents HTTP/1.1" 200 16452
+2025-10-09 17:25:12,888 - scraper - DEBUG - Saved page content to /home/tromanow/COHORT/TX/scraped_content/raw/pages/25688f2b266c424fbfa02027eeb7b8e4.json
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://childcare.twc.texas.gov/find/welcome
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/provider-information-parent-form-twc.docx
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/provider-information-parent-form-spanish-twc.docx
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-change-request-form-standard-web-twc.docx
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-change-request-form-standard-spanish-twc.docx
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-change-request-form-waitlist-web-twc.docx
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-change-request-form-waitlist-spanish.docx
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-tx3c-attendance-help-english-twc.pdf
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-tx3c-attendance-help-english-twc.pdf
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-tx3c-attendance-help-vietnames-twc.pdf
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/program/trs-parent-brochure.pdf
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/program/trs-parent-brochure-spa.pdf
+2025-10-09 17:25:12,889 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/program/trs-parent-brochure-vie.pdf
+2025-10-09 17:25:13,004 - scraper - INFO - Blocked by robots.txt: https://texaschildcaresolutions.org/
+2025-10-09 17:25:13,004 - scraper - INFO - Found 4 new links
+2025-10-09 17:25:14,504 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/for-providers
+2025-10-09 17:25:14,505 - scraper - DEBUG - Fetching with requests: https://www.twc.texas.gov/programs/child-care/for-providers
+2025-10-09 17:25:14,534 - urllib3.connectionpool - DEBUG - https://www.twc.texas.gov:443 "GET /programs/child-care/for-providers HTTP/1.1" 200 18736
+2025-10-09 17:25:14,560 - scraper - DEBUG - Saved page content to /home/tromanow/COHORT/TX/scraped_content/raw/pages/69127d7c13e38a881fd23a712fac9224.json
+2025-10-09 17:25:14,560 - scraper - INFO - Blocked by robots.txt: https://texaschildcaresolutions.org/contact-us/
+2025-10-09 17:25:14,560 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/tx3c-desk-aid-prospective-payment-accessible-twc.pdf
+2025-10-09 17:25:14,561 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/tx3c-desk-aid-provider-payment-proof-twc.pdf
+2025-10-09 17:25:14,561 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/tx3c-instrucciones-de-pagos-para-el-proveedor-final-twc.docx
+2025-10-09 17:25:14,561 - scraper - DEBUG - Skipping non-child-care TWC URL: https://childcare.twc.texas.gov/find/welcome
+2025-10-09 17:25:14,561 - scraper - DEBUG - Skipping non-child-care TWC URL: https://pcqc.twc.texas.gov/
+2025-10-09 17:25:14,561 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/texas-pcqc-user-guide-2023.pdf
+2025-10-09 17:25:14,561 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/provider-attendance-matrix-english-twc.pdf
+2025-10-09 17:25:14,561 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/provider-attendance-matrix-espa%C3%B1ol-twc.pdf
+2025-10-09 17:25:14,561 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/provider-attendance-matrix-vietnamese-twc.pdf
+2025-10-09 17:25:14,561 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-tx3c-attendance-help-english-twc.pdf
+2025-10-09 17:25:14,561 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-tx3c-attendance-help-english-twc.pdf
+2025-10-09 17:25:14,561 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-tx3c-attendance-help-vietnames-twc.pdf
+2025-10-09 17:25:14,561 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/programs/skills-small-business
+2025-10-09 17:25:14,561 - scraper - INFO - Found 3 new links
+2025-10-09 17:25:16,061 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/texas-preschool-development-grant
+2025-10-09 17:25:16,061 - scraper - DEBUG - Fetching with requests: https://www.twc.texas.gov/programs/child-care/texas-preschool-development-grant
+2025-10-09 17:25:16,130 - urllib3.connectionpool - DEBUG - https://www.twc.texas.gov:443 "GET /programs/child-care/texas-preschool-development-grant HTTP/1.1" 200 17820
+2025-10-09 17:25:16,159 - scraper - DEBUG - Saved page content to /home/tromanow/COHORT/TX/scraped_content/raw/pages/3a2473540df25c752cb8f6a3ac07c6b3.json
+2025-10-09 17:25:16,160 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/early-childhood-education-landscape-analysis-website-version.xlsx
+2025-10-09 17:25:16,160 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/early-childhood-education-landscape-analysis-summary-twc.docx
+2025-10-09 17:25:16,160 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/early-educators-credit-pathways-support
+2025-10-09 17:25:16,160 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/early-childhood-system-needs-assessment-in-texas-final-accessible.pdf
+2025-10-09 17:25:16,160 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-09 17:25:16,160 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/tx-pdg-renewal-application-2022-public.pdf
+2025-10-09 17:25:16,160 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/tx-pdg-b5-year-one-accomplishments.pdf
+2025-10-09 17:25:16,160 - scraper - DEBUG - Skipping non-child-care TWC URL: https://www.twc.texas.gov/sites/default/files/ccel/docs/pdg-simple-yr2-highlights-twc.pdf
+2025-10-09 17:25:16,160 - scraper - INFO - Found 0 new links
+2025-10-09 17:25:17,660 - scraper - INFO - Progress: 5 pages scraped, 0 documents extracted, 0 PDFs extracted, 0 errors, 11 in queue, 18.8s elapsed
+2025-10-09 17:25:17,694 - scraper - INFO - Scraping complete. Visited 7 URLs
+2025-10-09 17:25:17,695 - __main__ - INFO - Scraping complete:
+2025-10-09 17:25:17,695 - __main__ - INFO -   - Pages scraped: 5
+2025-10-09 17:25:17,695 - __main__ - INFO -   - PDFs extracted: 0
+2025-10-09 17:25:17,695 - __main__ - INFO -   - Pages skipped (thin): 2
+2025-10-09 17:25:17,695 - __main__ - INFO -   - Errors: 0
+2025-10-09 17:25:17,695 - __main__ - INFO -   - Time: 18.8s
+2025-10-09 17:25:17,695 - __main__ - INFO - ============================================================
+2025-10-09 17:25:17,695 - __main__ - INFO - PHASE 2: CONTENT PROCESSING
+2025-10-09 17:25:17,695 - __main__ - INFO - ============================================================
+2025-10-09 17:25:17,703 - site_mapper - INFO - Loaded 13 pages (11 documents excluded)
+2025-10-09 17:25:17,703 - __main__ - INFO - Processing 13 HTML pages (documents excluded for separate processing)
+2025-10-09 17:25:17,704 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/data-reports-plans
+2025-10-09 17:25:17,705 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/texas-preschool-development-grant
+2025-10-09 17:25:17,705 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/shared-services-alliances
+2025-10-09 17:25:17,706 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/for-providers
+2025-10-09 17:25:17,707 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/for-parents
+2025-10-09 17:25:17,708 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/employer-child-care-solutions
+2025-10-09 17:25:17,708 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/data-reports/child-care-numbers
+2025-10-09 17:25:17,709 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/work-based-learning-staffing-initiatives
+2025-10-09 17:25:17,710 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care
+2025-10-09 17:25:17,710 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/children-with-disabilities
+2025-10-09 17:25:17,710 - __main__ - INFO - Processed 10/13 pages, 10 chunks so far
+2025-10-09 17:25:17,711 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care-prekindergarten-partnerships
+2025-10-09 17:25:17,712 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/free-child-care-business-resources
+2025-10-09 17:25:17,712 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/stimulus-resources
+2025-10-09 17:25:17,713 - __main__ - INFO - Created 13 total chunks
+2025-10-09 17:25:17,714 - content_processor - INFO - Deduplicated 13 chunks to 13 unique chunks
+2025-10-09 17:25:17,714 - __main__ - INFO - After deduplication: 13 unique chunks
+2025-10-09 17:25:17,715 - __main__ - INFO - Chunks saved to /home/tromanow/COHORT/TX/scraped_content/processed/content_chunks.json
+2025-10-09 17:25:17,715 - __main__ - INFO - ============================================================
+2025-10-09 17:25:17,715 - __main__ - INFO - PHASE 3: ANALYSIS & REPORTING
+2025-10-09 17:25:17,715 - __main__ - INFO - ============================================================
+2025-10-09 17:25:17,719 - site_mapper - INFO - Loaded 24 total pages
+2025-10-09 17:25:17,720 - site_mapper - INFO - Site map created: {'hub_pages': 10, 'content_pages': 14, 'pdf_documents': 0, 'unique_domains': 2, 'external_domains_referenced': 60}
+2025-10-09 17:25:17,722 - site_mapper - INFO - Site map saved to /home/tromanow/COHORT/TX/scraped_content/processed/site_map.json
+2025-10-09 17:25:17,722 - __main__ - INFO - Analysis report saved to /home/tromanow/COHORT/TX/scraped_content/reports/content_analysis.txt
+2025-10-09 17:25:17,722 - __main__ - INFO - ============================================================
+2025-10-09 17:25:17,722 - __main__ - INFO - PIPELINE COMPLETE!
+2025-10-09 17:25:17,722 - __main__ - INFO - ============================================================
+2025-10-09 17:25:17,722 - root - INFO - All phases completed successfully!
+2025-10-09 17:25:17,722 - root - INFO - Output files:
+2025-10-09 17:25:17,722 - root - INFO -   - Chunks: /home/tromanow/COHORT/TX/scraped_content/processed/content_chunks.json
+2025-10-09 17:25:17,722 - root - INFO -   - Site map: /home/tromanow/COHORT/TX/scraped_content/processed/site_map.json
+2025-10-09 17:25:17,722 - root - INFO -   - Analysis: /home/tromanow/COHORT/TX/scraped_content/reports/content_analysis.txt
+2025-10-09 17:25:17,722 - root - INFO -   - Log: /home/tromanow/COHORT/TX/scraped_content/reports/scraping_log.txt

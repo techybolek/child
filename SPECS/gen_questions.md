@@ -1,0 +1,1 @@
+Examine the file and generate 10 questions and answers about its content. Think of the type of questions that be asked by a user using a chatbot. Output the questions to QUESTIONS/pdfs

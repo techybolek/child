@@ -1,0 +1,248 @@
+2025-10-09 16:07:32,882 - root - INFO - ======================================================================
+2025-10-09 16:07:32,882 - root - INFO - TEXAS CHILD CARE SOLUTIONS SCRAPER - OPTION 5: SMART HYBRID
+2025-10-09 16:07:32,882 - root - INFO - ======================================================================
+2025-10-09 16:07:32,882 - root - INFO - Dry run mode: False
+2025-10-09 16:07:32,882 - root - INFO - Target domains: texaschildcaresolutions.org, twc.state.tx.us, twc.texas.gov, childcare.twc.texas.gov, wfsgc.org
+2025-10-09 16:07:32,882 - root - INFO - 
+2025-10-09 16:07:32,882 - __main__ - INFO - ============================================================
+2025-10-09 16:07:32,882 - __main__ - INFO - PHASE 1: SCRAPING
+2025-10-09 16:07:32,882 - __main__ - INFO - ============================================================
+2025-10-09 16:07:32,882 - scraper - INFO - Starting scrape with 3 seed URLs
+2025-10-09 16:07:32,882 - scraper - INFO - Dry run: False, Max pages: 500
+2025-10-09 16:07:32,882 - scraper - INFO - Scraping: https://texaschildcaresolutions.org/financial-assistance-for-child-care
+2025-10-09 16:07:34,936 - scraper - INFO - Skipping thin content (20 words): https://texaschildcaresolutions.org/financial-assistance-for-child-care
+2025-10-09 16:07:36,436 - scraper - INFO - Progress: 0 pages scraped, 0 PDFs extracted, 0 errors, 2 in queue, 3.6s elapsed
+2025-10-09 16:07:36,436 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care
+2025-10-09 16:07:36,899 - scraper - INFO - Found 8 new links
+2025-10-09 16:07:38,399 - scraper - INFO - Scraping: https://childcare.twc.texas.gov
+2025-10-09 16:07:38,400 - scraper - INFO - Initializing Playwright browser...
+2025-10-09 16:07:44,243 - scraper - INFO - Skipping thin content (20 words): https://childcare.twc.texas.gov
+2025-10-09 16:07:45,743 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care-prekindergarten-partnerships
+2025-10-09 16:07:45,804 - scraper - INFO - Found 0 new links
+2025-10-09 16:07:47,304 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/for-parents
+2025-10-09 16:07:47,500 - scraper - INFO - Blocked by robots.txt: https://texaschildcaresolutions.org/
+2025-10-09 16:07:47,500 - scraper - INFO - Found 4 new links
+2025-10-09 16:07:49,000 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/for-providers
+2025-10-09 16:07:49,068 - scraper - INFO - Blocked by robots.txt: https://texaschildcaresolutions.org/contact-us/
+2025-10-09 16:07:49,069 - scraper - INFO - Found 3 new links
+2025-10-09 16:07:50,569 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/texas-preschool-development-grant
+2025-10-09 16:07:50,633 - scraper - INFO - Found 0 new links
+2025-10-09 16:07:52,133 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/data-reports-plans
+2025-10-09 16:07:52,194 - scraper - INFO - Found 4 new links
+2025-10-09 16:07:53,694 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/employer-child-care-solutions
+2025-10-09 16:07:53,757 - scraper - INFO - Found 0 new links
+2025-10-09 16:07:55,257 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/stimulus-resources
+2025-10-09 16:07:55,333 - scraper - INFO - Found 4 new links
+2025-10-09 16:07:56,833 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-stakeholder-input-policy-twc.pdf
+2025-10-09 16:07:56,833 - scraper - INFO - Processing PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-stakeholder-input-policy-twc.pdf
+2025-10-09 16:07:56,833 - pdf_extractor - INFO - Downloading PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-stakeholder-input-policy-twc.pdf
+2025-10-09 16:07:57,168 - pdf_extractor - INFO - PDF size: 0.1 MB
+2025-10-09 16:07:57,649 - pdf_extractor - INFO - Downloaded PDF to: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-stakeholder-input-policy-twc.pdf
+2025-10-09 16:07:57,650 - pdf_extractor - INFO - Extracting text from: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-stakeholder-input-policy-twc.pdf
+2025-10-09 16:07:57,694 - pdf_extractor - ERROR - Failed to extract text from /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-stakeholder-input-policy-twc.pdf: document closed
+2025-10-09 16:07:59,195 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-services-parent-rights-twc.pdf
+2025-10-09 16:07:59,195 - scraper - INFO - Processing PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-services-parent-rights-twc.pdf
+2025-10-09 16:07:59,195 - pdf_extractor - INFO - Downloading PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-services-parent-rights-twc.pdf
+2025-10-09 16:07:59,444 - pdf_extractor - INFO - PDF size: 0.2 MB
+2025-10-09 16:07:59,969 - pdf_extractor - INFO - Downloaded PDF to: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-services-parent-rights-twc.pdf
+2025-10-09 16:07:59,970 - pdf_extractor - INFO - Extracting text from: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-services-parent-rights-twc.pdf
+2025-10-09 16:07:59,988 - pdf_extractor - ERROR - Failed to extract text from /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-services-parent-rights-twc.pdf: document closed
+2025-10-09 16:08:01,489 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-services-parent-rights-espanol-twc.pdf
+2025-10-09 16:08:01,489 - scraper - INFO - Processing PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-services-parent-rights-espanol-twc.pdf
+2025-10-09 16:08:01,489 - pdf_extractor - INFO - Downloading PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-services-parent-rights-espanol-twc.pdf
+2025-10-09 16:08:01,733 - pdf_extractor - INFO - PDF size: 0.2 MB
+2025-10-09 16:08:03,290 - pdf_extractor - INFO - Downloaded PDF to: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-services-parent-rights-espanol-twc.pdf
+2025-10-09 16:08:03,291 - pdf_extractor - INFO - Extracting text from: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-services-parent-rights-espanol-twc.pdf
+2025-10-09 16:08:03,317 - pdf_extractor - ERROR - Failed to extract text from /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-services-parent-rights-espanol-twc.pdf: document closed
+2025-10-09 16:08:04,818 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-services-parent-rights-vietnamese.pdf
+2025-10-09 16:08:04,818 - scraper - INFO - Processing PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-services-parent-rights-vietnamese.pdf
+2025-10-09 16:08:04,819 - pdf_extractor - INFO - Downloading PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-services-parent-rights-vietnamese.pdf
+2025-10-09 16:08:05,159 - pdf_extractor - INFO - PDF size: 0.3 MB
+2025-10-09 16:08:06,103 - pdf_extractor - INFO - Downloaded PDF to: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-services-parent-rights-vietnamese.pdf
+2025-10-09 16:08:06,105 - pdf_extractor - INFO - Extracting text from: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-services-parent-rights-vietnamese.pdf
+2025-10-09 16:08:06,140 - pdf_extractor - ERROR - Failed to extract text from /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-services-parent-rights-vietnamese.pdf: document closed
+2025-10-09 16:08:07,640 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/children-with-disabilities
+2025-10-09 16:08:07,690 - scraper - INFO - Found 1 new links
+2025-10-09 16:08:09,190 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/free-child-care-business-resources
+2025-10-09 16:08:09,275 - scraper - INFO - Found 6 new links
+2025-10-09 16:08:10,776 - scraper - INFO - Progress: 10 pages scraped, 0 PDFs extracted, 4 errors, 17 in queue, 37.9s elapsed
+2025-10-09 16:08:10,776 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/work-based-learning-staffing-initiatives
+2025-10-09 16:08:11,742 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:13,243 - scraper - INFO - Scraping: https://www.twc.texas.gov/programs/child-care/shared-services-alliances
+2025-10-09 16:08:14,091 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:15,592 - scraper - INFO - Scraping: https://www.twc.texas.gov/data-reports/child-care-numbers
+2025-10-09 16:08:15,646 - scraper - INFO - Found 2 new links
+2025-10-09 16:08:17,147 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-workforce-strategic-plan.pdf
+2025-10-09 16:08:17,147 - scraper - INFO - Processing PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-workforce-strategic-plan.pdf
+2025-10-09 16:08:17,147 - pdf_extractor - INFO - Downloading PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-workforce-strategic-plan.pdf
+2025-10-09 16:08:17,444 - pdf_extractor - INFO - PDF size: 2.0 MB
+2025-10-09 16:08:18,084 - pdf_extractor - INFO - Downloaded PDF to: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-workforce-strategic-plan.pdf
+2025-10-09 16:08:18,085 - pdf_extractor - INFO - Extracting text from: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-workforce-strategic-plan.pdf
+2025-10-09 16:08:18,234 - pdf_extractor - ERROR - Failed to extract text from /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-workforce-strategic-plan.pdf: document closed
+2025-10-09 16:08:19,734 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-desert-by-zip-code-2025-public-twc.xlsx
+2025-10-09 16:08:20,141 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:21,642 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/program/child-care-quality-performance-report-2021-twc.pdf
+2025-10-09 16:08:21,642 - scraper - INFO - Processing PDF: https://www.twc.texas.gov/sites/default/files/ccel/program/child-care-quality-performance-report-2021-twc.pdf
+2025-10-09 16:08:21,642 - pdf_extractor - INFO - Downloading PDF: https://www.twc.texas.gov/sites/default/files/ccel/program/child-care-quality-performance-report-2021-twc.pdf
+2025-10-09 16:08:21,881 - pdf_extractor - INFO - PDF size: 6.9 MB
+2025-10-09 16:08:22,667 - pdf_extractor - INFO - Downloaded PDF to: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-quality-performance-report-2021-twc.pdf
+2025-10-09 16:08:22,668 - pdf_extractor - INFO - Extracting text from: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-quality-performance-report-2021-twc.pdf
+2025-10-09 16:08:22,814 - pdf_extractor - ERROR - Failed to extract text from /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-quality-performance-report-2021-twc.pdf: document closed
+2025-10-09 16:08:24,315 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-desert-by-zip-code-twc.xlsx
+2025-10-09 16:08:24,640 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:26,140 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-provider-expansion-initiative-twc.docx
+2025-10-09 16:08:26,434 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:27,934 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-provider-desk-aid-twc.pdf
+2025-10-09 16:08:27,934 - scraper - INFO - Processing PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-provider-desk-aid-twc.pdf
+2025-10-09 16:08:27,934 - pdf_extractor - INFO - Downloading PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-provider-desk-aid-twc.pdf
+2025-10-09 16:08:28,286 - pdf_extractor - INFO - PDF size: 0.7 MB
+2025-10-09 16:08:28,979 - pdf_extractor - INFO - Downloaded PDF to: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-provider-desk-aid-twc.pdf
+2025-10-09 16:08:28,981 - pdf_extractor - INFO - Extracting text from: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-provider-desk-aid-twc.pdf
+2025-10-09 16:08:28,996 - pdf_extractor - ERROR - Failed to extract text from /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-provider-desk-aid-twc.pdf: document closed
+2025-10-09 16:08:30,496 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-teacher-desk-aid-march-2023-twc.pdf
+2025-10-09 16:08:30,497 - scraper - INFO - Processing PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-teacher-desk-aid-march-2023-twc.pdf
+2025-10-09 16:08:30,497 - pdf_extractor - INFO - Downloading PDF: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-teacher-desk-aid-march-2023-twc.pdf
+2025-10-09 16:08:30,771 - pdf_extractor - INFO - PDF size: 2.1 MB
+2025-10-09 16:08:31,429 - pdf_extractor - INFO - Downloaded PDF to: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-teacher-desk-aid-march-2023-twc.pdf
+2025-10-09 16:08:31,430 - pdf_extractor - INFO - Extracting text from: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-teacher-desk-aid-march-2023-twc.pdf
+2025-10-09 16:08:31,440 - pdf_extractor - ERROR - Failed to extract text from /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-teacher-desk-aid-march-2023-twc.pdf: document closed
+2025-10-09 16:08:32,941 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/wf/docs/child-care-services-guide-twc.pdf
+2025-10-09 16:08:32,941 - scraper - INFO - Processing PDF: https://www.twc.texas.gov/sites/default/files/wf/docs/child-care-services-guide-twc.pdf
+2025-10-09 16:08:32,941 - pdf_extractor - INFO - Downloading PDF: https://www.twc.texas.gov/sites/default/files/wf/docs/child-care-services-guide-twc.pdf
+2025-10-09 16:08:33,296 - pdf_extractor - INFO - PDF size: 1.4 MB
+2025-10-09 16:08:35,248 - pdf_extractor - INFO - Downloaded PDF to: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-services-guide-twc.pdf
+2025-10-09 16:08:35,250 - pdf_extractor - INFO - Extracting text from: /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-services-guide-twc.pdf
+2025-10-09 16:08:35,546 - pdf_extractor - ERROR - Failed to extract text from /home/tromanow/COHORT/TX/scraped_content/raw/pdfs/child-care-services-guide-twc.pdf: document closed
+2025-10-09 16:08:37,047 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/ccms.docx
+2025-10-09 16:08:37,443 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:38,944 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/ccms-spanish.docx
+2025-10-09 16:08:39,347 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:40,847 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-employee-handbook-twc.docx
+2025-10-09 16:08:41,073 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:42,573 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-employee-handbook-spanish-twc.docx
+2025-10-09 16:08:42,839 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:44,339 - scraper - INFO - Progress: 20 pages scraped, 0 PDFs extracted, 9 errors, 4 in queue, 71.5s elapsed
+2025-10-09 16:08:44,340 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/ccs-program-overview-twc.docx
+2025-10-09 16:08:44,628 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:46,128 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/ccs-program-overview-spanish-twc.docx
+2025-10-09 16:08:46,445 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:47,945 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-numbers-data-monthly.xlsx
+2025-10-09 16:08:48,580 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:50,080 - scraper - INFO - Scraping: https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-numbers-data-annual.xlsx
+2025-10-09 16:08:50,597 - scraper - INFO - Found 0 new links
+2025-10-09 16:08:52,097 - scraper - INFO - Progress: 24 pages scraped, 0 PDFs extracted, 9 errors, 0 in queue, 79.2s elapsed
+2025-10-09 16:08:52,155 - scraper - INFO - Scraping complete. Visited 35 URLs
+2025-10-09 16:08:52,156 - __main__ - INFO - Scraping complete:
+2025-10-09 16:08:52,156 - __main__ - INFO -   - Pages scraped: 24
+2025-10-09 16:08:52,156 - __main__ - INFO -   - PDFs extracted: 0
+2025-10-09 16:08:52,156 - __main__ - INFO -   - Pages skipped (thin): 2
+2025-10-09 16:08:52,156 - __main__ - INFO -   - Errors: 9
+2025-10-09 16:08:52,156 - __main__ - INFO -   - Time: 79.3s
+2025-10-09 16:08:52,156 - __main__ - INFO - ============================================================
+2025-10-09 16:08:52,156 - __main__ - INFO - PHASE 2: CONTENT PROCESSING
+2025-10-09 16:08:52,156 - __main__ - INFO - ============================================================
+2025-10-09 16:08:52,184 - site_mapper - INFO - Loaded 24 total pages
+2025-10-09 16:08:52,184 - __main__ - INFO - Loaded 24 pages for processing
+2025-10-09 16:08:52,189 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-employee-handbook-twc.docx
+2025-10-09 16:08:52,194 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/sites/default/files/ccel/docs/ccms-spanish.docx
+2025-10-09 16:08:52,195 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/data-reports-plans
+2025-10-09 16:08:52,196 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/texas-preschool-development-grant
+2025-10-09 16:08:52,196 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/shared-services-alliances
+2025-10-09 16:08:52,197 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/for-providers
+2025-10-09 16:08:52,198 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/for-parents
+2025-10-09 16:08:52,200 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-employee-handbook-spanish-twc.docx
+2025-10-09 16:08:52,200 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/employer-child-care-solutions
+2025-10-09 16:08:52,201 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/data-reports/child-care-numbers
+2025-10-09 16:08:52,201 - __main__ - INFO - Processed 10/24 pages, 10 chunks so far
+2025-10-09 16:08:52,270 - content_processor - INFO - Created 19 chunks from https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-numbers-data-monthly.xlsx
+2025-10-09 16:08:52,284 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/sites/default/files/ccel/docs/ccs-program-overview-twc.docx
+2025-10-09 16:08:52,298 - content_processor - INFO - Created 2 chunks from https://www.twc.texas.gov/sites/default/files/ccel/docs/ccms.docx
+2025-10-09 16:08:52,308 - content_processor - INFO - Created 2 chunks from https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-desert-by-zip-code-2025-public-twc.xlsx
+2025-10-09 16:08:52,317 - content_processor - INFO - Created 2 chunks from https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-desert-by-zip-code-twc.xlsx
+2025-10-09 16:08:52,318 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/work-based-learning-staffing-initiatives
+2025-10-09 16:08:52,322 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care
+2025-10-09 16:08:52,322 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/children-with-disabilities
+2025-10-09 16:08:52,333 - content_processor - INFO - Created 3 chunks from https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-provider-expansion-initiative-twc.docx
+2025-10-09 16:08:52,334 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care-prekindergarten-partnerships
+2025-10-09 16:08:52,334 - __main__ - INFO - Processed 20/24 pages, 43 chunks so far
+2025-10-09 16:08:52,371 - content_processor - INFO - Created 11 chunks from https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-numbers-data-annual.xlsx
+2025-10-09 16:08:52,372 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/free-child-care-business-resources
+2025-10-09 16:08:52,381 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/sites/default/files/ccel/docs/ccs-program-overview-spanish-twc.docx
+2025-10-09 16:08:52,382 - content_processor - INFO - Created 1 chunks from https://www.twc.texas.gov/programs/child-care/stimulus-resources
+2025-10-09 16:08:52,382 - __main__ - INFO - Created 57 total chunks
+2025-10-09 16:08:52,415 - content_processor - INFO - Deduplicated 57 chunks to 53 unique chunks
+2025-10-09 16:08:52,415 - __main__ - INFO - After deduplication: 53 unique chunks
+2025-10-09 16:08:52,434 - __main__ - INFO - Chunks saved to /home/tromanow/COHORT/TX/scraped_content/processed/content_chunks.json
+2025-10-09 16:08:52,434 - __main__ - INFO - ============================================================
+2025-10-09 16:08:52,434 - __main__ - INFO - PHASE 3: ANALYSIS & REPORTING
+2025-10-09 16:08:52,434 - __main__ - INFO - ============================================================
+2025-10-09 16:08:52,453 - site_mapper - INFO - Loaded 24 total pages
+2025-10-09 16:08:52,455 - site_mapper - INFO - Site map created: {'hub_pages': 10, 'content_pages': 14, 'pdf_documents': 0, 'unique_domains': 1, 'external_domains_referenced': 60}
+2025-10-09 16:08:52,456 - site_mapper - INFO - Site map saved to /home/tromanow/COHORT/TX/scraped_content/processed/site_map.json
+2025-10-09 16:08:52,456 - __main__ - INFO - Analysis report saved to /home/tromanow/COHORT/TX/scraped_content/reports/content_analysis.txt
+2025-10-09 16:08:52,457 - __main__ - INFO - ============================================================
+2025-10-09 16:08:52,457 - __main__ - INFO - PIPELINE COMPLETE!
+2025-10-09 16:08:52,457 - __main__ - INFO - ============================================================
+2025-10-09 16:08:52,457 - root - INFO - All phases completed successfully!
+2025-10-09 16:08:52,457 - root - INFO - Output files:
+2025-10-09 16:08:52,457 - root - INFO -   - Chunks: /home/tromanow/COHORT/TX/scraped_content/processed/content_chunks.json
+2025-10-09 16:08:52,457 - root - INFO -   - Site map: /home/tromanow/COHORT/TX/scraped_content/processed/site_map.json
+2025-10-09 16:08:52,457 - root - INFO -   - Analysis: /home/tromanow/COHORT/TX/scraped_content/reports/content_analysis.txt
+2025-10-09 16:08:52,457 - root - INFO -   - Log: /home/tromanow/COHORT/TX/scraped_content/reports/scraping_log.txt
+
+======================================================================
+TEXAS CHILD CARE SOLUTIONS - SCRAPING ANALYSIS REPORT
+======================================================================
+Generated: 2025-10-09 16:08:52
+
+SCRAPING SUMMARY
+======================================================================
+Start URLs: https://texaschildcaresolutions.org/financial-assistance-for-child-care/, https://www.twc.texas.gov/programs/child-care, https://childcare.twc.texas.gov/
+Total pages scraped: 24
+Total PDFs processed: 0
+Total chunks created: 53
+Scraping time: 79.3 seconds
+
+CONTENT BREAKDOWN
+======================================================================
+By content type:
+  - faq: 32 chunks (60.4%)
+  - general: 8 chunks (15.1%)
+  - application_process: 5 chunks (9.4%)
+  - eligibility_criteria: 4 chunks (7.5%)
+  - navigation: 2 chunks (3.8%)
+  - contact_info: 1 chunks (1.9%)
+  - policy: 1 chunks (1.9%)
+
+By source domain:
+  - www.twc.texas.gov: 53 chunks (100.0%)
+
+QUALITY METRICS
+======================================================================
+Average chunk word count: 871.1
+Total content words: 46,166
+Pages skipped (too thin): 2
+Pages with errors: 9
+Duplicate chunks removed: 4
+
+SITE STRUCTURE
+======================================================================
+Hub pages (navigation): 10
+Content pages: 14
+PDF documents: 0
+Unique domains scraped: 1
+
+RECOMMENDATIONS
+======================================================================
+  ✓ Good chunk count achieved.
+  ✓ Chunk sizes are well-balanced.
+  ⚠ High error rate (>10%). Check failed URLs in logs.
+
+======================================================================
+NEXT STEPS
+======================================================================
+1. Review content_chunks.json for vector DB ingestion
+2. Check site_map.json for navigation structure
+3. Review scraping_log.txt for detailed execution log
+4. Load chunks into your vector database
+======================================================================

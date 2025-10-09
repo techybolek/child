@@ -1,0 +1,54 @@
+======================================================================
+TEXAS CHILD CARE SOLUTIONS - SCRAPING ANALYSIS REPORT
+======================================================================
+Generated: 2025-10-09 17:25:17
+
+SCRAPING SUMMARY
+======================================================================
+Start URLs: https://texaschildcaresolutions.org/financial-assistance-for-child-care/, https://www.twc.texas.gov/programs/child-care, https://childcare.twc.texas.gov/
+Total pages scraped: 5
+Total PDFs processed: 0
+Total chunks created: 13
+Scraping time: 18.8 seconds
+
+CONTENT BREAKDOWN
+======================================================================
+By content type:
+  - application_process: 5 chunks (38.5%)
+  - eligibility_criteria: 4 chunks (30.8%)
+  - navigation: 2 chunks (15.4%)
+  - contact_info: 1 chunks (7.7%)
+  - policy: 1 chunks (7.7%)
+
+By source domain:
+  - www.twc.texas.gov: 13 chunks (100.0%)
+
+QUALITY METRICS
+======================================================================
+Average chunk word count: 756.8
+Total content words: 9,839
+Pages skipped (too thin): 2
+Pages with errors: 0
+Duplicate chunks removed: 0
+
+SITE STRUCTURE
+======================================================================
+Hub pages (navigation): 10
+Content pages: 14
+PDF documents: 0
+Unique domains scraped: 2
+
+RECOMMENDATIONS
+======================================================================
+  ⚠ Low chunk count. Consider expanding to more domains or pages.
+  ✓ Chunk sizes are well-balanced.
+  ✓ Low error rate.
+
+======================================================================
+NEXT STEPS
+======================================================================
+1. Review content_chunks.json for vector DB ingestion
+2. Check site_map.json for navigation structure
+3. Review scraping_log.txt for detailed execution log
+4. Load chunks into your vector database
+======================================================================
