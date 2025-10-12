@@ -1,6 +1,6 @@
 """
-PDF extraction module for Texas Child Care Solutions scraper
-Handles downloading and text extraction from PDF documents
+PDF downloader module for Texas Child Care Solutions scraper
+Handles PDF downloading and metadata collection
 """
 
 import os
@@ -15,7 +15,7 @@ try:
     PYMUPDF_AVAILABLE = True
 except ImportError:
     PYMUPDF_AVAILABLE = False
-    logging.warning("PyMuPDF not available. PDF extraction will be disabled.")
+    logging.warning("PyMuPDF not available. Page count metadata will be unavailable.")
 
 import config
 
@@ -24,14 +24,14 @@ logger = logging.getLogger(__name__)
 
 
 class PDFExtractor:
-    """Handles PDF downloading and text extraction."""
+    """Handles PDF downloading and metadata collection."""
 
     def __init__(self, output_dir: str = None):
         """
         Initialize PDF extractor.
 
         Args:
-            output_dir: Directory to save extracted PDF text
+            output_dir: Directory to save downloaded PDFs
         """
         self.output_dir = output_dir or config.PDFS_DIR
         self.user_agent = config.USER_AGENT
@@ -42,7 +42,7 @@ class PDFExtractor:
         os.makedirs(self.output_dir, exist_ok=True)
 
         if not PYMUPDF_AVAILABLE:
-            logger.warning("PyMuPDF not installed. PDF extraction disabled.")
+            logger.warning("PyMuPDF not installed. Page count metadata unavailable.")
 
     def _generate_pdf_id(self, url: str) -> str:
         """Generate a unique ID for a PDF URL."""

@@ -7,11 +7,13 @@ import os
 from datetime import datetime
 
 # ===== PROJECT PATHS =====
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Get parent directory (project root) since config.py is now in SCRAPER/
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRAPED_CONTENT_DIR = os.path.join(BASE_DIR, 'scraped_content')
 RAW_DIR = os.path.join(SCRAPED_CONTENT_DIR, 'raw')
 PAGES_DIR = os.path.join(RAW_DIR, 'pages')
 PDFS_DIR = os.path.join(RAW_DIR, 'pdfs')
+DOCUMENTS_DIR = os.path.join(RAW_DIR, 'documents')
 PROCESSED_DIR = os.path.join(SCRAPED_CONTENT_DIR, 'processed')
 REPORTS_DIR = os.path.join(SCRAPED_CONTENT_DIR, 'reports')
 
@@ -60,6 +62,24 @@ MAX_PAGES = 500               # Maximum pages to scrape total
 MAX_PDF_SIZE_MB = 50          # Skip PDFs larger than this
 MAX_DOCUMENT_SIZE_MB = 50     # Skip documents larger than this
 MIN_CONTENT_WORDS = 100       # Skip pages with less content than this
+
+# ===== PDF/DOCUMENT EXCLUSIONS =====
+# PDFs and documents to skip (translations, duplicates, etc.)
+EXCLUDED_PDF_FILENAMES = [
+    'child-care-services-parent-rights-vietnamese.pdf',
+    'parent-tx3c-attendance-help-vietnames-twc.pdf',
+    'provider-attendance-matrix-vietnamese-twc.pdf',
+    'ccdf-emergency-preparedness-disaster-response-plan-2021-twc.pdf',
+    'child-care-services-parent-rights-espanol-twc.pdf',
+    'provider-attendance-matrix-español-twc.pdf',
+    'child-care-quality-performance-report-2021-twc.pdf',
+    'evaluation-of-the-effectiveness-of-child-care-report-to-87th-legislature-2021-twc.pdf',
+    'acf-218-qpr-ffy-2022-for-texas.pdf',
+    'tx-pdg-renewal-application-2022-public.pdf',
+    'acf-218-qpr-ffy-2023-for-texas.pdf',
+    'child-care-teacher-desk-aid-march-2023-twc.pdf',
+    'texas-pcqc-user-guide-2023.pdf',
+]
 
 # ===== DOCUMENT EXTRACTION =====
 # Supported document types
@@ -189,3 +209,16 @@ def is_twc_child_care_url(url):
 def should_process_domain(domain):
     """Check if a domain should be processed."""
     return any(allowed in domain.lower() for allowed in ALLOWED_DOMAINS)
+
+def is_excluded_pdf(url):
+    """Check if a PDF URL should be excluded."""
+    from urllib.parse import unquote
+
+    # Decode URL-encoded characters (like %C3%B1 for ñ)
+    decoded_url = unquote(url.lower())
+
+    # Check if any excluded filename is in the URL
+    for excluded_filename in EXCLUDED_PDF_FILENAMES:
+        if excluded_filename.lower() in decoded_url:
+            return True
+    return False

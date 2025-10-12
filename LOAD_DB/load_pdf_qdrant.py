@@ -4,12 +4,16 @@ Extracts text from PDFs, chunks them, generates embeddings, and uploads to Qdran
 """
 
 import os
+import sys
 import json
 import logging
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import glob
+
+# Add parent directory to path to import SCRAPER module
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -21,7 +25,7 @@ try:
 except ImportError as e:
     raise ImportError(f"Required libraries missing: {e}\nInstall with: pip install -r requirements.txt")
 
-import config
+from SCRAPER import config
 
 # Set up logging
 logging.basicConfig(

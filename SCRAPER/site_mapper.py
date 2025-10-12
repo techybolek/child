@@ -18,16 +18,18 @@ logger = logging.getLogger(__name__)
 class SiteMapper:
     """Analyzes scraped content and creates site structure maps."""
 
-    def __init__(self, pages_dir: str = None, pdfs_dir: str = None):
+    def __init__(self, pages_dir: str = None, pdfs_dir: str = None, documents_dir: str = None):
         """
         Initialize site mapper.
 
         Args:
             pages_dir: Directory containing scraped page JSON files
-            pdfs_dir: Directory containing extracted PDF JSON files
+            pdfs_dir: Directory containing PDF metadata JSON files
+            documents_dir: Directory containing document metadata JSON files
         """
         self.pages_dir = pages_dir or config.PAGES_DIR
         self.pdfs_dir = pdfs_dir or config.PDFS_DIR
+        self.documents_dir = documents_dir or config.DOCUMENTS_DIR
 
     def is_document(self, page: Dict[str, Any]) -> bool:
         """
@@ -71,6 +73,18 @@ class SiteMapper:
             for filename in os.listdir(self.pdfs_dir):
                 if filename.endswith('.json'):
                     filepath = os.path.join(self.pdfs_dir, filename)
+                    try:
+                        with open(filepath, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                            pages.append(data)
+                    except Exception as e:
+                        logger.error(f"Failed to load {filepath}: {e}")
+
+        # Load documents
+        if os.path.exists(self.documents_dir):
+            for filename in os.listdir(self.documents_dir):
+                if filename.endswith('.json'):
+                    filepath = os.path.join(self.documents_dir, filename)
                     try:
                         with open(filepath, 'r', encoding='utf-8') as f:
                             data = json.load(f)

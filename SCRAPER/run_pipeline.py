@@ -24,6 +24,7 @@ def ensure_directories():
         config.RAW_DIR,
         config.PAGES_DIR,
         config.PDFS_DIR,
+        config.DOCUMENTS_DIR,
         config.PROCESSED_DIR,
         config.REPORTS_DIR,
     ]
@@ -108,7 +109,9 @@ class ScrapingPipeline:
 
         logger.info(f"Scraping complete:")
         logger.info(f"  - Pages scraped: {self.scraping_stats['pages_scraped']}")
-        logger.info(f"  - PDFs extracted: {self.scraping_stats['pdfs_extracted']}")
+        logger.info(f"  - Documents downloaded: {self.scraping_stats.get('documents_downloaded', 0)}")
+        logger.info(f"  - PDFs downloaded: {self.scraping_stats['pdfs_downloaded']}")
+        logger.info(f"  - PDFs excluded: {self.scraping_stats.get('pdfs_excluded', 0)}")
         logger.info(f"  - Pages skipped (thin): {self.scraping_stats['pages_skipped']}")
         logger.info(f"  - Errors: {self.scraping_stats['errors']}")
         logger.info(f"  - Time: {self.scraping_stats['elapsed_seconds']:.1f}s")
@@ -211,7 +214,8 @@ class ScrapingPipeline:
             "=" * 70,
             f"Start URLs: {', '.join(config.SEED_URLS)}",
             f"Total pages scraped: {self.scraping_stats.get('pages_scraped', 0)}",
-            f"Total PDFs processed: {self.scraping_stats.get('pdfs_extracted', 0)}",
+            f"Total documents downloaded: {self.scraping_stats.get('documents_downloaded', 0)}",
+            f"Total PDFs downloaded: {self.scraping_stats.get('pdfs_downloaded', 0)}",
             f"Total chunks created: {len(self.all_chunks)}",
             f"Scraping time: {self.scraping_stats.get('elapsed_seconds', 0):.1f} seconds",
             "",

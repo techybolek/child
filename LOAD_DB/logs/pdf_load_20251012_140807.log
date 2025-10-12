@@ -1,0 +1,532 @@
+2025-10-12 14:08:07,712 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333 "HTTP/1.1 200 OK"
+2025-10-12 14:08:07,713 - __main__ - INFO - Initializing OpenAI embeddings: text-embedding-3-small
+2025-10-12 14:08:07,992 - __main__ - INFO - Starting PDF to Qdrant loading process
+2025-10-12 14:08:07,992 - __main__ - INFO - Test mode: False
+2025-10-12 14:08:07,992 - __main__ - INFO - Clear collection: True
+2025-10-12 14:08:08,232 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections "HTTP/1.1 200 OK"
+2025-10-12 14:08:08,233 - __main__ - WARNING - Deleting existing collection 'tro-child-1'
+2025-10-12 14:08:08,380 - httpx - INFO - HTTP Request: DELETE https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:08,381 - __main__ - INFO - Collection deleted successfully
+2025-10-12 14:08:08,381 - __main__ - INFO - Creating fresh collection 'tro-child-1'
+2025-10-12 14:08:08,627 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:08,628 - __main__ - INFO - Collection created successfully
+2025-10-12 14:08:08,628 - __main__ - INFO - Found 36 PDF files to process
+2025-10-12 14:08:08,628 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:08,629 - __main__ - INFO - Processing PDF 1/36: texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-12 14:08:08,629 - __main__ - INFO - ============================================================
+2025-10-12 14:08:08,629 - __main__ - INFO - Processing PDF: texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-12 14:08:08,790 - __main__ - INFO - Loaded 52 pages from texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-12 14:08:08,792 - __main__ - INFO - Created 90 chunks from texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-12 14:08:08,793 - __main__ - INFO - Generating embeddings for 90 chunks...
+2025-10-12 14:08:09,751 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:09,978 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:11,619 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:11,622 - __main__ - INFO - Uploaded batch 1 (90 points)
+2025-10-12 14:08:11,622 - __main__ - INFO - Successfully uploaded 90 chunks to Qdrant
+2025-10-12 14:08:11,623 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:11,624 - __main__ - INFO - Processing PDF 2/36: trs-parent-brochure.pdf
+2025-10-12 14:08:11,624 - __main__ - INFO - ============================================================
+2025-10-12 14:08:11,624 - __main__ - INFO - Processing PDF: trs-parent-brochure.pdf
+2025-10-12 14:08:12,052 - __main__ - INFO - Loaded 2 pages from trs-parent-brochure.pdf
+2025-10-12 14:08:12,054 - __main__ - INFO - Created 4 chunks from trs-parent-brochure.pdf
+2025-10-12 14:08:12,055 - __main__ - INFO - Generating embeddings for 4 chunks...
+2025-10-12 14:08:12,331 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:12,418 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:12,605 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:12,605 - __main__ - INFO - Uploaded batch 1 (4 points)
+2025-10-12 14:08:12,605 - __main__ - INFO - Successfully uploaded 4 chunks to Qdrant
+2025-10-12 14:08:12,606 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:12,606 - __main__ - INFO - Processing PDF 3/36: early-childhood-system-needs-assessment-in-texas-final-accessible.pdf
+2025-10-12 14:08:12,606 - __main__ - INFO - ============================================================
+2025-10-12 14:08:12,606 - __main__ - INFO - Processing PDF: early-childhood-system-needs-assessment-in-texas-final-accessible.pdf
+2025-10-12 14:08:12,881 - __main__ - INFO - Loaded 141 pages from early-childhood-system-needs-assessment-in-texas-final-accessible.pdf
+2025-10-12 14:08:12,891 - __main__ - INFO - Created 324 chunks from early-childhood-system-needs-assessment-in-texas-final-accessible.pdf
+2025-10-12 14:08:12,891 - __main__ - INFO - Generating embeddings for 324 chunks...
+2025-10-12 14:08:14,798 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:15,065 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:16,818 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:16,818 - __main__ - INFO - Uploaded batch 1 (100 points)
+2025-10-12 14:08:18,305 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:18,306 - __main__ - INFO - Uploaded batch 2 (100 points)
+2025-10-12 14:08:19,835 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:19,836 - __main__ - INFO - Uploaded batch 3 (100 points)
+2025-10-12 14:08:20,243 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:20,243 - __main__ - INFO - Uploaded batch 4 (24 points)
+2025-10-12 14:08:20,243 - __main__ - INFO - Successfully uploaded 324 chunks to Qdrant
+2025-10-12 14:08:20,248 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:20,248 - __main__ - INFO - Processing PDF 4/36: child-care-stakeholder-input-policy-twc.pdf
+2025-10-12 14:08:20,248 - __main__ - INFO - ============================================================
+2025-10-12 14:08:20,248 - __main__ - INFO - Processing PDF: child-care-stakeholder-input-policy-twc.pdf
+2025-10-12 14:08:20,258 - __main__ - INFO - Loaded 5 pages from child-care-stakeholder-input-policy-twc.pdf
+2025-10-12 14:08:20,258 - __main__ - INFO - Created 12 chunks from child-care-stakeholder-input-policy-twc.pdf
+2025-10-12 14:08:20,259 - __main__ - INFO - Generating embeddings for 12 chunks...
+2025-10-12 14:08:21,343 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:21,494 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:22,009 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:22,010 - __main__ - INFO - Uploaded batch 1 (12 points)
+2025-10-12 14:08:22,010 - __main__ - INFO - Successfully uploaded 12 chunks to Qdrant
+2025-10-12 14:08:22,010 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:22,010 - __main__ - INFO - Processing PDF 5/36: trs-parent-brochure-spa.pdf
+2025-10-12 14:08:22,011 - __main__ - INFO - ============================================================
+2025-10-12 14:08:22,011 - __main__ - INFO - Processing PDF: trs-parent-brochure-spa.pdf
+2025-10-12 14:08:22,019 - __main__ - INFO - Loaded 2 pages from trs-parent-brochure-spa.pdf
+2025-10-12 14:08:22,019 - __main__ - INFO - Created 5 chunks from trs-parent-brochure-spa.pdf
+2025-10-12 14:08:22,019 - __main__ - INFO - Generating embeddings for 5 chunks...
+2025-10-12 14:08:20,960 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:21,079 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:21,422 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:21,423 - __main__ - INFO - Uploaded batch 1 (5 points)
+2025-10-12 14:08:21,423 - __main__ - INFO - Successfully uploaded 5 chunks to Qdrant
+2025-10-12 14:08:21,424 - __main__ - INFO - Checkpoint saved to /home/tromanow/COHORT/TX/LOAD_DB/checkpoints/checkpoint_20251012_140821.json
+2025-10-12 14:08:21,424 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:21,424 - __main__ - INFO - Processing PDF 6/36: tx-pdg-b5-year-one-accomplishments.pdf
+2025-10-12 14:08:21,424 - __main__ - INFO - ============================================================
+2025-10-12 14:08:21,424 - __main__ - INFO - Processing PDF: tx-pdg-b5-year-one-accomplishments.pdf
+2025-10-12 14:08:21,444 - __main__ - INFO - Loaded 2 pages from tx-pdg-b5-year-one-accomplishments.pdf
+2025-10-12 14:08:21,445 - __main__ - INFO - Created 6 chunks from tx-pdg-b5-year-one-accomplishments.pdf
+2025-10-12 14:08:21,445 - __main__ - INFO - Generating embeddings for 6 chunks...
+2025-10-12 14:08:22,185 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:22,303 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:22,601 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:22,603 - __main__ - INFO - Uploaded batch 1 (6 points)
+2025-10-12 14:08:22,603 - __main__ - INFO - Successfully uploaded 6 chunks to Qdrant
+2025-10-12 14:08:22,603 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:22,603 - __main__ - INFO - Processing PDF 7/36: wd-24-23-att1-twc.pdf
+2025-10-12 14:08:22,603 - __main__ - INFO - ============================================================
+2025-10-12 14:08:22,603 - __main__ - INFO - Processing PDF: wd-24-23-att1-twc.pdf
+2025-10-12 14:08:22,617 - __main__ - INFO - Loaded 2 pages from wd-24-23-att1-twc.pdf
+2025-10-12 14:08:22,617 - __main__ - INFO - Created 4 chunks from wd-24-23-att1-twc.pdf
+2025-10-12 14:08:22,617 - __main__ - INFO - Generating embeddings for 4 chunks...
+2025-10-12 14:08:23,014 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:23,099 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:23,268 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:23,270 - __main__ - INFO - Uploaded batch 1 (4 points)
+2025-10-12 14:08:23,270 - __main__ - INFO - Successfully uploaded 4 chunks to Qdrant
+2025-10-12 14:08:23,270 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:23,270 - __main__ - INFO - Processing PDF 8/36: commission_meeting_material_02.01.22_item10_dp_5th_tranche_crrsa_arpa_projects.pdf
+2025-10-12 14:08:23,270 - __main__ - INFO - ============================================================
+2025-10-12 14:08:23,270 - __main__ - INFO - Processing PDF: commission_meeting_material_02.01.22_item10_dp_5th_tranche_crrsa_arpa_projects.pdf
+2025-10-12 14:08:23,297 - __main__ - INFO - Loaded 9 pages from commission_meeting_material_02.01.22_item10_dp_5th_tranche_crrsa_arpa_projects.pdf
+2025-10-12 14:08:23,298 - __main__ - INFO - Created 34 chunks from commission_meeting_material_02.01.22_item10_dp_5th_tranche_crrsa_arpa_projects.pdf
+2025-10-12 14:08:23,298 - __main__ - INFO - Generating embeddings for 34 chunks...
+2025-10-12 14:08:23,743 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:23,956 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:24,610 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:24,611 - __main__ - INFO - Uploaded batch 1 (34 points)
+2025-10-12 14:08:24,611 - __main__ - INFO - Successfully uploaded 34 chunks to Qdrant
+2025-10-12 14:08:24,611 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:24,611 - __main__ - INFO - Processing PDF 9/36: tx3c-desk-aid-provider-payment-proof-twc.pdf
+2025-10-12 14:08:24,611 - __main__ - INFO - ============================================================
+2025-10-12 14:08:24,611 - __main__ - INFO - Processing PDF: tx3c-desk-aid-provider-payment-proof-twc.pdf
+2025-10-12 14:08:24,621 - __main__ - INFO - Loaded 8 pages from tx3c-desk-aid-provider-payment-proof-twc.pdf
+2025-10-12 14:08:24,621 - __main__ - INFO - Created 8 chunks from tx3c-desk-aid-provider-payment-proof-twc.pdf
+2025-10-12 14:08:24,621 - __main__ - INFO - Generating embeddings for 8 chunks...
+2025-10-12 14:08:25,500 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:25,609 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:25,932 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:25,932 - __main__ - INFO - Uploaded batch 1 (8 points)
+2025-10-12 14:08:25,932 - __main__ - INFO - Successfully uploaded 8 chunks to Qdrant
+2025-10-12 14:08:25,932 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:25,932 - __main__ - INFO - Processing PDF 10/36: pdg-simple-yr2-highlights-twc.pdf
+2025-10-12 14:08:25,932 - __main__ - INFO - ============================================================
+2025-10-12 14:08:25,933 - __main__ - INFO - Processing PDF: pdg-simple-yr2-highlights-twc.pdf
+2025-10-12 14:08:25,941 - __main__ - INFO - Loaded 5 pages from pdg-simple-yr2-highlights-twc.pdf
+2025-10-12 14:08:25,941 - __main__ - INFO - Created 7 chunks from pdg-simple-yr2-highlights-twc.pdf
+2025-10-12 14:08:25,941 - __main__ - INFO - Generating embeddings for 7 chunks...
+2025-10-12 14:08:26,704 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:26,815 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:27,152 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:27,154 - __main__ - INFO - Uploaded batch 1 (7 points)
+2025-10-12 14:08:27,154 - __main__ - INFO - Successfully uploaded 7 chunks to Qdrant
+2025-10-12 14:08:27,155 - __main__ - INFO - Checkpoint saved to /home/tromanow/COHORT/TX/LOAD_DB/checkpoints/checkpoint_20251012_140827.json
+2025-10-12 14:08:27,155 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:27,155 - __main__ - INFO - Processing PDF 11/36: commission-meeting-materials-01.10.23-item3-valuation-effectiveness-child-care-report-88-leg.pdf
+2025-10-12 14:08:27,155 - __main__ - INFO - ============================================================
+2025-10-12 14:08:27,155 - __main__ - INFO - Processing PDF: commission-meeting-materials-01.10.23-item3-valuation-effectiveness-child-care-report-88-leg.pdf
+2025-10-12 14:08:27,378 - __main__ - INFO - Loaded 34 pages from commission-meeting-materials-01.10.23-item3-valuation-effectiveness-child-care-report-88-leg.pdf
+2025-10-12 14:08:27,385 - __main__ - INFO - Created 125 chunks from commission-meeting-materials-01.10.23-item3-valuation-effectiveness-child-care-report-88-leg.pdf
+2025-10-12 14:08:27,385 - __main__ - INFO - Generating embeddings for 125 chunks...
+2025-10-12 14:08:28,106 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:28,285 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:30,046 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:30,046 - __main__ - INFO - Uploaded batch 1 (100 points)
+2025-10-12 14:08:30,481 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:30,481 - __main__ - INFO - Uploaded batch 2 (25 points)
+2025-10-12 14:08:30,482 - __main__ - INFO - Successfully uploaded 125 chunks to Qdrant
+2025-10-12 14:08:30,485 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:30,486 - __main__ - INFO - Processing PDF 12/36: bcy25-board-max-provider-payment-rates-4-age-groups-twc.pdf
+2025-10-12 14:08:30,486 - __main__ - INFO - ============================================================
+2025-10-12 14:08:30,486 - __main__ - INFO - Processing PDF: bcy25-board-max-provider-payment-rates-4-age-groups-twc.pdf
+2025-10-12 14:08:30,642 - __main__ - INFO - Loaded 28 pages from bcy25-board-max-provider-payment-rates-4-age-groups-twc.pdf
+2025-10-12 14:08:30,648 - __main__ - INFO - Created 84 chunks from bcy25-board-max-provider-payment-rates-4-age-groups-twc.pdf
+2025-10-12 14:08:30,648 - __main__ - INFO - Generating embeddings for 84 chunks...
+2025-10-12 14:08:32,207 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:32,349 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:33,893 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:33,894 - __main__ - INFO - Uploaded batch 1 (84 points)
+2025-10-12 14:08:33,894 - __main__ - INFO - Successfully uploaded 84 chunks to Qdrant
+2025-10-12 14:08:33,895 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:33,895 - __main__ - INFO - Processing PDF 13/36: bcy2025-psoc-chart-twc.pdf
+2025-10-12 14:08:33,895 - __main__ - INFO - ============================================================
+2025-10-12 14:08:33,896 - __main__ - INFO - Processing PDF: bcy2025-psoc-chart-twc.pdf
+2025-10-12 14:08:33,903 - __main__ - INFO - Loaded 1 pages from bcy2025-psoc-chart-twc.pdf
+2025-10-12 14:08:33,904 - __main__ - INFO - Created 3 chunks from bcy2025-psoc-chart-twc.pdf
+2025-10-12 14:08:33,904 - __main__ - INFO - Generating embeddings for 3 chunks...
+2025-10-12 14:08:34,483 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:34,565 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:34,728 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:34,730 - __main__ - INFO - Uploaded batch 1 (3 points)
+2025-10-12 14:08:34,730 - __main__ - INFO - Successfully uploaded 3 chunks to Qdrant
+2025-10-12 14:08:34,730 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:34,730 - __main__ - INFO - Processing PDF 14/36: evaluation-effectiveness-child-care-program-85-legislature-twc.pdf
+2025-10-12 14:08:34,730 - __main__ - INFO - ============================================================
+2025-10-12 14:08:34,730 - __main__ - INFO - Processing PDF: evaluation-effectiveness-child-care-program-85-legislature-twc.pdf
+2025-10-12 14:08:34,808 - __main__ - INFO - Loaded 20 pages from evaluation-effectiveness-child-care-program-85-legislature-twc.pdf
+2025-10-12 14:08:34,810 - __main__ - INFO - Created 61 chunks from evaluation-effectiveness-child-care-program-85-legislature-twc.pdf
+2025-10-12 14:08:34,810 - __main__ - INFO - Generating embeddings for 61 chunks...
+2025-10-12 14:08:35,368 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:35,521 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:36,597 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:36,597 - __main__ - INFO - Uploaded batch 1 (61 points)
+2025-10-12 14:08:36,597 - __main__ - INFO - Successfully uploaded 61 chunks to Qdrant
+2025-10-12 14:08:36,598 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:36,598 - __main__ - INFO - Processing PDF 15/36: evaluation-effectiveness-child-care-program-84-legislature-twc.pdf
+2025-10-12 14:08:36,598 - __main__ - INFO - ============================================================
+2025-10-12 14:08:36,598 - __main__ - INFO - Processing PDF: evaluation-effectiveness-child-care-program-84-legislature-twc.pdf
+2025-10-12 14:08:36,630 - __main__ - INFO - Loaded 7 pages from evaluation-effectiveness-child-care-program-84-legislature-twc.pdf
+2025-10-12 14:08:36,631 - __main__ - INFO - Created 23 chunks from evaluation-effectiveness-child-care-program-84-legislature-twc.pdf
+2025-10-12 14:08:36,631 - __main__ - INFO - Generating embeddings for 23 chunks...
+2025-10-12 14:08:37,051 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:37,284 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:37,766 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:37,767 - __main__ - INFO - Uploaded batch 1 (23 points)
+2025-10-12 14:08:37,767 - __main__ - INFO - Successfully uploaded 23 chunks to Qdrant
+2025-10-12 14:08:37,768 - __main__ - INFO - Checkpoint saved to /home/tromanow/COHORT/TX/LOAD_DB/checkpoints/checkpoint_20251012_140837.json
+2025-10-12 14:08:37,768 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:37,768 - __main__ - INFO - Processing PDF 16/36: 2025-2027-tx-state-plan-stakeholder-input-twc.pdf
+2025-10-12 14:08:37,768 - __main__ - INFO - ============================================================
+2025-10-12 14:08:37,768 - __main__ - INFO - Processing PDF: 2025-2027-tx-state-plan-stakeholder-input-twc.pdf
+2025-10-12 14:08:37,783 - __main__ - INFO - Loaded 21 pages from 2025-2027-tx-state-plan-stakeholder-input-twc.pdf
+2025-10-12 14:08:37,784 - __main__ - INFO - Created 21 chunks from 2025-2027-tx-state-plan-stakeholder-input-twc.pdf
+2025-10-12 14:08:37,784 - __main__ - INFO - Generating embeddings for 21 chunks...
+2025-10-12 14:08:38,056 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:38,245 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:38,656 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:38,657 - __main__ - INFO - Uploaded batch 1 (21 points)
+2025-10-12 14:08:38,657 - __main__ - INFO - Successfully uploaded 21 chunks to Qdrant
+2025-10-12 14:08:38,658 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:38,658 - __main__ - INFO - Processing PDF 17/36: child-care-provider-desk-aid-twc.pdf
+2025-10-12 14:08:38,658 - __main__ - INFO - ============================================================
+2025-10-12 14:08:38,658 - __main__ - INFO - Processing PDF: child-care-provider-desk-aid-twc.pdf
+2025-10-12 14:08:38,693 - __main__ - INFO - Loaded 18 pages from child-care-provider-desk-aid-twc.pdf
+2025-10-12 14:08:38,694 - __main__ - INFO - Created 18 chunks from child-care-provider-desk-aid-twc.pdf
+2025-10-12 14:08:38,694 - __main__ - INFO - Generating embeddings for 18 chunks...
+2025-10-12 14:08:38,950 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:39,072 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:39,463 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:39,464 - __main__ - INFO - Uploaded batch 1 (18 points)
+2025-10-12 14:08:39,464 - __main__ - INFO - Successfully uploaded 18 chunks to Qdrant
+2025-10-12 14:08:39,465 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:39,465 - __main__ - INFO - Processing PDF 18/36: child-care-services-parent-rights-twc.pdf
+2025-10-12 14:08:39,465 - __main__ - INFO - ============================================================
+2025-10-12 14:08:39,465 - __main__ - INFO - Processing PDF: child-care-services-parent-rights-twc.pdf
+2025-10-12 14:08:39,504 - __main__ - INFO - Loaded 5 pages from child-care-services-parent-rights-twc.pdf
+2025-10-12 14:08:39,505 - __main__ - INFO - Created 17 chunks from child-care-services-parent-rights-twc.pdf
+2025-10-12 14:08:39,505 - __main__ - INFO - Generating embeddings for 17 chunks...
+2025-10-12 14:08:40,260 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:40,435 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:40,913 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:40,913 - __main__ - INFO - Uploaded batch 1 (17 points)
+2025-10-12 14:08:40,913 - __main__ - INFO - Successfully uploaded 17 chunks to Qdrant
+2025-10-12 14:08:40,914 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:40,914 - __main__ - INFO - Processing PDF 19/36: acf-218-qpr-ffy-2024-for-texas.pdf
+2025-10-12 14:08:40,914 - __main__ - INFO - ============================================================
+2025-10-12 14:08:40,914 - __main__ - INFO - Processing PDF: acf-218-qpr-ffy-2024-for-texas.pdf
+2025-10-12 14:08:41,043 - __main__ - INFO - Loaded 64 pages from acf-218-qpr-ffy-2024-for-texas.pdf
+2025-10-12 14:08:41,046 - __main__ - INFO - Created 152 chunks from acf-218-qpr-ffy-2024-for-texas.pdf
+2025-10-12 14:08:41,046 - __main__ - INFO - Generating embeddings for 152 chunks...
+2025-10-12 14:08:41,813 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:41,990 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:43,687 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:43,688 - __main__ - INFO - Uploaded batch 1 (100 points)
+2025-10-12 14:08:44,480 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:44,480 - __main__ - INFO - Uploaded batch 2 (52 points)
+2025-10-12 14:08:44,481 - __main__ - INFO - Successfully uploaded 152 chunks to Qdrant
+2025-10-12 14:08:44,485 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:44,486 - __main__ - INFO - Processing PDF 20/36: bcy-26-psoc-chart-twc.pdf
+2025-10-12 14:08:44,486 - __main__ - INFO - ============================================================
+2025-10-12 14:08:44,486 - __main__ - INFO - Processing PDF: bcy-26-psoc-chart-twc.pdf
+2025-10-12 14:08:44,500 - __main__ - INFO - Loaded 1 pages from bcy-26-psoc-chart-twc.pdf
+2025-10-12 14:08:44,500 - __main__ - INFO - Created 3 chunks from bcy-26-psoc-chart-twc.pdf
+2025-10-12 14:08:44,501 - __main__ - INFO - Generating embeddings for 3 chunks...
+2025-10-12 14:08:44,790 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:44,885 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:44,999 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:45,000 - __main__ - INFO - Uploaded batch 1 (3 points)
+2025-10-12 14:08:45,000 - __main__ - INFO - Successfully uploaded 3 chunks to Qdrant
+2025-10-12 14:08:45,000 - __main__ - INFO - Checkpoint saved to /home/tromanow/COHORT/TX/LOAD_DB/checkpoints/checkpoint_20251012_140845.json
+2025-10-12 14:08:45,000 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:45,000 - __main__ - INFO - Processing PDF 21/36: child-care-workforce-strategic-plan.pdf
+2025-10-12 14:08:45,000 - __main__ - INFO - ============================================================
+2025-10-12 14:08:45,000 - __main__ - INFO - Processing PDF: child-care-workforce-strategic-plan.pdf
+2025-10-12 14:08:45,113 - __main__ - INFO - Loaded 68 pages from child-care-workforce-strategic-plan.pdf
+2025-10-12 14:08:45,117 - __main__ - INFO - Created 178 chunks from child-care-workforce-strategic-plan.pdf
+2025-10-12 14:08:45,117 - __main__ - INFO - Generating embeddings for 178 chunks...
+2025-10-12 14:08:46,115 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:46,440 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:48,178 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:48,178 - __main__ - INFO - Uploaded batch 1 (100 points)
+2025-10-12 14:08:49,429 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:49,429 - __main__ - INFO - Uploaded batch 2 (78 points)
+2025-10-12 14:08:49,429 - __main__ - INFO - Successfully uploaded 178 chunks to Qdrant
+2025-10-12 14:08:49,432 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:49,432 - __main__ - INFO - Processing PDF 22/36: parent-tx3c-attendance-help-english-twc.pdf
+2025-10-12 14:08:49,432 - __main__ - INFO - ============================================================
+2025-10-12 14:08:49,432 - __main__ - INFO - Processing PDF: parent-tx3c-attendance-help-english-twc.pdf
+2025-10-12 14:08:49,438 - __main__ - INFO - Loaded 1 pages from parent-tx3c-attendance-help-english-twc.pdf
+2025-10-12 14:08:49,438 - __main__ - INFO - Created 2 chunks from parent-tx3c-attendance-help-english-twc.pdf
+2025-10-12 14:08:49,438 - __main__ - INFO - Generating embeddings for 2 chunks...
+2025-10-12 14:08:49,612 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:49,687 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:49,788 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:49,788 - __main__ - INFO - Uploaded batch 1 (2 points)
+2025-10-12 14:08:49,788 - __main__ - INFO - Successfully uploaded 2 chunks to Qdrant
+2025-10-12 14:08:49,789 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:49,789 - __main__ - INFO - Processing PDF 23/36: bcy-26-income-eligibility-and-maximum-psoc-twc.pdf
+2025-10-12 14:08:49,789 - __main__ - INFO - ============================================================
+2025-10-12 14:08:49,789 - __main__ - INFO - Processing PDF: bcy-26-income-eligibility-and-maximum-psoc-twc.pdf
+2025-10-12 14:08:49,796 - __main__ - INFO - Loaded 1 pages from bcy-26-income-eligibility-and-maximum-psoc-twc.pdf
+2025-10-12 14:08:49,797 - __main__ - INFO - Created 4 chunks from bcy-26-income-eligibility-and-maximum-psoc-twc.pdf
+2025-10-12 14:08:49,797 - __main__ - INFO - Generating embeddings for 4 chunks...
+2025-10-12 14:08:50,030 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:50,111 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:50,292 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:50,293 - __main__ - INFO - Uploaded batch 1 (4 points)
+2025-10-12 14:08:50,293 - __main__ - INFO - Successfully uploaded 4 chunks to Qdrant
+2025-10-12 14:08:50,293 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:50,293 - __main__ - INFO - Processing PDF 24/36: provider-attendance-matrix-english-twc.pdf
+2025-10-12 14:08:50,293 - __main__ - INFO - ============================================================
+2025-10-12 14:08:50,293 - __main__ - INFO - Processing PDF: provider-attendance-matrix-english-twc.pdf
+2025-10-12 14:08:50,302 - __main__ - INFO - Loaded 1 pages from provider-attendance-matrix-english-twc.pdf
+2025-10-12 14:08:50,303 - __main__ - INFO - Created 4 chunks from provider-attendance-matrix-english-twc.pdf
+2025-10-12 14:08:50,303 - __main__ - INFO - Generating embeddings for 4 chunks...
+2025-10-12 14:08:50,525 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:50,652 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:50,814 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:50,816 - __main__ - INFO - Uploaded batch 1 (4 points)
+2025-10-12 14:08:50,816 - __main__ - INFO - Successfully uploaded 4 chunks to Qdrant
+2025-10-12 14:08:50,816 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:50,816 - __main__ - INFO - Processing PDF 25/36: child-care-services-guide-twc.pdf
+2025-10-12 14:08:50,816 - __main__ - INFO - ============================================================
+2025-10-12 14:08:50,816 - __main__ - INFO - Processing PDF: child-care-services-guide-twc.pdf
+2025-10-12 14:08:51,048 - __main__ - INFO - Loaded 175 pages from child-care-services-guide-twc.pdf
+2025-10-12 14:08:51,059 - __main__ - INFO - Created 500 chunks from child-care-services-guide-twc.pdf
+2025-10-12 14:08:51,060 - __main__ - INFO - Generating embeddings for 500 chunks...
+2025-10-12 14:08:50,728 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:08:51,023 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:08:52,755 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:52,755 - __main__ - INFO - Uploaded batch 1 (100 points)
+2025-10-12 14:08:54,309 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:54,310 - __main__ - INFO - Uploaded batch 2 (100 points)
+2025-10-12 14:08:55,817 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:55,817 - __main__ - INFO - Uploaded batch 3 (100 points)
+2025-10-12 14:08:57,302 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:57,303 - __main__ - INFO - Uploaded batch 4 (100 points)
+2025-10-12 14:08:58,779 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:08:58,781 - __main__ - INFO - Uploaded batch 5 (100 points)
+2025-10-12 14:08:58,781 - __main__ - INFO - Successfully uploaded 500 chunks to Qdrant
+2025-10-12 14:08:58,801 - __main__ - INFO - Checkpoint saved to /home/tromanow/COHORT/TX/LOAD_DB/checkpoints/checkpoint_20251012_140858.json
+2025-10-12 14:08:58,801 - __main__ - INFO - 
+============================================================
+2025-10-12 14:08:58,801 - __main__ - INFO - Processing PDF 26/36: tx-ccdf-state-plan-ffy2025-2027-approved.pdf
+2025-10-12 14:08:58,801 - __main__ - INFO - ============================================================
+2025-10-12 14:08:58,801 - __main__ - INFO - Processing PDF: tx-ccdf-state-plan-ffy2025-2027-approved.pdf
+2025-10-12 14:08:59,122 - __main__ - INFO - Loaded 220 pages from tx-ccdf-state-plan-ffy2025-2027-approved.pdf
+2025-10-12 14:08:59,136 - __main__ - INFO - Created 796 chunks from tx-ccdf-state-plan-ffy2025-2027-approved.pdf
+2025-10-12 14:08:59,137 - __main__ - INFO - Generating embeddings for 796 chunks...
+2025-10-12 14:09:02,504 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:09:03,114 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:09:04,864 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:04,864 - __main__ - INFO - Uploaded batch 1 (100 points)
+2025-10-12 14:09:06,358 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:06,358 - __main__ - INFO - Uploaded batch 2 (100 points)
+2025-10-12 14:09:07,871 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:07,871 - __main__ - INFO - Uploaded batch 3 (100 points)
+2025-10-12 14:09:09,595 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:09,597 - __main__ - INFO - Uploaded batch 4 (100 points)
+2025-10-12 14:09:11,683 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:11,683 - __main__ - INFO - Uploaded batch 5 (100 points)
+2025-10-12 14:09:13,606 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:13,607 - __main__ - INFO - Uploaded batch 6 (100 points)
+2025-10-12 14:09:15,367 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:15,370 - __main__ - INFO - Uploaded batch 7 (100 points)
+2025-10-12 14:09:16,937 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:16,938 - __main__ - INFO - Uploaded batch 8 (96 points)
+2025-10-12 14:09:16,938 - __main__ - INFO - Successfully uploaded 796 chunks to Qdrant
+2025-10-12 14:09:16,949 - __main__ - INFO - 
+============================================================
+2025-10-12 14:09:16,949 - __main__ - INFO - Processing PDF 27/36: strand4_wkfc_concurrent_sessions_intro_acc.pdf
+2025-10-12 14:09:16,949 - __main__ - INFO - ============================================================
+2025-10-12 14:09:16,949 - __main__ - INFO - Processing PDF: strand4_wkfc_concurrent_sessions_intro_acc.pdf
+2025-10-12 14:09:16,963 - __main__ - INFO - Loaded 14 pages from strand4_wkfc_concurrent_sessions_intro_acc.pdf
+2025-10-12 14:09:16,963 - __main__ - INFO - Created 14 chunks from strand4_wkfc_concurrent_sessions_intro_acc.pdf
+2025-10-12 14:09:16,964 - __main__ - INFO - Generating embeddings for 14 chunks...
+2025-10-12 14:09:17,269 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:09:17,387 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:09:17,708 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:17,708 - __main__ - INFO - Uploaded batch 1 (14 points)
+2025-10-12 14:09:17,708 - __main__ - INFO - Successfully uploaded 14 chunks to Qdrant
+2025-10-12 14:09:17,709 - __main__ - INFO - 
+============================================================
+2025-10-12 14:09:17,709 - __main__ - INFO - Processing PDF 28/36: trs-parent-brochure-vie.pdf
+2025-10-12 14:09:17,709 - __main__ - INFO - ============================================================
+2025-10-12 14:09:17,709 - __main__ - INFO - Processing PDF: trs-parent-brochure-vie.pdf
+2025-10-12 14:09:17,723 - __main__ - INFO - Loaded 2 pages from trs-parent-brochure-vie.pdf
+2025-10-12 14:09:17,724 - __main__ - INFO - Created 4 chunks from trs-parent-brochure-vie.pdf
+2025-10-12 14:09:17,724 - __main__ - INFO - Generating embeddings for 4 chunks...
+2025-10-12 14:09:17,978 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:09:18,071 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:09:18,246 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:18,246 - __main__ - INFO - Uploaded batch 1 (4 points)
+2025-10-12 14:09:18,246 - __main__ - INFO - Successfully uploaded 4 chunks to Qdrant
+2025-10-12 14:09:18,246 - __main__ - INFO - 
+============================================================
+2025-10-12 14:09:18,246 - __main__ - INFO - Processing PDF 29/36: bcy25-child-care-provider-payment-rates-twc.pdf
+2025-10-12 14:09:18,247 - __main__ - INFO - ============================================================
+2025-10-12 14:09:18,247 - __main__ - INFO - Processing PDF: bcy25-child-care-provider-payment-rates-twc.pdf
+2025-10-12 14:09:18,424 - __main__ - INFO - Loaded 28 pages from bcy25-child-care-provider-payment-rates-twc.pdf
+2025-10-12 14:09:18,431 - __main__ - INFO - Created 112 chunks from bcy25-child-care-provider-payment-rates-twc.pdf
+2025-10-12 14:09:18,432 - __main__ - INFO - Generating embeddings for 112 chunks...
+2025-10-12 14:09:19,973 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:09:20,129 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:09:20,080 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:20,080 - __main__ - INFO - Uploaded batch 1 (100 points)
+2025-10-12 14:09:20,421 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:20,421 - __main__ - INFO - Uploaded batch 2 (12 points)
+2025-10-12 14:09:20,421 - __main__ - INFO - Successfully uploaded 112 chunks to Qdrant
+2025-10-12 14:09:20,423 - __main__ - INFO - 
+============================================================
+2025-10-12 14:09:20,423 - __main__ - INFO - Processing PDF 30/36: evaluation-of-the-effectiveness-of-child-care-report-to-86th-legislature-2019-twc.pdf
+2025-10-12 14:09:20,423 - __main__ - INFO - ============================================================
+2025-10-12 14:09:20,423 - __main__ - INFO - Processing PDF: evaluation-of-the-effectiveness-of-child-care-report-to-86th-legislature-2019-twc.pdf
+2025-10-12 14:09:20,479 - __main__ - INFO - Loaded 17 pages from evaluation-of-the-effectiveness-of-child-care-report-to-86th-legislature-2019-twc.pdf
+2025-10-12 14:09:20,481 - __main__ - INFO - Created 61 chunks from evaluation-of-the-effectiveness-of-child-care-report-to-86th-legislature-2019-twc.pdf
+2025-10-12 14:09:20,481 - __main__ - INFO - Generating embeddings for 61 chunks...
+2025-10-12 14:09:21,124 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:09:21,247 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:09:23,090 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:23,090 - __main__ - INFO - Uploaded batch 1 (61 points)
+2025-10-12 14:09:23,090 - __main__ - INFO - Successfully uploaded 61 chunks to Qdrant
+2025-10-12 14:09:23,092 - __main__ - INFO - Checkpoint saved to /home/tromanow/COHORT/TX/LOAD_DB/checkpoints/checkpoint_20251012_140923.json
+2025-10-12 14:09:23,092 - __main__ - INFO - 
+============================================================
+2025-10-12 14:09:23,092 - __main__ - INFO - Processing PDF 31/36: commission-meeting-material-10.19.21-item16-dp-3rd-tranche-arpa-stabilization-twc.pdf
+2025-10-12 14:09:23,092 - __main__ - INFO - ============================================================
+2025-10-12 14:09:23,092 - __main__ - INFO - Processing PDF: commission-meeting-material-10.19.21-item16-dp-3rd-tranche-arpa-stabilization-twc.pdf
+2025-10-12 14:09:23,128 - __main__ - INFO - Loaded 11 pages from commission-meeting-material-10.19.21-item16-dp-3rd-tranche-arpa-stabilization-twc.pdf
+2025-10-12 14:09:23,130 - __main__ - INFO - Created 34 chunks from commission-meeting-material-10.19.21-item16-dp-3rd-tranche-arpa-stabilization-twc.pdf
+2025-10-12 14:09:23,130 - __main__ - INFO - Generating embeddings for 34 chunks...
+2025-10-12 14:09:23,539 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:09:23,677 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:09:24,648 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:24,649 - __main__ - INFO - Uploaded batch 1 (34 points)
+2025-10-12 14:09:24,649 - __main__ - INFO - Successfully uploaded 34 chunks to Qdrant
+2025-10-12 14:09:24,649 - __main__ - INFO - 
+============================================================
+2025-10-12 14:09:24,649 - __main__ - INFO - Processing PDF 32/36: bcy26-board-max-provider-payment-rates-twc.pdf
+2025-10-12 14:09:24,649 - __main__ - INFO - ============================================================
+2025-10-12 14:09:24,649 - __main__ - INFO - Processing PDF: bcy26-board-max-provider-payment-rates-twc.pdf
+2025-10-12 14:09:24,813 - __main__ - INFO - Loaded 28 pages from bcy26-board-max-provider-payment-rates-twc.pdf
+2025-10-12 14:09:24,819 - __main__ - INFO - Created 117 chunks from bcy26-board-max-provider-payment-rates-twc.pdf
+2025-10-12 14:09:24,819 - __main__ - INFO - Generating embeddings for 117 chunks...
+2025-10-12 14:09:26,026 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:09:26,196 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:09:28,330 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:28,331 - __main__ - INFO - Uploaded batch 1 (100 points)
+2025-10-12 14:09:28,713 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:28,714 - __main__ - INFO - Uploaded batch 2 (17 points)
+2025-10-12 14:09:28,714 - __main__ - INFO - Successfully uploaded 117 chunks to Qdrant
+2025-10-12 14:09:28,715 - __main__ - INFO - 
+============================================================
+2025-10-12 14:09:28,716 - __main__ - INFO - Processing PDF 33/36: tx3c-desk-aid-prospective-payment-accessible-twc.pdf
+2025-10-12 14:09:28,716 - __main__ - INFO - ============================================================
+2025-10-12 14:09:28,716 - __main__ - INFO - Processing PDF: tx3c-desk-aid-prospective-payment-accessible-twc.pdf
+2025-10-12 14:09:28,720 - __main__ - INFO - Loaded 1 pages from tx3c-desk-aid-prospective-payment-accessible-twc.pdf
+2025-10-12 14:09:28,720 - __main__ - INFO - Created 2 chunks from tx3c-desk-aid-prospective-payment-accessible-twc.pdf
+2025-10-12 14:09:28,720 - __main__ - INFO - Generating embeddings for 2 chunks...
+2025-10-12 14:09:28,928 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:09:29,015 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:09:29,120 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:29,121 - __main__ - INFO - Uploaded batch 1 (2 points)
+2025-10-12 14:09:29,121 - __main__ - INFO - Successfully uploaded 2 chunks to Qdrant
+2025-10-12 14:09:29,121 - __main__ - INFO - 
+============================================================
+2025-10-12 14:09:29,121 - __main__ - INFO - Processing PDF 34/36: evaluation-of-the-effectiveness-of-child-care-report-to-89th-legislature-twc.pdf
+2025-10-12 14:09:29,121 - __main__ - INFO - ============================================================
+2025-10-12 14:09:29,121 - __main__ - INFO - Processing PDF: evaluation-of-the-effectiveness-of-child-care-report-to-89th-legislature-twc.pdf
+2025-10-12 14:09:29,239 - __main__ - INFO - Loaded 34 pages from evaluation-of-the-effectiveness-of-child-care-report-to-89th-legislature-twc.pdf
+2025-10-12 14:09:29,242 - __main__ - INFO - Created 129 chunks from evaluation-of-the-effectiveness-of-child-care-report-to-89th-legislature-twc.pdf
+2025-10-12 14:09:29,243 - __main__ - INFO - Generating embeddings for 129 chunks...
+2025-10-12 14:09:30,132 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:09:30,494 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:09:32,487 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:32,489 - __main__ - INFO - Uploaded batch 1 (100 points)
+2025-10-12 14:09:33,018 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:33,018 - __main__ - INFO - Uploaded batch 2 (29 points)
+2025-10-12 14:09:33,018 - __main__ - INFO - Successfully uploaded 129 chunks to Qdrant
+2025-10-12 14:09:33,020 - __main__ - INFO - 
+============================================================
+2025-10-12 14:09:33,020 - __main__ - INFO - Processing PDF 35/36: stakeholder-input-trs-twc.pdf
+2025-10-12 14:09:33,020 - __main__ - INFO - ============================================================
+2025-10-12 14:09:33,020 - __main__ - INFO - Processing PDF: stakeholder-input-trs-twc.pdf
+2025-10-12 14:09:33,025 - __main__ - INFO - Loaded 1 pages from stakeholder-input-trs-twc.pdf
+2025-10-12 14:09:33,025 - __main__ - INFO - Created 5 chunks from stakeholder-input-trs-twc.pdf
+2025-10-12 14:09:33,025 - __main__ - INFO - Generating embeddings for 5 chunks...
+2025-10-12 14:09:33,442 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:09:33,520 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:09:33,693 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:33,694 - __main__ - INFO - Uploaded batch 1 (5 points)
+2025-10-12 14:09:33,694 - __main__ - INFO - Successfully uploaded 5 chunks to Qdrant
+2025-10-12 14:09:33,694 - __main__ - INFO - Checkpoint saved to /home/tromanow/COHORT/TX/LOAD_DB/checkpoints/checkpoint_20251012_140933.json
+2025-10-12 14:09:33,694 - __main__ - INFO - 
+============================================================
+2025-10-12 14:09:33,694 - __main__ - INFO - Processing PDF 36/36: market-rate-survey-methodology-stakeholders-twc.pdf
+2025-10-12 14:09:33,694 - __main__ - INFO - ============================================================
+2025-10-12 14:09:33,694 - __main__ - INFO - Processing PDF: market-rate-survey-methodology-stakeholders-twc.pdf
+2025-10-12 14:09:33,715 - __main__ - INFO - Loaded 8 pages from market-rate-survey-methodology-stakeholders-twc.pdf
+2025-10-12 14:09:33,716 - __main__ - INFO - Created 35 chunks from market-rate-survey-methodology-stakeholders-twc.pdf
+2025-10-12 14:09:33,716 - __main__ - INFO - Generating embeddings for 35 chunks...
+2025-10-12 14:09:34,057 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-12 14:09:34,154 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-12 14:09:34,963 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-12 14:09:34,964 - __main__ - INFO - Uploaded batch 1 (35 points)
+2025-10-12 14:09:34,964 - __main__ - INFO - Successfully uploaded 35 chunks to Qdrant
+2025-10-12 14:09:34,965 - __main__ - INFO - Checkpoint saved to /home/tromanow/COHORT/TX/LOAD_DB/checkpoints/checkpoint_20251012_140934.json
+2025-10-12 14:09:34,965 - __main__ - INFO - Report saved to /home/tromanow/COHORT/TX/LOAD_DB/reports/load_report_20251012_140934.txt
+2025-10-12 14:09:34,965 - __main__ - INFO - 
+PDF loading complete!

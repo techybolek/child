@@ -1,6 +1,6 @@
 """
-Document extraction module for Texas Child Care Solutions scraper
-Handles text extraction from .docx and .xlsx files
+Document downloader module for Texas Child Care Solutions scraper
+Handles downloading .docx and .xlsx files (no text extraction during scraping)
 """
 
 import os
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 class DocumentExtractor:
-    """Handles extraction from .docx and .xlsx documents."""
+    """Handles downloading .docx and .xlsx documents (no text extraction during scraping)."""
 
     def __init__(self, output_dir: str = None):
         """
@@ -40,7 +40,7 @@ class DocumentExtractor:
         Args:
             output_dir: Directory to save downloaded documents
         """
-        self.output_dir = output_dir or config.PAGES_DIR
+        self.output_dir = output_dir or config.DOCUMENTS_DIR
         self.user_agent = config.USER_AGENT
         self.max_size_bytes = getattr(config, 'MAX_DOCUMENT_SIZE_MB', 50) * 1024 * 1024
         self.timeout = config.TIMEOUT_PER_PAGE
@@ -217,17 +217,16 @@ class DocumentExtractor:
 
     def process_document_url(self, url: str, metadata: Dict[str, Any] = None) -> Optional[Dict[str, Any]]:
         """
-        Get metadata reference for document URL (no download or text extraction).
+        Download document from URL and return metadata (no text extraction).
 
         Args:
             url: URL of the document
             metadata: Optional metadata to include
 
         Returns:
-            Dictionary with document metadata reference, or None if failed
+            Dictionary with download metadata, or None if download failed
         """
         doc_id = self._generate_doc_id(url)
-        filename = self._get_filename_from_url(url)
 
         # Determine document type
         url_lower = url.lower()
@@ -243,36 +242,24 @@ class DocumentExtractor:
             logger.warning(f"Unknown document type: {url}")
             return None
 
-        # Get file size via HEAD request (without downloading)
-        try:
-            logger.info(f"Getting metadata for document: {url}")
-            headers = {'User-Agent': self.user_agent}
-            head_response = requests.head(url, headers=headers, timeout=10, allow_redirects=True)
-            head_response.raise_for_status()
+        # Download document
+        doc_path = self.download_document(url)
+        if not doc_path:
+            return None
 
-            # Extract file size
-            content_length = head_response.headers.get('Content-Length')
-            file_size_bytes = int(content_length) if content_length else None
-            file_size_mb = round(file_size_bytes / (1024 * 1024), 2) if file_size_bytes else None
+        # Get file metadata
+        file_size_bytes = os.path.getsize(doc_path)
+        file_size_mb = round(file_size_bytes / (1024 * 1024), 2)
 
-            logger.info(f"Document reference captured: {filename} ({file_size_mb} MB)" if file_size_mb else f"Document reference captured: {filename}")
-
-        except requests.RequestException as e:
-            logger.error(f"Failed to get metadata for document {url}: {e}")
-            # Still return reference even if HEAD request fails
-            file_size_bytes = None
-            file_size_mb = None
-
-        # Build result (reference only, no text)
+        # Build result (matching PDF metadata format)
         result = {
             'doc_id': doc_id,
-            'url': url,
-            'filename': filename,
+            'source_url': url,
+            'filename': os.path.basename(doc_path),
+            'download_path': doc_path,
             'content_type': content_type,
             'file_size_bytes': file_size_bytes,
             'file_size_mb': file_size_mb,
-            'document_reference': True,
-            'extraction_performed': False,
         }
 
         # Add additional metadata if provided

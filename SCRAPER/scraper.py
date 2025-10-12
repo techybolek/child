@@ -50,8 +50,9 @@ class WebScraper:
         self.stats = {
             'pages_scraped': 0,
             'pages_skipped': 0,
-            'pdfs_extracted': 0,
-            'documents_referenced': 0,
+            'pdfs_downloaded': 0,
+            'pdfs_excluded': 0,
+            'documents_downloaded': 0,
             'errors': 0,
             'start_time': time.time(),
         }
@@ -344,33 +345,39 @@ class WebScraper:
 
         # Check if document (.docx, .xlsx) FIRST (before PDF check)
         if self.document_extractor.is_document_url(url):
-            logger.info(f"Referencing document: {url}")
-            doc_content = self.document_extractor.process_document_url(url)
+            logger.info(f"Downloading document: {url}")
+            doc_metadata = self.document_extractor.process_document_url(url)
 
-            if doc_content:
-                self.stats['documents_referenced'] += 1
-                # Save document reference
+            if doc_metadata:
+                self.stats['documents_downloaded'] += 1
+                # Save document metadata
                 url_hash = hashlib.md5(url.encode()).hexdigest()
-                filename = f"{url_hash}.json"
-                filepath = os.path.join(config.PAGES_DIR, filename)
+                filename = f"{url_hash}_doc.json"
+                filepath = os.path.join(config.DOCUMENTS_DIR, filename)
 
                 with open(filepath, 'w', encoding='utf-8') as f:
-                    json.dump(doc_content, f, indent=2, ensure_ascii=False)
+                    json.dump(doc_metadata, f, indent=2, ensure_ascii=False)
 
-                # Don't discover links from documents
-                return doc_content
+                logger.info(f"Document downloaded: {doc_metadata['filename']} ({doc_metadata['file_size_mb']} MB)")
+                return doc_metadata
             else:
-                self.failed_urls[url] = "Document reference failed"
+                self.failed_urls[url] = "Document download failed"
                 self.stats['errors'] += 1
                 return None
 
         # Check if PDF
         if self.pdf_extractor.is_pdf_url(url):
+            # Check if PDF is in exclusion list
+            if config.is_excluded_pdf(url):
+                logger.info(f"Skipping excluded PDF: {url}")
+                self.stats['pdfs_excluded'] += 1
+                return None
+
             logger.info(f"Downloading PDF: {url}")
             pdf_metadata = self.pdf_extractor.process_pdf_url(url)
 
             if pdf_metadata:
-                self.stats['pdfs_extracted'] += 1
+                self.stats['pdfs_downloaded'] += 1
                 # Save PDF metadata
                 url_hash = hashlib.md5(url.encode()).hexdigest()
                 filename = f"{url_hash}_pdf.json"
@@ -480,8 +487,9 @@ class WebScraper:
         elapsed = time.time() - self.stats['start_time']
         logger.info(
             f"Progress: {self.stats['pages_scraped']} pages scraped, "
-            f"{self.stats['documents_referenced']} documents referenced, "
-            f"{self.stats['pdfs_extracted']} PDFs downloaded, "
+            f"{self.stats['documents_downloaded']} documents downloaded, "
+            f"{self.stats['pdfs_downloaded']} PDFs downloaded, "
+            f"{self.stats['pdfs_excluded']} PDFs excluded, "
             f"{self.stats['errors']} errors, "
             f"{len(self.queued_urls)} in queue, "
             f"{elapsed:.1f}s elapsed"
