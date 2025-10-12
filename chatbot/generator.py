@@ -1,9 +1,24 @@
 from openai import OpenAI
+from groq import Groq
 
 
 class ResponseGenerator:
-    def __init__(self, api_key: str):
-        self.client = OpenAI(api_key=api_key)
+    def __init__(self, api_key: str, provider: str = 'groq', model: str = None):
+        """
+        Initialize the response generator
+
+        Args:
+            api_key: API key for the provider
+            provider: 'groq' or 'openai'
+            model: Model name to use (optional, will use default if not provided)
+        """
+        self.provider = provider
+        self.model = model
+
+        if provider == 'groq':
+            self.client = Groq(api_key=api_key)
+        else:
+            self.client = OpenAI(api_key=api_key)
 
     def generate(self, query: str, context_chunks: list):
         """Generate response with citations"""
@@ -29,9 +44,12 @@ QUESTION: {query}
 
 ANSWER (with citations):"""
 
+        # Use the configured model or the one passed in constructor
+        model = self.model or ("openai/gpt-oss-20b" if self.provider == 'groq' else "gpt-4-turbo-preview")
+
         # Generate
         response = self.client.chat.completions.create(
-            model="gpt-4-turbo-preview",
+            model=model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.1,
             max_tokens=1000

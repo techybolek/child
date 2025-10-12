@@ -7,8 +7,24 @@ from . import config
 class TexasChildcareChatbot:
     def __init__(self):
         self.retriever = QdrantRetriever()
-        self.reranker = LLMJudgeReranker(config.OPENAI_API_KEY)
-        self.generator = ResponseGenerator(config.OPENAI_API_KEY)
+
+        # Initialize reranker with configured provider
+        reranker_api_key = config.GROQ_API_KEY if config.RERANKER_PROVIDER == 'groq' else config.OPENAI_API_KEY
+        self.reranker = LLMJudgeReranker(
+            api_key=reranker_api_key,
+            provider=config.RERANKER_PROVIDER,
+            model=config.RERANKER_MODEL
+        )
+        print(f"Reranker: {config.RERANKER_PROVIDER.upper()} - {config.RERANKER_MODEL}")
+
+        # Initialize generator with configured provider
+        generator_api_key = config.GROQ_API_KEY if config.LLM_PROVIDER == 'groq' else config.OPENAI_API_KEY
+        self.generator = ResponseGenerator(
+            api_key=generator_api_key,
+            provider=config.LLM_PROVIDER,
+            model=config.LLM_MODEL
+        )
+        print(f"Generator: {config.LLM_PROVIDER.upper()} - {config.LLM_MODEL}")
 
     def ask(self, question: str):
         """Ask a question, get an answer"""
