@@ -151,6 +151,66 @@ Comprehensive RAG chatbot implementation documentation covering:
 
 ---
 
+### 9. [web_frontend_design.md](web_frontend_design.md) ⭐
+**Phase:** Architecture & Design (Web Interface)
+**Date:** October 12, 2025
+
+**Status:** 📋 Design Phase - Ready for Implementation
+
+Comprehensive web frontend design documentation covering:
+- **Executive Summary** - Transform CLI chatbot to web application
+- **Architecture Overview** - Decoupled FastAPI backend + Next.js 15 frontend
+- **Technology Stack** - Detailed justification for FastAPI, Next.js 15, Tailwind, shadcn/ui
+- **Backend API Design** - REST endpoints, Pydantic schemas, project structure
+  - POST /api/chat - Main chat endpoint with request/response schemas
+  - GET /api/health - Health check endpoint
+  - Future: GET /api/chat/stream - Server-Sent Events for streaming
+- **Frontend Design** - Component architecture, UI/UX principles
+  - ChatInterface, MessageList, MessageBubble components
+  - SourceCard, InputBar, LoadingIndicator components
+  - API client implementation (lib/api.ts)
+- **Communication Patterns** - REST API (Phase 1), SSE streaming (Phase 2)
+- **Deployment Strategy** - Vercel (frontend) + Railway (backend)
+- **Implementation Plan** - 4 phases with detailed task breakdown
+  - Phase 1: MVP (2-3 days) - Core functionality
+  - Phase 2: UX Enhancements (1-2 days) - Streaming, polish
+  - Phase 3: Deployment (1 day) - Production setup
+  - Phase 4: Advanced Features (Optional) - Auth, analytics, etc.
+- **Technical Decisions** - Why FastAPI > Flask, Next.js 15 > CRA, Tailwind > Material UI
+- **Security Considerations** - API key protection, CORS, input validation
+- **Performance Targets** - API response time, bundle size, Lighthouse scores
+- **Testing Strategy** - Unit, integration, E2E, and accessibility tests
+
+**Read this** for complete web frontend architecture and implementation plan.
+
+---
+
+### 10. [nextjs_15_updates.md](nextjs_15_updates.md)
+**Phase:** Technical Research & Migration Notes
+**Date:** October 12, 2025
+
+**Status:** 📋 Reference Documentation
+
+Comprehensive Next.js 15 update documentation covering:
+- **Overview** - Latest version 15.5 (August 2025) with React 19 requirement
+- **Key Features** - Detailed breakdown of major updates
+  - React 19 Support (Required) - Performance improvements, React Compiler
+  - Turbopack Stable - 2-5x faster builds (beta for production)
+  - Async Request APIs - Breaking change for cookies(), headers(), params
+  - Caching Defaults Changed - Explicit opt-in caching (no longer cached by default)
+  - TypeScript Improvements - Typed routes, auto-generated types (15.5)
+  - Node.js Middleware Stable - Improved server-side performance
+- **Migration Guide** - Automated codemod and manual steps
+- **Project Impact Analysis** - Low/Medium/High impact assessment for our chatbot
+- **Performance Benchmarks** - Development and production build speed comparisons
+- **Compatibility Matrix** - Minimum and recommended versions for all dependencies
+- **Common Issues & Solutions** - Troubleshooting guide
+- **Action Items** - Checklist for implementation
+
+**Read this** for Next.js 15 specific updates and considerations before starting frontend development.
+
+---
+
 ## Quick Reference
 
 ### Project Status
@@ -160,7 +220,8 @@ Comprehensive RAG chatbot implementation documentation covering:
 - ✅ **PDF Loading to Qdrant:** Complete (42 PDFs, 3,722 chunks)
 - ✅ **Vector Database:** Production Ready
 - ✅ **RAG Chatbot:** Production Ready (GROQ/OpenAI multi-provider)
-- ✅ **Interactive Interface:** Fully Functional
+- ✅ **Interactive Interface (CLI):** Fully Functional
+- 📋 **Web Frontend:** Design Complete - Ready for Implementation
 
 ### Key Deliverables
 1. **Web Scraping:** 30 optimized content chunks (avg 832 words)
@@ -171,6 +232,7 @@ Comprehensive RAG chatbot implementation documentation covering:
 6. **Production-ready Qdrant collection** (tro-child-1)
 7. **Interactive CLI interface** for Q&A
 8. **Quality analysis reports**
+9. **Web Frontend Design** - Complete architecture for FastAPI + Next.js web application
 
 ### File Locations
 
@@ -259,6 +321,7 @@ python interactive_chat.py
 | Oct 11, 2025 | Chatbot - Phase 2 | Added LLM Judge reranking |
 | Oct 12, 2025 | Chatbot - Phase 3 | GROQ integration (multi-provider) |
 | Oct 12, 2025 | Chatbot Complete | Production-ready with CLI |
+| Oct 12, 2025 | Web Frontend - Design | Architecture design with FastAPI + Next.js |
 
 ---
 
@@ -361,7 +424,9 @@ This project successfully implements a complete end-to-end RAG application for T
 
 3. **RAG Chatbot**: Production-ready conversational AI with 3-stage pipeline (Retrieval → Reranking → Generation), multi-provider support (GROQ/OpenAI), automatic citations, and interactive CLI interface
 
-4. **Complete Infrastructure**: All components are production-ready, documented, and integrated for immediate deployment
+4. **Web Frontend Design**: Comprehensive architecture design for modern web interface using FastAPI (backend REST API) and Next.js 14 (frontend), including detailed implementation plan, component architecture, deployment strategy, and testing approach
+
+5. **Complete Infrastructure**: All components are production-ready, documented, and integrated for immediate deployment
 
 ---
 
