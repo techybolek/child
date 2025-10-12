@@ -22,5 +22,8 @@ langchain-openai>=0.0.2
 qdrant-client>=1.7.0
 openai>=1.0.0
 
+# RAG Chatbot (optional)
+tiktoken>=0.5.0
+
 # Standard library dependencies (usually pre-installed)
 # typing-extensions is installed as a dependency of beautifulsoup4
