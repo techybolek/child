@@ -1,0 +1,30 @@
+2025-10-10 18:53:40,151 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333 "HTTP/1.1 200 OK"
+2025-10-10 18:53:40,152 - __main__ - INFO - Initializing OpenAI embeddings: text-embedding-3-small
+2025-10-10 18:53:40,410 - __main__ - INFO - Starting PDF to Qdrant loading process
+2025-10-10 18:53:40,410 - __main__ - INFO - Test mode: False
+2025-10-10 18:53:40,410 - __main__ - INFO - Clear collection: True
+2025-10-10 18:53:40,673 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections "HTTP/1.1 200 OK"
+2025-10-10 18:53:40,674 - __main__ - WARNING - Deleting existing collection 'tro-child-1'
+2025-10-10 18:53:40,807 - httpx - INFO - HTTP Request: DELETE https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-10 18:53:40,808 - __main__ - INFO - Collection deleted successfully
+2025-10-10 18:53:40,808 - __main__ - INFO - Creating fresh collection 'tro-child-1'
+2025-10-10 18:53:41,034 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-10 18:53:41,035 - __main__ - INFO - Collection created successfully
+2025-10-10 18:53:41,035 - __main__ - INFO - Found 1 PDF files to process
+2025-10-10 18:53:41,035 - __main__ - INFO - 
+============================================================
+2025-10-10 18:53:41,035 - __main__ - INFO - Processing PDF 1/1: texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-10 18:53:41,035 - __main__ - INFO - ============================================================
+2025-10-10 18:53:41,035 - __main__ - INFO - Processing PDF: texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-10 18:53:41,178 - __main__ - INFO - Loaded 52 pages from texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-10 18:53:41,183 - __main__ - INFO - Created 90 chunks from texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-10 18:53:41,183 - __main__ - INFO - Generating embeddings for 90 chunks...
+2025-10-10 18:53:43,445 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2025-10-10 18:53:43,630 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-10 18:53:45,203 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-10 18:53:45,205 - __main__ - INFO - Uploaded batch 1 (90 points)
+2025-10-10 18:53:45,205 - __main__ - INFO - Successfully uploaded 90 chunks to Qdrant
+2025-10-10 18:53:45,206 - __main__ - INFO - Checkpoint saved to /home/tromanow/COHORT/TX/LOAD_DB/checkpoints/checkpoint_20251010_185345.json
+2025-10-10 18:53:45,206 - __main__ - INFO - Report saved to /home/tromanow/COHORT/TX/LOAD_DB/reports/load_report_20251010_185345.txt
+2025-10-10 18:53:45,206 - __main__ - INFO - 
+PDF loading complete!

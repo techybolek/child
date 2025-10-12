@@ -110,58 +110,45 @@ class PDFExtractor:
             logger.error(f"Unexpected error downloading PDF {url}: {e}")
             return None
 
-    def extract_text_from_pdf(self, pdf_path: str) -> Optional[str]:
+    def get_pdf_metadata(self, pdf_path: str) -> Dict[str, Any]:
         """
-        Extract text from PDF file.
+        Get basic metadata from downloaded PDF.
 
         Args:
             pdf_path: Path to PDF file
 
         Returns:
-            Extracted text, or None if extraction failed
+            Dictionary with file size and page count (if available)
         """
-        if not PYMUPDF_AVAILABLE:
-            logger.error("PyMuPDF not available. Cannot extract text.")
-            return None
+        metadata = {
+            'file_size_bytes': os.path.getsize(pdf_path),
+            'file_size_mb': round(os.path.getsize(pdf_path) / (1024 * 1024), 2),
+        }
 
-        try:
-            logger.info(f"Extracting text from: {pdf_path}")
+        # Try to get page count if PyMuPDF is available
+        if PYMUPDF_AVAILABLE:
+            try:
+                doc = fitz.open(pdf_path)
+                metadata['page_count'] = len(doc)
+                doc.close()
+            except Exception as e:
+                logger.debug(f"Could not get page count for {pdf_path}: {e}")
+                metadata['page_count'] = None
+        else:
+            metadata['page_count'] = None
 
-            doc = fitz.open(pdf_path)
-            text_parts = []
-
-            for page_num in range(len(doc)):
-                page = doc[page_num]
-                text = page.get_text()
-
-                # Add page marker
-                if text.strip():
-                    text_parts.append(f"\n--- Page {page_num + 1} ---\n")
-                    text_parts.append(text)
-
-            doc.close()
-
-            full_text = ''.join(text_parts)
-            word_count = len(full_text.split())
-
-            logger.info(f"Extracted {word_count} words from {len(doc)} pages")
-
-            return full_text.strip()
-
-        except Exception as e:
-            logger.error(f"Failed to extract text from {pdf_path}: {e}")
-            return None
+        return metadata
 
     def process_pdf_url(self, url: str, metadata: Dict[str, Any] = None) -> Optional[Dict[str, Any]]:
         """
-        Download and extract text from PDF URL.
+        Download PDF from URL and return metadata (no text extraction).
 
         Args:
             url: URL of the PDF
             metadata: Optional metadata to include
 
         Returns:
-            Dictionary with extracted content and metadata, or None if failed
+            Dictionary with download metadata, or None if download failed
         """
         pdf_id = self._generate_pdf_id(url)
 
@@ -170,19 +157,17 @@ class PDFExtractor:
         if not pdf_path:
             return None
 
-        # Extract text
-        text = self.extract_text_from_pdf(pdf_path)
-        if not text:
-            return None
+        # Get file metadata
+        file_metadata = self.get_pdf_metadata(pdf_path)
 
         # Build result
         result = {
             'pdf_id': pdf_id,
             'source_url': url,
             'filename': os.path.basename(pdf_path),
-            'text': text,
-            'word_count': len(text.split()),
+            'download_path': pdf_path,
             'content_type': 'pdf',
+            **file_metadata
         }
 
         # Add additional metadata if provided
@@ -205,24 +190,24 @@ class PDFExtractor:
         return url_lower.endswith('.pdf') or '/pdf/' in url_lower or 'filetype=pdf' in url_lower
 
 
-# Convenience function for quick extraction
-def extract_pdf(url: str, output_dir: str = None) -> Optional[Dict[str, Any]]:
+# Convenience function for quick download
+def download_pdf(url: str, output_dir: str = None) -> Optional[Dict[str, Any]]:
     """
-    Quick function to extract text from a PDF URL.
+    Quick function to download a PDF from URL.
 
     Args:
         url: URL of the PDF
-        output_dir: Directory to save extracted text
+        output_dir: Directory to save PDF
 
     Returns:
-        Dictionary with extracted content and metadata
+        Dictionary with download metadata
     """
     extractor = PDFExtractor(output_dir)
     return extractor.process_pdf_url(url)
 
 
 if __name__ == '__main__':
-    # Test the extractor
+    # Test the downloader
     logging.basicConfig(level=logging.INFO, format=config.LOG_FORMAT)
 
     # Test URL (replace with actual PDF URL if needed)
@@ -232,7 +217,9 @@ if __name__ == '__main__':
     result = extractor.process_pdf_url(test_url)
 
     if result:
-        print(f"Successfully extracted {result['word_count']} words from PDF")
-        print(f"First 200 characters: {result['text'][:200]}")
+        print(f"Successfully downloaded PDF: {result['filename']}")
+        print(f"File size: {result['file_size_mb']} MB")
+        print(f"Page count: {result.get('page_count', 'N/A')}")
+        print(f"Download path: {result['download_path']}")
     else:
-        print("PDF extraction failed")
+        print("PDF download failed")

@@ -1,15 +1,15 @@
 ======================================================================
 TEXAS CHILD CARE SOLUTIONS - SCRAPING ANALYSIS REPORT
 ======================================================================
-Generated: 2025-10-09 17:25:17
+Generated: 2025-10-09 18:10:19
 
 SCRAPING SUMMARY
 ======================================================================
 Start URLs: https://texaschildcaresolutions.org/financial-assistance-for-child-care/, https://www.twc.texas.gov/programs/child-care, https://childcare.twc.texas.gov/
-Total pages scraped: 5
-Total PDFs processed: 0
+Total pages scraped: 13
+Total PDFs processed: 49
 Total chunks created: 13
-Scraping time: 18.8 seconds
+Scraping time: 381.0 seconds
 
 CONTENT BREAKDOWN
 ======================================================================
@@ -25,8 +25,8 @@ By source domain:
 
 QUALITY METRICS
 ======================================================================
-Average chunk word count: 756.8
-Total content words: 9,839
+Average chunk word count: 721.0
+Total content words: 9,373
 Pages skipped (too thin): 2
 Pages with errors: 0
 Duplicate chunks removed: 0
@@ -34,8 +34,8 @@ Duplicate chunks removed: 0
 SITE STRUCTURE
 ======================================================================
 Hub pages (navigation): 10
-Content pages: 14
-PDF documents: 0
+Content pages: 98
+PDF documents: 49
 Unique domains scraped: 2
 
 RECOMMENDATIONS

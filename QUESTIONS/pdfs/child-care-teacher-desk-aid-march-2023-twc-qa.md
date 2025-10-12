@@ -1,33 +1,47 @@
-# Child Care Teacher Desk Aid - Q&A
+# Child Care Teacher Desk Aid - Question and Answer Pairs
 
-## Questions and Answers about Finding Child Care Jobs in Texas
+## Q&A Content
 
-### 1. How long does it take to register on WorkinTexas.com?
-The registration process as an individual on WorkinTexas.com takes approximately 5-8 minutes to complete. However, you should also complete the Resume Builder Wizard, which takes approximately 20 minutes.
+**Q1: How do I register on WorkInTexas.com to find a child care job?**
 
-### 2. What is WorkinTexas.com and how do I access it?
-WorkinTexas.com is the official Texas job search website operated by the Texas Workforce Commission. To access it, go to www.workintexas.com and select "sign in" or "register" in the top right corner. Note that if you have filed for unemployment benefits, you should already have a username and password.
+A1: To register on WorkInTexas.com, go to www.workintexas.com and select "sign in" or "register" in the top right corner. The registration process takes approximately 5-8 minutes to complete as an individual job seeker. If you've previously filed for unemployment benefits, you should already have a username and password. The site is also available in Spanish by clicking the "En Espanol" link.
 
-### 3. Is WorkinTexas.com available in Spanish?
-Yes, WorkinTexas.com is available in Spanish. To change to the Spanish version, you need to click on the "En Espanol" link on the website.
+**Q2: What are the main sections I need to complete during the WorkInTexas.com registration process?**
 
-### 4. What sections do I need to complete during the registration process?
-During the first registration process, you will complete 7 sections: Education, Veteran, Employment, Farmworker, Demographic, Barriers, and Public Assistance. All fields with a red asterisk (*) are required.
+A2: During registration, you'll complete 7 sections through a wizard process: Education, Veteran status, Employment history, Farmworker status, Demographic information, Barriers to employment, and Public Assistance. All fields with a red asterisk (*) are required, and you must complete all pages to finish the registration. After completing the last page, you'll receive a confirmation message stating your application has been successfully completed.
 
-### 5. How many sections does the Resume Builder Wizard have and which ones should I complete?
-The Resume Builder Wizard has 13 sections total. While you may skip sections, it is recommended that you complete at minimum: Education, Certifications, Employment, Job Skills, Contact, and References.
+**Q3: How long does it take to complete the Resume Builder Wizard on WorkInTexas.com?**
 
-### 6. What resume creation method should I select?
-You should select the "Comprehensive" option under the Resume Creation Method. This allows you to build your resume using a step-by-step process from scratch and takes approximately 8 minutes. Your resume title should reflect the field of work you are searching for (e.g., "Preschool Teacher").
+A3: The Resume Builder Wizard takes approximately 20 minutes to complete. You should select the "Comprehensive" option under the Resume Creation Method to build your resume from scratch using a step-by-step process. The wizard has 13 sections, though you can skip some sections. At minimum, it's recommended to complete Education, Certifications, Employment, Job Skills, Contact, and References sections.
 
-### 7. What happens if I click "Exit Wizard" before finishing my resume?
-The Exit Wizard link will only save the previous pages and backwards; the current page will not be saved. Do not use the Exit Wizard link unless you are finished working for that day. The Resume Wizard will automatically save information as you progress through the pages.
+**Q4: What should I include in my resume title when creating a child care resume?**
 
-### 8. How do I search for child care teacher jobs on WorkinTexas.com?
-Once you are signed in to www.workintexas.com, select "Individual Job Search" on the Quick Job Search Link (left navigation menu). You can then expand additional quick search options, select any combination of search criteria, and from the Occupation group list, click "Child Care Teacher." Then click Search.
+A4: Your resume title should reflect the specific field of work you are searching for, such as "Preschool Teacher" or "Child Care Teacher." This is important because the resume title is a searchable field by employers if you choose to make your resume accessible online, so including relevant keywords helps employers find your profile.
 
-### 9. How do I apply for a job on WorkinTexas.com?
-To apply for a job: (1) Select the job to see the Details page, (2) Click on "How to Apply" to see the Employer Preference, (3) Choose your resume from the drop-down menu if you have more than one available, (4) Click the acknowledgement checkbox to confirm you will be providing your contact information to the employer, and (5) Click "Submit Application."
+**Q5: What happens if I click "Exit Wizard" while creating my resume?**
 
-### 10. Where can I get help if I need assistance using WorkinTexas.com?
-You can contact your local Workforce Development Board for assistance. Find your local workforce development board at: https://www.twc.texas.gov/partners/workforce-development-boards-websites
+A5: You should not use the Exit Wizard link unless you are completely finished working for that day. The Exit Wizard function will only save the previous pages and backwards; the current page you're on will NOT be saved. However, the Resume Wizard does automatically save information as you progress through each section by clicking "Next."
+
+**Q6: How do I search for child care jobs on WorkInTexas.com?**
+
+A6: Once signed in to www.workintexas.com, select "Individual Job Search" on the Quick Job Search Link in the left navigation menu. You can then expand additional quick search options and select any combination of search criteria. From the Occupation group list, click "Child Care Teacher" and then click Search to see available positions matching your criteria.
+
+**Q7: What information should I check before applying for a job through WorkInTexas.com?**
+
+A7: Before applying, click on "How to Apply" to see the Employer's Preference for application methods. Review all job details including job requirements, job properties, salary range, location, and work schedule. You must be a U.S. Citizen or have authorization to work in the United States. Make sure to read the complete job description by scrolling down to see all information about the position.
+
+**Q8: What steps do I need to follow to submit a job application through WorkInTexas.com?**
+
+A8: To submit an application, first choose the appropriate resume from the drop-down menu if you have more than one. Then check the acknowledgement checkbox to confirm you will be providing your contact information to the employer and that your information may be different from what's specified in the resume. Once all required items show green check marks and you've checked the acknowledgement box, click "Submit Application."
+
+**Q9: What should I do at the end of the Resume Builder process regarding references?**
+
+A9: As the last step of the Resume Builder, you should check the box entitled "Display References Available on Request" on your resume. After this, you should preview your resume to ensure everything looks correct, then click "Save Resume & Return" to complete the process.
+
+**Q10: Where can I get additional help with finding a child care job or using WorkInTexas.com?**
+
+A10: For further assistance, you can contact your local Workforce Development Board. You can find your local workforce development board by visiting: https://www.twc.texas.gov/partners/workforce-development-boards-websites. These boards can provide personalized support with job searching, resume building, and using the WorkInTexas.com system.
+
+---
+
+*Source: Child Care Teacher Desk Aid, Texas Workforce Commission, March 2023*

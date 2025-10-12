@@ -14,5 +14,13 @@ pymupdf>=1.23.0
 python-docx>=1.0.0
 openpyxl>=3.1.0
 
+# Vector DB and RAG dependencies
+langchain>=0.1.0
+langchain-community>=0.0.13
+langchain-qdrant>=0.1.0
+langchain-openai>=0.0.2
+qdrant-client>=1.7.0
+openai>=1.0.0
+
 # Standard library dependencies (usually pre-installed)
 # typing-extensions is installed as a dependency of beautifulsoup4

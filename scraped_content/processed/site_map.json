@@ -5,7 +5,7 @@
       "title": "Child Care Data, Reports & Plans - Texas Workforce Commission",
       "domain": "www.twc.texas.gov",
       "link_count": 47,
-      "word_count": 1165,
+      "word_count": 855,
       "links_to": [
         "https://www.twc.texas.gov/programs/child-care/data-reports-plans#main-content",
         "https://www.twc.texas.gov/data-reports/child-care-numbers",
@@ -34,7 +34,7 @@
       "title": "Texas Preschool Development Grant Birth Through 5 (PDG B-5) - Texas Workforce Commission",
       "domain": "www.twc.texas.gov",
       "link_count": 25,
-      "word_count": 667,
+      "word_count": 642,
       "links_to": [
         "https://www.twc.texas.gov/programs/child-care/texas-preschool-development-grant#main-content",
         "https://www.earlylearningtexas.org/telc-project-updates.html",
@@ -63,7 +63,7 @@
       "title": "Shared Services Alliances - Texas Workforce Commission",
       "domain": "www.twc.texas.gov",
       "link_count": 14,
-      "word_count": 603,
+      "word_count": 592,
       "links_to": [
         "https://www.twc.texas.gov/programs/child-care/shared-services-alliances#main-content",
         "https://static1.squarespace.com/static/5f4d7a7ef6c82325c5ec80c0/t/6022c4f255bfb533e539fe4b/1612891378726/OppEx_2021_IronTriangle.pdf",
@@ -86,7 +86,7 @@
       "title": "Child Care Information for Providers - Texas Workforce Commission",
       "domain": "www.twc.texas.gov",
       "link_count": 32,
-      "word_count": 1090,
+      "word_count": 1044,
       "links_to": [
         "https://www.twc.texas.gov/programs/child-care/for-providers#main-content",
         "https://texaschildcaresolutions.org/contact-us/",
@@ -115,7 +115,7 @@
       "title": "Child Care Information for Parents - Texas Workforce Commission",
       "domain": "www.twc.texas.gov",
       "link_count": 24,
-      "word_count": 482,
+      "word_count": 455,
       "links_to": [
         "https://www.twc.texas.gov/programs/child-care/for-parents#main-content",
         "https://texaschildcaresolutions.org/financial-assistance-for-child-care/",
@@ -144,7 +144,7 @@
       "title": "Child Care by the Numbers - Texas Workforce Commission",
       "domain": "www.twc.texas.gov",
       "link_count": 33,
-      "word_count": 580,
+      "word_count": 566,
       "links_to": [
         "https://www.twc.texas.gov/data-reports/child-care-numbers#main-content",
         "https://texasrisingstar.org/",
@@ -202,7 +202,7 @@
       "title": "Child Care & Early Learning Program - Texas Workforce Commission",
       "domain": "www.twc.texas.gov",
       "link_count": 33,
-      "word_count": 1061,
+      "word_count": 1041,
       "links_to": [
         "https://www.twc.texas.gov/programs/child-care#main-content",
         "https://childcare.twc.texas.gov/find/register?mode=signup",
@@ -231,7 +231,7 @@
       "title": "Child Care Services & Children with Disabilities - Texas Workforce Commission",
       "domain": "www.twc.texas.gov",
       "link_count": 22,
-      "word_count": 416,
+      "word_count": 400,
       "links_to": [
         "https://www.twc.texas.gov/programs/child-care/children-with-disabilities#main-content",
         "https://www.ada.gov/resources/child-care-centers/",
@@ -260,7 +260,7 @@
       "title": "Free Child Care Business Resources - Texas Workforce Commission",
       "domain": "www.twc.texas.gov",
       "link_count": 60,
-      "word_count": 898,
+      "word_count": 719,
       "links_to": [
         "https://www.twc.texas.gov/programs/child-care/free-child-care-business-resources#main-content",
         "https://www.twc.texas.gov/sites/default/files/ccel/docs/automation-and-child-care-businesses.docx",
@@ -293,10 +293,220 @@
       "word_count": 1500
     },
     {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/pricing-twc.docx",
+      "title": "pricing-twc.docx",
+      "domain": "",
+      "word_count": 1980
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/marketing-planning-spanish-twc.docx",
+      "title": "marketing-planning-spanish-twc.docx",
+      "domain": "",
+      "word_count": 2776
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/fy24-ccq-quarterly-online-report.xlsx",
+      "title": "fy24-ccq-quarterly-online-report.xlsx",
+      "domain": "",
+      "word_count": 168364
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/certification-for-inclusion-assistance-rate-twc.docx",
+      "title": "certification-for-inclusion-assistance-rate-twc.docx",
+      "domain": "",
+      "word_count": 1005
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/employing-your-child-spanish-twc.docx",
+      "title": "employing-your-child-spanish-twc.docx",
+      "domain": "",
+      "word_count": 1658
+    },
+    {
       "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/ccms-spanish.docx",
       "title": "ccms-spanish.docx",
       "domain": "",
       "word_count": 2448
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/cacfp-spanish-twc.docx",
+      "title": "cacfp-spanish-twc.docx",
+      "domain": "",
+      "word_count": 1966
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/acf-696-4th-qtr-2024-twc.xlsx",
+      "title": "acf-696-4th-qtr-2024-twc.xlsx",
+      "domain": "",
+      "word_count": 24939
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/acf-800-2023.xlsx",
+      "title": "acf-800-2023.xlsx",
+      "domain": "",
+      "word_count": 1419
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/acf-696-narrative-2023-contract-2101-crrsa-arpa.docx",
+      "title": "acf-696-narrative-2023-contract-2101-crrsa-arpa.docx",
+      "domain": "",
+      "word_count": 2364
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/managing-enrollment-twc.docx",
+      "title": "managing-enrollment-twc.docx",
+      "domain": "",
+      "word_count": 2007
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/provider-information-parent-form-spanish-twc.docx",
+      "title": "provider-information-parent-form-spanish-twc.docx",
+      "domain": "",
+      "word_count": 141
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-change-request-form-standard-spanish-twc.docx",
+      "title": "parent-change-request-form-standard-spanish-twc.docx",
+      "domain": "",
+      "word_count": 1144
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/bcy25-psoc-calculator-twc.xlsx",
+      "title": "bcy25-psoc-calculator-twc.xlsx",
+      "domain": "",
+      "word_count": 2830
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/acf-696-22txccdf.xlsx",
+      "title": "acf-696-22txccdf.xlsx",
+      "domain": "",
+      "word_count": 7169
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/cacfp-twc.docx",
+      "title": "cacfp-twc.docx",
+      "domain": "",
+      "word_count": 1655
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/using-artificial-intelligence-in-your-child-care-business-spanish-twc.docx",
+      "title": "using-artificial-intelligence-in-your-child-care-business-spanish-twc.docx",
+      "domain": "",
+      "word_count": 5795
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/fy25-board-annual-expenditure-plans-online-twc.xlsx",
+      "title": "fy25-board-annual-expenditure-plans-online-twc.xlsx",
+      "domain": "",
+      "word_count": 117259
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/form-1099-twc.docx",
+      "title": "form-1099-twc.docx",
+      "domain": "",
+      "word_count": 1853
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/tx-small-business-resources-twc.docx",
+      "title": "tx-small-business-resources-twc.docx",
+      "domain": "",
+      "word_count": 3292
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/incorporation-twc.docx",
+      "title": "incorporation-twc.docx",
+      "domain": "",
+      "word_count": 2396
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/contracts-spanish-twc.docx",
+      "title": "contracts-spanish-twc.docx",
+      "domain": "",
+      "word_count": 2121
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/tx-small-business-resources-spanish-twc.docx",
+      "title": "tx-small-business-resources-spanish-twc.docx",
+      "domain": "",
+      "word_count": 3909
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/building-a-monthly-budget-spanish-twc.docx",
+      "title": "building-a-monthly-budget-spanish-twc.docx",
+      "domain": "",
+      "word_count": 1554
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/form-1099-spanish-twc.docx",
+      "title": "form-1099-spanish-twc.docx",
+      "domain": "",
+      "word_count": 2006
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/taxes-considerations-for-selling-your-home-twc.docx",
+      "title": "taxes-considerations-for-selling-your-home-twc.docx",
+      "domain": "",
+      "word_count": 1412
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/ccrf-2022-status-by-board-twc.docx",
+      "title": "ccrf-2022-status-by-board-twc.docx",
+      "domain": "",
+      "word_count": 2361
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/acf-800-2022.xlsx",
+      "title": "acf-800-2022.xlsx",
+      "domain": "",
+      "word_count": 1414
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-change-request-form-standard-web-twc.docx",
+      "title": "parent-change-request-form-standard-web-twc.docx",
+      "domain": "",
+      "word_count": 1048
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/building-a-monthly-budget-guide-twc.docx",
+      "title": "building-a-monthly-budget-guide-twc.docx",
+      "domain": "",
+      "word_count": 1522
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/pay-increases-and-payroll-taxes-spanish-twc.docx",
+      "title": "pay-increases-and-payroll-taxes-spanish-twc.docx",
+      "domain": "",
+      "word_count": 2776
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/acf-800-2021.xlsx",
+      "title": "acf-800-2021.xlsx",
+      "domain": "",
+      "word_count": 1421
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/texas-rising-star-supports-activities-report-cumulative-twc.xlsx",
+      "title": "texas-rising-star-supports-activities-report-cumulative-twc.xlsx",
+      "domain": "",
+      "word_count": 45490
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/retirement-options-twc.docx",
+      "title": "retirement-options-twc.docx",
+      "domain": "",
+      "word_count": 3006
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/time-space-spanish-twc.docx",
+      "title": "time-space-spanish-twc.docx",
+      "domain": "",
+      "word_count": 1272
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/liability-insurance-twc.docx",
+      "title": "liability-insurance-twc.docx",
+      "domain": "",
+      "word_count": 915
     },
     {
       "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-employee-handbook-spanish-twc.docx",
@@ -308,13 +518,25 @@
       "url": "https://www.twc.texas.gov/programs/child-care/employer-child-care-solutions",
       "title": "Employer Child Care Solutions - Texas Workforce Commission",
       "domain": "www.twc.texas.gov",
-      "word_count": 782
+      "word_count": 779
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/business-record-keeping-spanish.docx",
+      "title": "business-record-keeping-spanish.docx",
+      "domain": "",
+      "word_count": 2543
     },
     {
       "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-numbers-data-monthly.xlsx",
       "title": "child-care-numbers-data-monthly.xlsx",
       "domain": "",
       "word_count": 247391
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/incorporation-spanish-twc.docx",
+      "title": "incorporation-spanish-twc.docx",
+      "domain": "",
+      "word_count": 2608
     },
     {
       "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/ccs-program-overview-twc.docx",
@@ -329,10 +551,100 @@
       "word_count": 2063
     },
     {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/fy23-ccq-quarterly-online-updated-report.xlsx",
+      "title": "fy23-ccq-quarterly-online-updated-report.xlsx",
+      "domain": "",
+      "word_count": 130750
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/employer-child-care-partnerships-guide-spanish.docx",
+      "title": "employer-child-care-partnerships-guide-spanish.docx",
+      "domain": "",
+      "word_count": 6890
+    },
+    {
       "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-desert-by-zip-code-2025-public-twc.xlsx",
       "title": "child-care-desert-by-zip-code-2025-public-twc.xlsx",
       "domain": "",
       "word_count": 20999
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/bcy-2026-psoc-calculator-twc.xlsx",
+      "title": "bcy-2026-psoc-calculator-twc.xlsx",
+      "domain": "",
+      "word_count": 3364
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/cc-stimulus-funding-categorized-march-2023-public-twc.docx",
+      "title": "cc-stimulus-funding-categorized-march-2023-public-twc.docx",
+      "domain": "",
+      "word_count": 3884
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/time-space-calculation-twc.xlsx",
+      "title": "time-space-calculation-twc.xlsx",
+      "domain": "",
+      "word_count": 691
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/accountable-plan-twc.docx",
+      "title": "accountable-plan-twc.docx",
+      "domain": "",
+      "word_count": 1573
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/employer-child-care-partnerships-guide.docx",
+      "title": "employer-child-care-partnerships-guide.docx",
+      "domain": "",
+      "word_count": 5933
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/guide-for-new-child-care-businesses-spanish-twc.docx",
+      "title": "guide-for-new-child-care-businesses-spanish-twc.docx",
+      "domain": "",
+      "word_count": 3573
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/taxes-considerations-for-selling-your-home-spanish-twc.docx",
+      "title": "taxes-considerations-for-selling-your-home-spanish-twc.docx",
+      "domain": "",
+      "word_count": 1464
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/contractor-or-employee-spanish-twc.docx",
+      "title": "contractor-or-employee-spanish-twc.docx",
+      "domain": "",
+      "word_count": 1625
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/contracts-twc.docx",
+      "title": "contracts-twc.docx",
+      "domain": "",
+      "word_count": 1968
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-change-request-form-waitlist-spanish.docx",
+      "title": "parent-change-request-form-waitlist-spanish.docx",
+      "domain": "",
+      "word_count": 864
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/time-management-twc.docx",
+      "title": "time-management-twc.docx",
+      "domain": "",
+      "word_count": 2693
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/depreciation-spanish-twc.docx",
+      "title": "depreciation-spanish-twc.docx",
+      "domain": "",
+      "word_count": 2159
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/automation-and-child-care-businesses-spanish.docx",
+      "title": "automation-and-child-care-businesses-spanish.docx",
+      "domain": "",
+      "word_count": 1441
     },
     {
       "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-desert-by-zip-code-twc.xlsx",
@@ -341,22 +653,196 @@
       "word_count": 14776
     },
     {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/fy24-board-annual-expenditure-plans-online.xlsx",
+      "title": "fy24-board-annual-expenditure-plans-online.xlsx",
+      "domain": "",
+      "word_count": 16570920
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/pay-increases-and-payroll-taxes-twc.docx",
+      "title": "pay-increases-and-payroll-taxes-twc.docx",
+      "domain": "",
+      "word_count": 2453
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/retirement-options-spanish-twc.docx",
+      "title": "retirement-options-spanish-twc.docx",
+      "domain": "",
+      "word_count": 3440
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/managing-enrollment-spanish-twc.docx",
+      "title": "managing-enrollment-spanish-twc.docx",
+      "domain": "",
+      "word_count": 2143
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/employing-your-child-twc.docx",
+      "title": "employing-your-child-twc.docx",
+      "domain": "",
+      "word_count": 1638
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/pricing-spanish-twc.docx",
+      "title": "pricing-spanish-twc.docx",
+      "domain": "",
+      "word_count": 2117
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/depreciation.docx",
+      "title": "depreciation.docx",
+      "domain": "",
+      "word_count": 2037
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/fy23-board-annual-expenditure-plans-online-twc.xlsx",
+      "title": "fy23-board-annual-expenditure-plans-online-twc.xlsx",
+      "domain": "",
+      "word_count": 6707292
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/fy25-ccq-quarterly-online-report-twc.xlsx",
+      "title": "fy25-ccq-quarterly-online-report-twc.xlsx",
+      "domain": "",
+      "word_count": 158068
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/acf-696-2023Q2.xlsx",
+      "title": "acf-696-2023Q2.xlsx",
+      "domain": "",
+      "word_count": 873
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/automation-and-child-care-businesses.docx",
+      "title": "automation-and-child-care-businesses.docx",
+      "domain": "",
+      "word_count": 1313
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/accountable-plan-spanish-twc.docx",
+      "title": "accountable-plan-spanish-twc.docx",
+      "domain": "",
+      "word_count": 1853
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/business-record-keeping.docx",
+      "title": "business-record-keeping.docx",
+      "domain": "",
+      "word_count": 2368
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/time-management-spanish-twc.docx",
+      "title": "time-management-spanish-twc.docx",
+      "domain": "",
+      "word_count": 2785
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/guide-for-new-child-care-businesses-twc.docx",
+      "title": "guide-for-new-child-care-businesses-twc.docx",
+      "domain": "",
+      "word_count": 3313
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/salary-exempt-vs-non-exempt-child-care-twc.docx",
+      "title": "salary-exempt-vs-non-exempt-child-care-twc.docx",
+      "domain": "",
+      "word_count": 2407
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/time-space-twc.docx",
+      "title": "time-space-twc.docx",
+      "domain": "",
+      "word_count": 1193
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/marketing-planning-twc.docx",
+      "title": "marketing-planning-twc.docx",
+      "domain": "",
+      "word_count": 2521
+    },
+    {
       "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-provider-expansion-initiative-twc.docx",
       "title": "child-care-provider-expansion-initiative-twc.docx",
       "domain": "",
       "word_count": 3611
     },
     {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/liability-insurance-spanish.docx",
+      "title": "liability-insurance-spanish.docx",
+      "domain": "",
+      "word_count": 956
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/3202400058-employer-solutions-rfp-final-twc.docx",
+      "title": "3202400058-employer-solutions-rfp-final-twc.docx",
+      "domain": "",
+      "word_count": 14710
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/contractor-or-employee-twc.docx",
+      "title": "contractor-or-employee-twc.docx",
+      "domain": "",
+      "word_count": 1540
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/provider-information-parent-form-twc.docx",
+      "title": "provider-information-parent-form-twc.docx",
+      "domain": "",
+      "word_count": 333
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/pre-k-partnership-template-v2-revised.xlsx",
+      "title": "pre-k-partnership-template-v2-revised.xlsx",
+      "domain": "",
+      "word_count": 3338851
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/reducing-turnover-twc.docx",
+      "title": "reducing-turnover-twc.docx",
+      "domain": "",
+      "word_count": 1378
+    },
+    {
       "url": "https://www.twc.texas.gov/programs/child-care-prekindergarten-partnerships",
       "title": "TWC Prekindergarten Partnerships - Texas Workforce Commission",
       "domain": "www.twc.texas.gov",
-      "word_count": 947
+      "word_count": 942
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/early-childhood-education-landscape-analysis-summary-twc.docx",
+      "title": "early-childhood-education-landscape-analysis-summary-twc.docx",
+      "domain": "",
+      "word_count": 1703
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/tx3c-instrucciones-de-pagos-para-el-proveedor-final-twc.docx",
+      "title": "tx3c-instrucciones-de-pagos-para-el-proveedor-final-twc.docx",
+      "domain": "",
+      "word_count": 456
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/reducing-turnover-spanish-twc.docx",
+      "title": "reducing-turnover-spanish-twc.docx",
+      "domain": "",
+      "word_count": 1690
     },
     {
       "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-numbers-data-annual.xlsx",
       "title": "child-care-numbers-data-annual.xlsx",
       "domain": "",
       "word_count": 135259
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/early-childhood-education-landscape-analysis-website-version.xlsx",
+      "title": "early-childhood-education-landscape-analysis-website-version.xlsx",
+      "domain": "",
+      "word_count": 27558
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/ccrf-status-by-board-twc.docx",
+      "title": "ccrf-status-by-board-twc.docx",
+      "domain": "",
+      "word_count": 2381
     },
     {
       "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/ccs-program-overview-spanish-twc.docx",
@@ -368,15 +854,328 @@
       "url": "https://www.twc.texas.gov/programs/child-care/stimulus-resources",
       "title": "Child Care Stimulus Resources - Texas Workforce Commission",
       "domain": "www.twc.texas.gov",
-      "word_count": 760
+      "word_count": 698
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-change-request-form-waitlist-web-twc.docx",
+      "title": "parent-change-request-form-waitlist-web-twc.docx",
+      "domain": "",
+      "word_count": 786
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/salary-exempt-vs-non-exempt-child-care-spanish-twc.docx",
+      "title": "salary-exempt-vs-non-exempt-child-care-spanish-twc.docx",
+      "domain": "",
+      "word_count": 2808
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/using-artificial-intelligence-in-your-child-care-business-twc.docx",
+      "title": "using-artificial-intelligence-in-your-child-care-business-twc.docx",
+      "domain": "",
+      "word_count": 4898
     }
   ],
-  "pdf_documents": [],
+  "pdf_documents": [
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/commission_meeting_material_02.01.22_item10_dp_5th_tranche_crrsa_arpa_projects.pdf",
+      "filename": "commission_meeting_material_02.01.22_item10_dp_5th_tranche_crrsa_arpa_projects.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/bcy25-board-max-provider-payment-rates-4-age-groups-twc.pdf",
+      "filename": "bcy25-board-max-provider-payment-rates-4-age-groups-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/strand4_wkfc_concurrent_sessions_intro_acc.pdf",
+      "filename": "strand4_wkfc_concurrent_sessions_intro_acc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/acf-218-qpr-ffy-2022-for-texas.pdf",
+      "filename": "acf-218-qpr-ffy-2022-for-texas.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/program/trs-parent-brochure.pdf",
+      "filename": "trs-parent-brochure.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/evaluation-effectiveness-child-care-program-85-legislature-twc.pdf",
+      "filename": "evaluation-effectiveness-child-care-program-85-legislature-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/tx-pdg-renewal-application-2022-public.pdf",
+      "filename": "tx-pdg-renewal-application-2022-public.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-tx3c-attendance-help-english-twc.pdf",
+      "filename": "parent-tx3c-attendance-help-english-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/stakeholder-input-trs-twc.pdf",
+      "filename": "stakeholder-input-trs-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/2025-2027-tx-state-plan-stakeholder-input-twc.pdf",
+      "filename": "2025-2027-tx-state-plan-stakeholder-input-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/program/trs-parent-brochure-vie.pdf",
+      "filename": "trs-parent-brochure-vie.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-provider-desk-aid-twc.pdf",
+      "filename": "child-care-provider-desk-aid-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/provider-attendance-matrix-english-twc.pdf",
+      "filename": "provider-attendance-matrix-english-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-stakeholder-input-policy-twc.pdf",
+      "filename": "child-care-stakeholder-input-policy-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-services-parent-rights-espanol-twc.pdf",
+      "filename": "child-care-services-parent-rights-espanol-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/bcy2025-psoc-chart-twc.pdf",
+      "filename": "bcy2025-psoc-chart-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-services-parent-rights-vietnamese.pdf",
+      "filename": "child-care-services-parent-rights-vietnamese.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/provider-attendance-matrix-espa%C3%B1ol-twc.pdf",
+      "filename": "provider-attendance-matrix-espa%C3%B1ol-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-workforce-strategic-plan.pdf",
+      "filename": "child-care-workforce-strategic-plan.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/bcy-26-income-eligibility-and-maximum-psoc-twc.pdf",
+      "filename": "bcy-26-income-eligibility-and-maximum-psoc-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/wd-24-23-att1-twc.pdf",
+      "filename": "wd-24-23-att1-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/commission-meeting-material-10.19.21-item16-dp-3rd-tranche-arpa-stabilization-twc.pdf",
+      "filename": "commission-meeting-material-10.19.21-item16-dp-3rd-tranche-arpa-stabilization-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/program/child-care-quality-performance-report-2021-twc.pdf",
+      "filename": "child-care-quality-performance-report-2021-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/early-childhood-system-needs-assessment-in-texas-final-accessible.pdf",
+      "filename": "early-childhood-system-needs-assessment-in-texas-final-accessible.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/acf-218-qpr-ffy-2023-for-texas.pdf",
+      "filename": "acf-218-qpr-ffy-2023-for-texas.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-teacher-desk-aid-march-2023-twc.pdf",
+      "filename": "child-care-teacher-desk-aid-march-2023-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/bcy26-board-max-provider-payment-rates-twc.pdf",
+      "filename": "bcy26-board-max-provider-payment-rates-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/acf-218-qpr-ffy-2024-for-texas.pdf",
+      "filename": "acf-218-qpr-ffy-2024-for-texas.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/bcy25-child-care-provider-payment-rates-twc.pdf",
+      "filename": "bcy25-child-care-provider-payment-rates-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/commission-meeting-materials-01.10.23-item3-valuation-effectiveness-child-care-report-88-leg.pdf",
+      "filename": "commission-meeting-materials-01.10.23-item3-valuation-effectiveness-child-care-report-88-leg.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/tx-ccdf-state-plan-ffy2025-2027-approved.pdf",
+      "filename": "tx-ccdf-state-plan-ffy2025-2027-approved.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/market-rate-survey-methodology-stakeholders-twc.pdf",
+      "filename": "market-rate-survey-methodology-stakeholders-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf",
+      "filename": "texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/child-care-services-parent-rights-twc.pdf",
+      "filename": "child-care-services-parent-rights-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/evaluation-effectiveness-child-care-program-84-legislature-twc.pdf",
+      "filename": "evaluation-effectiveness-child-care-program-84-legislature-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/evaluation-of-the-effectiveness-of-child-care-report-to-86th-legislature-2019-twc.pdf",
+      "filename": "evaluation-of-the-effectiveness-of-child-care-report-to-86th-legislature-2019-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/wf/docs/child-care-services-guide-twc.pdf",
+      "filename": "child-care-services-guide-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/parent-tx3c-attendance-help-vietnames-twc.pdf",
+      "filename": "parent-tx3c-attendance-help-vietnames-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/tx-pdg-b5-year-one-accomplishments.pdf",
+      "filename": "tx-pdg-b5-year-one-accomplishments.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/ccdf-emergency-preparedness-disaster-response-plan-2021-twc.pdf",
+      "filename": "ccdf-emergency-preparedness-disaster-response-plan-2021-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/tx3c-desk-aid-prospective-payment-accessible-twc.pdf",
+      "filename": "tx3c-desk-aid-prospective-payment-accessible-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/tx3c-desk-aid-provider-payment-proof-twc.pdf",
+      "filename": "tx3c-desk-aid-provider-payment-proof-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/program/trs-parent-brochure-spa.pdf",
+      "filename": "trs-parent-brochure-spa.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/pdg-simple-yr2-highlights-twc.pdf",
+      "filename": "pdg-simple-yr2-highlights-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/evaluation-of-the-effectiveness-of-child-care-report-to-87th-legislature-2021-twc.pdf",
+      "filename": "evaluation-of-the-effectiveness-of-child-care-report-to-87th-legislature-2021-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/evaluation-of-the-effectiveness-of-child-care-report-to-89th-legislature-twc.pdf",
+      "filename": "evaluation-of-the-effectiveness-of-child-care-report-to-89th-legislature-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/texas-pcqc-user-guide-2023.pdf",
+      "filename": "texas-pcqc-user-guide-2023.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/bcy-26-psoc-chart-twc.pdf",
+      "filename": "bcy-26-psoc-chart-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    },
+    {
+      "url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/provider-attendance-matrix-vietnamese-twc.pdf",
+      "filename": "provider-attendance-matrix-vietnamese-twc.pdf",
+      "domain": "",
+      "word_count": 0
+    }
+  ],
   "external_resources": {
     "www.acf.hhs.gov": [
       {
         "url": "https://www.acf.hhs.gov/sites/default/files/documents/occ/TX-Accepted-ACF118-CCDF-FFY-2025-2027-Appendix.pdf",
-        "text": "Child Care and Development Fund 2025-2027 State Plan Appendix 1",
+        "text": "",
         "from_page": "https://www.twc.texas.gov/programs/child-care/data-reports-plans"
       },
       {
@@ -592,7 +1391,7 @@
     "static1.squarespace.com": [
       {
         "url": "https://static1.squarespace.com/static/5f4d7a7ef6c82325c5ec80c0/t/6022c4f255bfb533e539fe4b/1612891378726/OppEx_2021_IronTriangle.pdf",
-        "text": "Iron Triangle metrics",
+        "text": "",
         "from_page": "https://www.twc.texas.gov/programs/child-care/shared-services-alliances"
       }
     ],
@@ -680,7 +1479,7 @@
       },
       {
         "url": "https://www.hhs.texas.gov/sites/default/files/documents/ccr-roadmap-to-success.pdf",
-        "text": "Roadmap to Success",
+        "text": "",
         "from_page": "https://www.twc.texas.gov/programs/child-care/for-providers"
       },
       {
@@ -719,7 +1518,7 @@
     "cliengage.org": [
       {
         "url": "https://cliengage.org/clirep/CLI-website/Little-Texans/ITELG-English.pdf",
-        "text": "Texas Infant, Toddler, and Three-Year Old Learning Guidelines",
+        "text": "",
         "from_page": "https://www.twc.texas.gov/programs/child-care/for-providers"
       }
     ],
@@ -1029,7 +1828,7 @@
     "www.navigatelifetexas.org": [
       {
         "url": "https://www.navigatelifetexas.org/uploads/files/general-files/Beyond-ECI-ECI-17_1117.pdf",
-        "text": "Beyond Early Childhood Intervention",
+        "text": "",
         "from_page": "https://www.twc.texas.gov/programs/child-care/children-with-disabilities"
       }
     ],
@@ -1150,14 +1949,14 @@
     ]
   },
   "domain_stats": {
-    "": 11,
+    "": 144,
     "www.twc.texas.gov": 13
   },
-  "total_pages": 24,
+  "total_pages": 157,
   "summary": {
     "hub_pages": 10,
-    "content_pages": 14,
-    "pdf_documents": 0,
+    "content_pages": 98,
+    "pdf_documents": 49,
     "unique_domains": 2,
     "external_domains_referenced": 60
   }

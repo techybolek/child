@@ -1,143 +1,57 @@
-# Questions and Answers: Child Care Provider Desk Aid - WorkInTexas.com
+# Child Care Provider Desk Aid - Questions & Answers
 
-## Q1: How do I register as an employer on WorkInTexas.com?
-
-**Answer:** To register as an employer on WorkInTexas.com:
-1. Go to www.workintexas.com
-2. Select "sign in" or "register" in the top right hand corner
-3. Choose "Employers and Agents" as your account type
-4. Select the functionality you want (e.g., "Recruiting" for posting jobs and searching candidates)
-5. Create a Username, Password, and complete the Security questions
-6. Enter your Federal Employer Identification Number (EIN) or Social Security Number
-7. Complete all required fields marked with a red asterisk (*)
-8. Click Next or Continue to move through the registration screens
-9. You'll see an account creation acknowledgement page when finished
-
-Note: If you've filed for unemployment benefits, you may already have a username and password.
+## WorkInTexas.com Platform for Child Care Providers
 
 ---
 
-## Q2: What are the three representative types I can choose when registering?
-
-**Answer:** When registering on WorkInTexas.com, you can select from three representative types:
-
-1. **Direct Representative of your Organization** - This includes employees, principals, and owners of the organization that is registering.
-
-2. **Third Party Agents (TPA)** - This includes companies that represent one or more registered organizations and will perform activities on their behalf.
-
-3. **Professional Employer Organization (PEO)** - This includes companies that have responsibility for managing payroll for one or more registered organizations and will perform activities on their behalf. A PEO is the employer of record for tax purposes and insurance purposes.
+### Q1: What is the purpose of the Child Care Provider Desk Aid?
+**A1:** The Child Care Provider Desk Aid is a guide that helps child care providers learn how to use WorkInTexas.com to post job openings and search for candidates for their child care programs. It provides step-by-step instructions for registering as an employer, creating job postings (called job orders), and searching for potential employees through the WorkInTexas.com platform.
 
 ---
 
-## Q3: How do I create a job posting (job order) on WorkInTexas.com?
-
-**Answer:** To create a job order (job posting):
-1. Locate the Quick Menu feature on the left navigation sidebar
-2. Select "Manage Jobs" link
-3. The Manage Job Orders page will display
-4. Click on "Add New Job Order"
-5. Select "Manual Entry Custom Job Order Option"
-6. Complete steps 1-11 to create your Job Order
-7. Enter a clear job title (e.g., "Child Care Assistant") - this will be searchable by keywords
-8. Fill in all required fields and job details
-9. Once completed, a Job Order Details page will display with your new Job Order number
-
-The job posting will then be viewable online by local job seekers.
+### Q2: How do I register as an employer on WorkInTexas.com if I'm a child care provider?
+**A2:** To register as an employer on WorkInTexas.com, first go to www.workintexas.com and select "sign in" or "register" in the top right corner. If you've previously filed for unemployment benefits, you may already have a username and password. Select "Employers and Agents" as your account type, choose "Recruiting" as your functionality, and complete all required fields marked with a red asterisk (*). You'll need to create a username, password, complete security questions, and enter your Federal Employer Identification Number (EIN) or Social Security Number.
 
 ---
 
-## Q4: What is the difference between Manual Entry Basic and Manual Entry Custom job orders?
-
-**Answer:** There are two manual entry options for creating job orders:
-
-1. **Manual Entry Basic Job Order** - Minimal data entry that will use some default settings. This is a quicker option with fewer customization options.
-
-2. **Manual Entry Custom Job Order** - Build your Job Order using a step-by-step data entry process with more flexibility and custom settings. This option allows you to specify more details about your job posting and gives you greater control over how the job is presented.
-
-For most child care providers looking to create detailed, specific job postings, the Custom Job Order option is recommended.
+### Q3: What are the three representative types available when registering on WorkInTexas.com?
+**A3:** The three representative types are: (1) Direct Representative of your Organization - which includes employees, principals, and owners of the organization that is registering; (2) Third Party Agents (TPA) - companies that represent one or more registered organizations and perform activities on their behalf; and (3) Professional Employer Organization (PEO) - companies that manage payroll for one or more registered organizations and serve as the employer of record for tax and insurance purposes.
 
 ---
 
-## Q5: How can I search for candidates on WorkInTexas.com?
-
-**Answer:** To search for candidates:
-1. Locate the Quick Menu feature on the left navigation sidebar
-2. Select "Candidate Search"
-3. Under the Quick search tab, enter:
-   - Desired location (e.g., Travis County, TX)
-   - Keywords (e.g., "Childcare")
-4. Click "Search"
-5. A list of active resumes of candidates matching your criteria will display
-6. You can view candidate resumes by clicking "View Resume" next to the selected candidate
-7. The search results show information like resume title, status, last modified date, education level, and desired salary
-
-You can also use the Advanced search options to filter by occupation, education level, salary, resume modification date, and veteran status.
+### Q4: What functionality options should a child care provider select during registration?
+**A4:** Child care providers should select "Recruiting" as their primary functionality during registration. This option allows them to perform labor exchange functions such as recruiting talent, posting jobs, conducting online résumé searches, applicant tracking, and researching the local labor market. There's also a "Marketing Lead" option for creating accounts to track outreach and Customer Relationship Management (CRM) purposes.
 
 ---
 
-## Q6: What information do I need to provide when registering as an employer?
-
-**Answer:** When registering as an employer on WorkInTexas.com, you need to provide:
-
-1. **Account Information:**
-   - Username (create your own)
-   - Password (create your own)
-   - Security questions and answers
-
-2. **Representative Type:** Choose whether you're a direct representative, third party agent, or professional employer organization
-
-3. **Functionality:** Select "Recruiting" to perform labor exchange functions such as recruiting talent, posting jobs, online resume search, applicant tracking, and researching the local labor market
-
-4. **Federal Employer ID Number (EIN) or Social Security Number** - Enter without dashes (e.g., 999001111)
-
-5. **UI Tax ID** (if applicable)
-
-All fields marked with a red asterisk (*) are required and must be completed.
+### Q5: How do I create a job order (job posting) on WorkInTexas.com?
+**A5:** To create a job order, locate the Quick Menu feature on the left navigation sidebar and select "Manage Jobs." On the Manage Job Orders page, click "Add New Job Order" and select "Manual Entry Custom Job Order Option." Then complete steps 1-11 to create your job order, which includes entering the job title, occupation details, and other required information. Once completed, a Job Order Details page will display with your new job order number.
 
 ---
 
-## Q7: Can I use WorkInTexas.com in Spanish?
-
-**Answer:** Yes, WorkInTexas.com is available in Spanish. To change to the Spanish version, click on the "En Español" link located on the website. This link is typically found on the main page and allows you to switch the entire interface to Spanish for easier navigation and use.
-
----
-
-## Q8: What functionality options are available when registering on WorkInTexas.com?
-
-**Answer:** When registering, you can select the functionality you wish to access. The two main options are:
-
-1. **Recruiting** - Perform labor exchange functions such as:
-   - Recruiting talent
-   - Posting jobs
-   - Online resume search
-   - Applicant tracking
-   - Researching the local labor market
-
-2. **Marketing Lead** - Create a Marketing Lead account for an organization that you wish to track for purposes of outreach and Customer Relationship Management (CRM)
-
-For child care providers looking to hire staff, the "Recruiting" functionality is the appropriate choice. You can select multiple functionalities by checking the appropriate boxes.
+### Q6: What's the difference between Manual Entry Basic Job Order and Manual Entry Custom Job Order?
+**A6:** Manual Entry Basic Job Order uses minimal data entry with some default settings, making it a quicker option for simple postings. Manual Entry Custom Job Order allows you to build your job order using a step-by-step data entry process with more flexibility and custom settings, giving you greater control over the job posting details and requirements.
 
 ---
 
-## Q9: What happens after I successfully register as an employer?
-
-**Answer:** After successful registration, you'll see a confirmation message (e.g., "Learning Tree Academy has been successfully registered") and be presented with three options:
-
-1. **Staff Services** - Select this option to return to staff services
-
-2. **Open Employer's Folder** - Select this option to begin working with this Employer and access your employer dashboard
-
-3. **Add Locations and Contacts** - Select this option to enter multiple locations and contacts for the employer
-
-Most employers will want to select "Open Employer's Folder" to start posting jobs and searching for candidates immediately.
+### Q7: How can I search for candidates on WorkInTexas.com for my child care program?
+**A7:** To search for candidates, locate the Quick Menu feature on the left navigation sidebar and select "Candidate Search." Under the Quick search tab, enter your desired location and a keyword (for example, "Childcare"). Click Search, and a list of active resumes from candidates matching your criteria will display. You can then review each candidate's resume by clicking "View Résumé" next to their information.
 
 ---
 
-## Q10: Where can I get help if I need assistance with WorkInTexas.com?
+### Q8: What information is required when entering my Federal ID during registration?
+**A8:** When entering your Federal ID, you must select the Type of Identification - either Federal Employer Identification Number or Social Security Number. You'll need to enter your Federal Employer ID Number (EIN)/Federal Tax ID (FEID) or Social Security Number without dashes (for example: 999001111), then confirm it in a second field. You'll also need to enter your UI Tax ID without dashes.
 
-**Answer:** If you need further assistance with WorkInTexas.com, you should contact your local Workforce Development Board.
+---
 
-You can find your local workforce development board at:
-**https://www.twc.texas.gov/partners/workforce-development-boards-websites**
+### Q9: Is WorkInTexas.com available in languages other than English?
+**A9:** Yes, WorkInTexas.com is available in Spanish. To change to the Spanish version, you need to click on the "En Español" link located on the website. This allows Spanish-speaking child care providers to access the same registration, job posting, and candidate search features in their preferred language.
 
-Additionally, throughout the WorkInTexas.com website, you can click on information icons (ℹ️) next to each section for context-specific help. The system also provides help links and tooltips throughout the registration and job posting process.
+---
+
+### Q10: Where can I get additional help if I need assistance using WorkInTexas.com for my child care program?
+**A10:** For further assistance, you should contact your local Workforce Development Board. You can find your local workforce development board by visiting: https://www.twc.texas.gov/partners/workforce-development-boards-websites. These local boards can provide personalized support and guidance for using the WorkInTexas.com platform to recruit employees for your child care program.
+
+---
+
+*This Q&A document is based on the Child Care Provider Desk Aid from the Texas Workforce Commission.*

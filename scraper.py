@@ -229,6 +229,15 @@ class WebScraper:
             for element in soup.select(selector):
                 element.decompose()
 
+        # Remove text from PDF/document links to prevent titles polluting content
+        # (but keep the link element for discovery)
+        for a_tag in soup.find_all('a', href=True):
+            href = a_tag['href'].lower()
+            if (href.endswith('.pdf') or href.endswith('.docx') or
+                href.endswith('.xlsx') or href.endswith('.doc') or
+                href.endswith('.xls') or '/pdf/' in href):
+                a_tag.string = ''  # Clear the link text but keep the element
+
         # Extract main content
         # Try to find main content area
         main_content = None
@@ -357,22 +366,23 @@ class WebScraper:
 
         # Check if PDF
         if self.pdf_extractor.is_pdf_url(url):
-            logger.info(f"Processing PDF: {url}")
-            pdf_content = self.pdf_extractor.process_pdf_url(url)
+            logger.info(f"Downloading PDF: {url}")
+            pdf_metadata = self.pdf_extractor.process_pdf_url(url)
 
-            if pdf_content:
+            if pdf_metadata:
                 self.stats['pdfs_extracted'] += 1
-                # Save PDF content
+                # Save PDF metadata
                 url_hash = hashlib.md5(url.encode()).hexdigest()
                 filename = f"{url_hash}_pdf.json"
                 filepath = os.path.join(config.PDFS_DIR, filename)
 
                 with open(filepath, 'w', encoding='utf-8') as f:
-                    json.dump(pdf_content, f, indent=2, ensure_ascii=False)
+                    json.dump(pdf_metadata, f, indent=2, ensure_ascii=False)
 
-                return pdf_content
+                logger.info(f"PDF downloaded: {pdf_metadata['filename']} ({pdf_metadata['file_size_mb']} MB)")
+                return pdf_metadata
             else:
-                self.failed_urls[url] = "PDF extraction failed"
+                self.failed_urls[url] = "PDF download failed"
                 self.stats['errors'] += 1
                 return None
 
@@ -471,7 +481,7 @@ class WebScraper:
         logger.info(
             f"Progress: {self.stats['pages_scraped']} pages scraped, "
             f"{self.stats['documents_extracted']} documents extracted, "
-            f"{self.stats['pdfs_extracted']} PDFs extracted, "
+            f"{self.stats['pdfs_extracted']} PDFs downloaded, "
             f"{self.stats['errors']} errors, "
             f"{len(self.queued_urls)} in queue, "
             f"{elapsed:.1f}s elapsed"

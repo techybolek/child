@@ -1,0 +1,26 @@
+2025-10-10 18:41:41,183 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333 "HTTP/1.1 200 OK"
+2025-10-10 18:41:41,186 - __main__ - INFO - Loading embedding model: all-MiniLM-L6-v2
+2025-10-10 18:41:44,249 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2025-10-10 18:41:45,750 - __main__ - INFO - Starting PDF to Qdrant loading process
+2025-10-10 18:41:45,750 - __main__ - INFO - Test mode: False
+2025-10-10 18:41:46,011 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections "HTTP/1.1 200 OK"
+2025-10-10 18:41:46,012 - __main__ - INFO - Collection 'tro-child-1' already exists
+2025-10-10 18:41:46,097 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-10 18:41:46,099 - __main__ - INFO - Current vectors count: 4162
+2025-10-10 18:41:46,099 - __main__ - INFO - Found 1 PDF files to process
+2025-10-10 18:41:46,099 - __main__ - INFO - 
+============================================================
+2025-10-10 18:41:46,099 - __main__ - INFO - Processing PDF 1/1: texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-10 18:41:46,099 - __main__ - INFO - ============================================================
+2025-10-10 18:41:46,099 - __main__ - INFO - Processing PDF: texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-10 18:41:46,313 - __main__ - INFO - Loaded 52 pages from texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-10 18:41:46,315 - __main__ - INFO - Created 90 chunks from texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf
+2025-10-10 18:41:46,315 - __main__ - INFO - Generating embeddings for 90 chunks...
+2025-10-10 18:41:51,655 - httpx - INFO - HTTP Request: GET https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1 "HTTP/1.1 200 OK"
+2025-10-10 18:41:52,249 - httpx - INFO - HTTP Request: PUT https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333/collections/tro-child-1/points?wait=true "HTTP/1.1 200 OK"
+2025-10-10 18:41:52,252 - __main__ - INFO - Uploaded batch 1 (90 points)
+2025-10-10 18:41:52,252 - __main__ - INFO - Successfully uploaded 90 chunks to Qdrant
+2025-10-10 18:41:52,252 - __main__ - INFO - Checkpoint saved to /home/tromanow/COHORT/TX/LOAD_DB/checkpoints/checkpoint_20251010_184152.json
+2025-10-10 18:41:52,253 - __main__ - INFO - Report saved to /home/tromanow/COHORT/TX/LOAD_DB/reports/load_report_20251010_184152.txt
+2025-10-10 18:41:52,253 - __main__ - INFO - 
+PDF loading complete!

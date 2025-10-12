@@ -46,6 +46,7 @@ TWC_CHILD_CARE_PATTERNS = [
     '/families/child-care',
     '/ccs',        # Child Care Services acronym
     '/ccms',       # Child Care Management System
+    '/ccel/',      # Child Care and Early Learning resources
 ]
 
 # ===== RATE LIMITING & TIMEOUTS =====
@@ -147,6 +148,31 @@ DRY_RUN_MAX_PAGES = 5        # Only scrape this many pages in dry run
 SCRAPE_TIMESTAMP = datetime.now().isoformat()
 PROJECT_NAME = 'Texas Child Care Solutions Scraper'
 VERSION = '1.0.0'
+
+# ===== VECTOR DB SETTINGS =====
+LOAD_DB_DIR = os.path.join(BASE_DIR, 'LOAD_DB')
+LOAD_DB_LOGS_DIR = os.path.join(LOAD_DB_DIR, 'logs')
+LOAD_DB_CHECKPOINTS_DIR = os.path.join(LOAD_DB_DIR, 'checkpoints')
+LOAD_DB_REPORTS_DIR = os.path.join(LOAD_DB_DIR, 'reports')
+
+# Qdrant collection settings
+QDRANT_COLLECTION_NAME = 'tro-child-1'
+QDRANT_API_URL = os.getenv('QDRANT_API_URL')
+QDRANT_API_KEY = os.getenv('QDRANT_API_KEY')
+
+# Text chunking settings
+CHUNK_SIZE = 1000              # Characters per chunk
+CHUNK_OVERLAP = 200            # Overlap between chunks
+CHUNK_SEPARATORS = ["\n\n", "\n", ". ", " ", ""]  # Priority order for splitting
+
+# Embedding model settings - OpenAI
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+EMBEDDING_MODEL = 'text-embedding-3-small'  # OpenAI embedding model
+EMBEDDING_DIMENSION = 1536                   # Dimension for text-embedding-3-small
+
+# Batch processing
+BATCH_SIZE = 10                # PDFs to process in each batch
+UPLOAD_BATCH_SIZE = 100        # Vectors to upload per batch
 
 # ===== HELPER FUNCTIONS =====
 def is_twc_child_care_url(url):

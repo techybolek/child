@@ -1,0 +1,23 @@
+
+PDF to Qdrant Loading Report
+============================================================
+
+Processing Summary:
+  - Total PDFs processed: 42
+  - Total PDFs failed: 0
+  - Total pages extracted: 1321
+  - Total chunks created: 3722
+
+Collection: tro-child-1
+  - Qdrant URL: https://d579ecd5-2fe2-4e6d-8509-77fd94e8cd67.us-east4-0.gcp.cloud.qdrant.io:6333
+  - Embedding Model: text-embedding-3-small
+  - Chunk Size: 1000 characters
+  - Chunk Overlap: 200 characters
+
+Timing:
+  - Start Time: 2025-10-10 18:54:55
+  - End Time: 2025-10-10 18:56:40
+  - Duration: 0:01:45.249002
+
+
+============================================================
