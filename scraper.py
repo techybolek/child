@@ -51,7 +51,7 @@ class WebScraper:
             'pages_scraped': 0,
             'pages_skipped': 0,
             'pdfs_extracted': 0,
-            'documents_extracted': 0,
+            'documents_referenced': 0,
             'errors': 0,
             'start_time': time.time(),
         }
@@ -344,12 +344,12 @@ class WebScraper:
 
         # Check if document (.docx, .xlsx) FIRST (before PDF check)
         if self.document_extractor.is_document_url(url):
-            logger.info(f"Processing document: {url}")
+            logger.info(f"Referencing document: {url}")
             doc_content = self.document_extractor.process_document_url(url)
 
             if doc_content:
-                self.stats['documents_extracted'] += 1
-                # Save document content
+                self.stats['documents_referenced'] += 1
+                # Save document reference
                 url_hash = hashlib.md5(url.encode()).hexdigest()
                 filename = f"{url_hash}.json"
                 filepath = os.path.join(config.PAGES_DIR, filename)
@@ -360,7 +360,7 @@ class WebScraper:
                 # Don't discover links from documents
                 return doc_content
             else:
-                self.failed_urls[url] = "Document extraction failed"
+                self.failed_urls[url] = "Document reference failed"
                 self.stats['errors'] += 1
                 return None
 
@@ -480,7 +480,7 @@ class WebScraper:
         elapsed = time.time() - self.stats['start_time']
         logger.info(
             f"Progress: {self.stats['pages_scraped']} pages scraped, "
-            f"{self.stats['documents_extracted']} documents extracted, "
+            f"{self.stats['documents_referenced']} documents referenced, "
             f"{self.stats['pdfs_extracted']} PDFs downloaded, "
             f"{self.stats['errors']} errors, "
             f"{len(self.queued_urls)} in queue, "

@@ -217,53 +217,67 @@ class DocumentExtractor:
 
     def process_document_url(self, url: str, metadata: Dict[str, Any] = None) -> Optional[Dict[str, Any]]:
         """
-        Download and extract text from document URL.
+        Get metadata reference for document URL (no download or text extraction).
 
         Args:
             url: URL of the document
             metadata: Optional metadata to include
 
         Returns:
-            Dictionary with extracted content and metadata, or None if failed
+            Dictionary with document metadata reference, or None if failed
         """
         doc_id = self._generate_doc_id(url)
+        filename = self._get_filename_from_url(url)
 
-        # Download document
-        doc_path = self.download_document(url)
-        if not doc_path:
-            return None
-
-        # Determine document type and extract text
-        text = None
-        if url.lower().endswith('.docx'):
-            text = self.extract_text_from_docx(doc_path)
+        # Determine document type
+        url_lower = url.lower()
+        if url_lower.endswith('.docx'):
             content_type = 'docx'
-        elif url.lower().endswith('.xlsx'):
-            text = self.extract_text_from_xlsx(doc_path)
+        elif url_lower.endswith('.xlsx'):
             content_type = 'xlsx'
+        elif url_lower.endswith('.doc'):
+            content_type = 'doc'
+        elif url_lower.endswith('.xls'):
+            content_type = 'xls'
         else:
             logger.warning(f"Unknown document type: {url}")
             return None
 
-        if not text:
-            return None
+        # Get file size via HEAD request (without downloading)
+        try:
+            logger.info(f"Getting metadata for document: {url}")
+            headers = {'User-Agent': self.user_agent}
+            head_response = requests.head(url, headers=headers, timeout=10, allow_redirects=True)
+            head_response.raise_for_status()
 
-        # Build result
+            # Extract file size
+            content_length = head_response.headers.get('Content-Length')
+            file_size_bytes = int(content_length) if content_length else None
+            file_size_mb = round(file_size_bytes / (1024 * 1024), 2) if file_size_bytes else None
+
+            logger.info(f"Document reference captured: {filename} ({file_size_mb} MB)" if file_size_mb else f"Document reference captured: {filename}")
+
+        except requests.RequestException as e:
+            logger.error(f"Failed to get metadata for document {url}: {e}")
+            # Still return reference even if HEAD request fails
+            file_size_bytes = None
+            file_size_mb = None
+
+        # Build result (reference only, no text)
         result = {
             'doc_id': doc_id,
             'url': url,
-            'filename': os.path.basename(doc_path),
-            'text': text,
-            'word_count': len(text.split()),
+            'filename': filename,
             'content_type': content_type,
+            'file_size_bytes': file_size_bytes,
+            'file_size_mb': file_size_mb,
+            'document_reference': True,
+            'extraction_performed': False,
         }
 
         # Add additional metadata if provided
         if metadata:
             result.update(metadata)
-
-        # Clean up downloaded file (optional)
-        # os.remove(doc_path)
 
         return result
 

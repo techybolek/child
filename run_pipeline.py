@@ -16,6 +16,31 @@ from scraper import WebScraper
 from content_processor import ContentProcessor
 from site_mapper import SiteMapper
 
+# Set up directories
+def ensure_directories():
+    """Create all required directories if they don't exist."""
+    directories = [
+        config.SCRAPED_CONTENT_DIR,
+        config.RAW_DIR,
+        config.PAGES_DIR,
+        config.PDFS_DIR,
+        config.PROCESSED_DIR,
+        config.REPORTS_DIR,
+    ]
+
+    # Add vector DB directories if they're defined
+    if hasattr(config, 'LOAD_DB_DIR'):
+        directories.extend([
+            config.LOAD_DB_DIR,
+            config.LOAD_DB_LOGS_DIR,
+            config.LOAD_DB_CHECKPOINTS_DIR,
+            config.LOAD_DB_REPORTS_DIR,
+        ])
+
+    for directory in directories:
+        os.makedirs(directory, exist_ok=True)
+
+
 # Set up logging
 def setup_logging(log_file: str = None):
     """Configure logging for the pipeline."""
@@ -331,6 +356,9 @@ def main():
         help='Run in dry-run mode (limited pages for testing)'
     )
     args = parser.parse_args()
+
+    # Ensure directories exist
+    ensure_directories()
 
     # Setup logging
     logger = setup_logging()
