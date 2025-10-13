@@ -1,5 +1,7 @@
-__pycache__/
+**/__pycache__/
 .venv
 ARCHIVE
 POORLY_SCRAPED
 scraped_content
+**/node_modules/
+.serena

@@ -1,0 +1,121 @@
+"""
+Pydantic models for request/response validation
+"""
+from pydantic import BaseModel, Field
+from typing import List, Optional
+
+
+class ChatRequest(BaseModel):
+    """Request model for chat endpoint"""
+    question: str = Field(
+        ...,
+        min_length=1,
+        max_length=500,
+        description="User's question about Texas childcare assistance"
+    )
+    session_id: Optional[str] = Field(
+        None,
+        description="Optional session ID for conversation tracking"
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "question": "What are the income limits for a family of 3 in BCY 2026?",
+                    "session_id": "550e8400-e29b-41d4-a716-446655440000"
+                }
+            ]
+        }
+    }
+
+
+class Source(BaseModel):
+    """Source citation model"""
+    doc: str = Field(..., description="Document filename")
+    page: int = Field(..., description="Page number")
+    url: str = Field(..., description="Source URL")
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "doc": "TWC_Income_Guidelines_2026.pdf",
+                    "page": 12,
+                    "url": "https://texaschildcaresolutions.org/files/TWC_Income_Guidelines_2026.pdf"
+                }
+            ]
+        }
+    }
+
+
+class ActionItem(BaseModel):
+    """Action item model for clickable links/buttons"""
+    type: str = Field(..., description="Action type (e.g., 'link', 'button')")
+    url: str = Field(..., description="URL to navigate to")
+    label: str = Field(..., description="Display label for the action")
+    description: Optional[str] = Field(None, description="Optional description")
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "type": "link",
+                    "url": "https://childcare.hhs.texas.gov/Public/ChildCareSearch",
+                    "label": "Search for Childcare Facilities",
+                    "description": "Official Texas HHS facility search tool"
+                }
+            ]
+        }
+    }
+
+
+class ChatResponse(BaseModel):
+    """Response model for chat endpoint"""
+    answer: str = Field(..., description="Generated answer from the chatbot")
+    sources: List[Source] = Field(..., description="Source citations used for the answer")
+    response_type: str = Field(default='information', description="Response type (information, location_search, etc.)")
+    action_items: List[ActionItem] = Field(default=[], description="Optional action items (links, buttons)")
+    processing_time: float = Field(..., description="Processing time in seconds")
+    session_id: str = Field(..., description="Session ID for conversation tracking")
+    timestamp: str = Field(..., description="Response timestamp in ISO 8601 format")
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "answer": "For BCY 2026, a family of 3 has the following income limits...",
+                    "sources": [
+                        {
+                            "doc": "TWC_Income_Guidelines_2026.pdf",
+                            "page": 12,
+                            "url": "https://texaschildcaresolutions.org/files/TWC_Income_Guidelines_2026.pdf"
+                        }
+                    ],
+                    "processing_time": 3.24,
+                    "session_id": "550e8400-e29b-41d4-a716-446655440000",
+                    "timestamp": "2025-10-12T15:30:05Z"
+                }
+            ]
+        }
+    }
+
+
+class HealthResponse(BaseModel):
+    """Response model for health check endpoint"""
+    status: str = Field(..., description="Service status (ok or error)")
+    chatbot_initialized: bool = Field(..., description="Whether chatbot is initialized")
+    timestamp: str = Field(..., description="Check timestamp in ISO 8601 format")
+    error: Optional[str] = Field(None, description="Error message if status is error")
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "ok",
+                    "chatbot_initialized": True,
+                    "timestamp": "2025-10-12T15:30:00Z"
+                }
+            ]
+        }
+    }

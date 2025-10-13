@@ -1,0 +1,16 @@
+# FastAPI Backend for Texas Childcare Chatbot
+# Python 3.9+ required
+
+# FastAPI framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Data validation
+pydantic>=2.0
+pydantic-settings>=2.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# CORS support (included with FastAPI but listed for clarity)
+# Note: The chatbot dependencies are inherited from parent requirements.txt

@@ -8,7 +8,7 @@ Texas Child Care Solutions RAG Application - A complete end-to-end retrieval-aug
 
 ## System Architecture
 
-The project consists of three independent pipelines that work together:
+The project consists of four main components:
 
 ### 1. Web Scraping Pipeline (SCRAPER/)
 Extracts content from Texas childcare websites in multiple formats (HTML, .docx, .xlsx, PDFs).
@@ -32,15 +32,41 @@ Loads PDF documents into Qdrant vector database with OpenAI embeddings.
 **Important:** This pipeline uses SCRAPER/config.py for shared configuration (paths, Qdrant settings, embedding models).
 
 ### 3. RAG Chatbot (chatbot/)
-Multi-provider conversational AI with 3-stage pipeline: Retrieval → Reranking → Generation.
+Multi-provider conversational AI with **intent-based routing** and handler pattern architecture.
+
+**Architecture:**
+- **Intent Classification Layer** - Routes queries to appropriate handlers
+- **RAG Pipeline** (for information queries) - Retrieval → Reranking → Generation
+- **Template Responses** (for location searches) - Direct user to Texas HHS facility search
 
 **Key modules:**
-- `config.py` - Chatbot-specific configuration (LLM providers, models)
+- `config.py` - Chatbot-specific configuration (LLM providers, models, intent classifier)
+- `intent_router.py` - Query classification and routing logic
+- `handlers/base.py` - BaseHandler interface
+- `handlers/rag_handler.py` - Information queries via RAG pipeline
+- `handlers/location_handler.py` - Location search template responses
 - `retriever.py` - Qdrant vector search
 - `reranker.py` - LLM-based relevance scoring
 - `generator.py` - Answer generation with citations
-- `chatbot.py` - Main orchestration class
+- `chatbot.py` - Main orchestration (delegates to IntentRouter)
 - `interactive_chat.py` (root) - CLI interface
+
+### 4. Web Frontend (backend/ + frontend/)
+**Decoupled web architecture:** FastAPI backend wrapping the chatbot + Next.js 15 frontend with React 19.
+
+**Backend (backend/):**
+- FastAPI REST API exposing chatbot functionality
+- Singleton pattern wrapping `TexasChildcareChatbot`
+- Auto-generated Swagger docs at `/docs`
+- Endpoints: `POST /api/chat`, `GET /api/health`
+
+**Frontend (frontend/):**
+- Next.js 15 with App Router and Turbopack
+- TypeScript + React 19 + Tailwind CSS
+- 7 React components: ChatInterface, MessageList, MessageBubble, InputBar, SourceCard, LoadingIndicator, ErrorMessage
+- Real-time API calls with loading states
+- Markdown rendering for formatted answers
+- Collapsible source citations
 
 ## Environment Setup
 
@@ -106,13 +132,33 @@ python load_pdf_qdrant.py --no-clear
 python verify_qdrant.py
 ```
 
-### Run Chatbot
+### Run Chatbot (CLI)
 ```bash
 # Interactive CLI chatbot
 python interactive_chat.py
 
 # Quick test
 python test_chatbot.py
+```
+
+### Run Web Application
+```bash
+# Terminal 1: Backend API (port 8000)
+cd backend
+source ../.venv/bin/activate
+pip install -r requirements.txt  # First time only
+python main.py
+# Or: uvicorn main:app --reload --port 8000
+
+# Terminal 2: Frontend (port 3000)
+cd frontend
+npm install  # First time only
+npm run dev
+
+# Access:
+# - Frontend UI: http://localhost:3000
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
 ```
 
 ## Key Configuration Details
@@ -132,6 +178,7 @@ Both the scraper and LOAD_DB pipeline import from `SCRAPER/config.py`.
 Chatbot-specific settings only:
 - LLM provider selection (GROQ/OpenAI)
 - Model names for generation and reranking
+- Intent classifier provider and model
 - Retrieval parameters (top_k, thresholds)
 
 ### Important Constants
@@ -147,6 +194,10 @@ CHUNK_OVERLAP = 200
 # Chatbot (from chatbot/config.py)
 LLM_PROVIDER = 'groq'  # default
 LLM_MODEL = 'openai/gpt-oss-20b' if using GROQ
+RERANKER_PROVIDER = 'groq'  # default
+RERANKER_MODEL = 'openai/gpt-oss-20b' if using GROQ
+INTENT_CLASSIFIER_PROVIDER = 'groq'  # default
+INTENT_CLASSIFIER_MODEL = 'llama-3.3-70b-versatile' if using GROQ
 RETRIEVAL_TOP_K = 20
 RERANK_TOP_K = 7
 ```
@@ -169,10 +220,44 @@ RERANK_TOP_K = 7
 │   └── reports/              # Loading reports
 ├── chatbot/                   # RAG chatbot
 │   ├── config.py             # Chatbot-specific config
-│   ├── chatbot.py            # Main orchestration
-│   ├── retriever.py
-│   ├── reranker.py
-│   └── generator.py
+│   ├── chatbot.py            # Main orchestration (delegates to router)
+│   ├── intent_router.py      # Query classification and routing
+│   ├── handlers/             # Intent handlers
+│   │   ├── __init__.py
+│   │   ├── base.py           # BaseHandler interface
+│   │   ├── rag_handler.py    # Information queries (RAG pipeline)
+│   │   └── location_handler.py # Location search queries
+│   ├── retriever.py          # Qdrant vector search
+│   ├── reranker.py           # LLM-based relevance scoring
+│   └── generator.py          # Answer generation
+├── backend/                   # FastAPI web backend
+│   ├── main.py               # FastAPI app entry point
+│   ├── config.py             # Backend configuration
+│   ├── api/
+│   │   ├── routes.py         # API endpoints
+│   │   ├── models.py         # Pydantic schemas
+│   │   └── middleware.py     # CORS, error handling
+│   ├── services/
+│   │   └── chatbot_service.py # Singleton wrapper
+│   └── requirements.txt      # FastAPI dependencies
+├── frontend/                  # Next.js 15 web frontend
+│   ├── app/
+│   │   ├── layout.tsx        # Root layout
+│   │   ├── page.tsx          # Home page
+│   │   └── globals.css       # Global styles
+│   ├── components/
+│   │   ├── ChatInterface.tsx    # Main container
+│   │   ├── MessageList.tsx      # Message history
+│   │   ├── MessageBubble.tsx    # Individual message
+│   │   ├── InputBar.tsx         # Input field
+│   │   ├── SourceCard.tsx       # Source citations
+│   │   ├── LoadingIndicator.tsx # Loading state
+│   │   └── ErrorMessage.tsx     # Error display
+│   ├── lib/
+│   │   ├── api.ts            # API client
+│   │   ├── types.ts          # TypeScript types
+│   │   └── utils.ts          # Utilities
+│   └── package.json          # Node dependencies
 ├── scraped_content/           # Scraper output
 │   ├── raw/                  # Raw scraped data
 │   │   ├── pages/            # HTML page JSON
@@ -182,9 +267,12 @@ RERANK_TOP_K = 7
 │   │   ├── content_chunks.json
 │   │   └── site_map.json
 │   └── reports/              # Analysis reports
+├── SPECS/                     # Design documents
+│   ├── web_frontend_design.md    # Web architecture
+│   └── nextjs_15_updates.md      # Next.js 15 notes
 ├── interactive_chat.py        # CLI interface
 ├── test_chatbot.py           # Quick test script
-└── requirements.txt          # All dependencies
+└── requirements.txt          # Python dependencies
 ```
 
 ## Pipeline Dependencies
@@ -194,6 +282,28 @@ RERANK_TOP_K = 7
 3. **Chatbot** → Queries Qdrant collection `tro-child-1`
 
 Each pipeline can run independently once its inputs are available.
+
+## Intent-Based Routing Architecture
+
+The chatbot uses an **intent classification layer** to route queries to specialized handlers:
+
+### Intent Classification
+- **Provider:** GROQ (default) or OpenAI
+- **Model:** `llama-3.3-70b-versatile` (GROQ) or `gpt-4o-mini` (OpenAI)
+- **Categories:**
+  - `location_search` - User wants to find/search for childcare facilities
+  - `information` - User wants information about policies, eligibility, programs
+
+### Handlers
+1. **LocationSearchHandler** - Returns template response with link to Texas HHS facility search
+2. **RAGHandler** - Runs full RAG pipeline (Retrieval → Reranking → Generation)
+
+### Response Format
+All handlers return a dict with:
+- `answer` (str) - The response text
+- `sources` (list) - Source citations with doc, page, url
+- `response_type` (str) - 'location_search' or 'information'
+- `action_items` (list) - Optional actionable links/buttons
 
 ## Multi-Provider Support (Chatbot)
 
@@ -207,9 +317,12 @@ export GROQ_API_KEY="your-key"
 # Use OpenAI (higher quality, costs money)
 export LLM_PROVIDER="openai"
 export OPENAI_API_KEY="your-key"
+
+# Override intent classifier provider (optional)
+export INTENT_CLASSIFIER_PROVIDER="openai"
 ```
 
-Generator and reranker can use different providers independently.
+Generator, reranker, and intent classifier can use different providers independently.
 
 ## Critical Architecture Notes
 
@@ -305,3 +418,9 @@ Git ignores:
 - `scraped_content/` - Generated scraper output
 - `LOAD_DB/logs/`, `LOAD_DB/checkpoints/`, `LOAD_DB/reports/` - Generated artifacts
 - `__pycache__/` - Python cache
+
+## Important
+# You’re a pragmatic software engineer. Your only goal is to solve the stated problem using the smallest, simplest possible solution. Avoid any form of future-proofing, abstraction, optimization, or unnecessary features. Just write what is needed to meet the requirement—nothing more. Apply YAGNI and KISS principles. If the task is to write code, provide the minimal (but correct) code that works, without extra comments or explanations unless explicitly requested.
+# The code is not in production. We are working with a prototype.
+
+
