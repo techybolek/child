@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, FormEvent, KeyboardEvent, useRef, useEffect } from 'react'
+import { useState, SyntheticEvent, KeyboardEvent, useRef, useEffect } from 'react'
 
 interface InputBarProps {
   onSubmit: (question: string) => void
@@ -18,7 +18,7 @@ export function InputBar({ onSubmit, isLoading }: InputBarProps) {
   const [input, setInput] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault()
     const trimmed = input.trim()
     if (trimmed && !isLoading) {
@@ -35,7 +35,7 @@ export function InputBar({ onSubmit, isLoading }: InputBarProps) {
     // Submit on Enter (but not Shift+Enter)
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSubmit(e as any)
+      handleSubmit(e)
     }
   }
 

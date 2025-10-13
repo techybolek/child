@@ -5,3 +5,6 @@ POORLY_SCRAPED
 scraped_content
 **/node_modules/
 .serena
+
+# Docker environment files
+.env.docker

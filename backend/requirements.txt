@@ -12,5 +12,8 @@ pydantic-settings>=2.0
 # Environment variables
 python-dotenv>=1.0.0
 
-# CORS support (included with FastAPI but listed for clarity)
-# Note: The chatbot dependencies are inherited from parent requirements.txt
+# Chatbot RAG dependencies
+qdrant-client>=1.7.0
+openai>=1.0.0
+groq>=0.4.0
+langchain-openai>=0.0.2
