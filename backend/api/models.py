@@ -17,17 +17,21 @@ class ChatRequest(BaseModel):
         None,
         description="Optional session ID for conversation tracking"
     )
+    provider: Optional[str] = Field(
+        None,
+        description="Optional LLM provider: 'groq' or 'openai'"
+    )
     llm_model: Optional[str] = Field(
         None,
-        description="Optional GROQ model to use for generation"
+        description="Optional model to use for generation"
     )
     reranker_model: Optional[str] = Field(
         None,
-        description="Optional GROQ model to use for reranking"
+        description="Optional model to use for reranking"
     )
     intent_model: Optional[str] = Field(
         None,
-        description="Optional GROQ model to use for intent classification"
+        description="Optional model to use for intent classification"
     )
 
     model_config = {
@@ -36,6 +40,7 @@ class ChatRequest(BaseModel):
                 {
                     "question": "What are the income limits for a family of 3 in BCY 2026?",
                     "session_id": "550e8400-e29b-41d4-a716-446655440000",
+                    "provider": "groq",
                     "llm_model": "llama-3.3-70b-versatile"
                 }
             ]
@@ -134,8 +139,8 @@ class HealthResponse(BaseModel):
     }
 
 
-class GroqModel(BaseModel):
-    """GROQ model information"""
+class Model(BaseModel):
+    """LLM model information"""
     id: str = Field(..., description="Model ID")
     name: str = Field(..., description="Model display name")
 
@@ -160,15 +165,17 @@ class DefaultModels(BaseModel):
 
 class ModelsResponse(BaseModel):
     """Response model for available models endpoint"""
-    generators: List[GroqModel] = Field(..., description="Models available for text generation")
-    rerankers: List[GroqModel] = Field(..., description="Models available for reranking")
-    classifiers: List[GroqModel] = Field(..., description="Models available for intent classification")
+    provider: str = Field(..., description="Provider for these models: 'groq' or 'openai'")
+    generators: List[Model] = Field(..., description="Models available for text generation")
+    rerankers: List[Model] = Field(..., description="Models available for reranking")
+    classifiers: List[Model] = Field(..., description="Models available for intent classification")
     defaults: DefaultModels = Field(..., description="Current default models from config")
 
     model_config = {
         "json_schema_extra": {
             "examples": [
                 {
+                    "provider": "groq",
                     "generators": [{"id": "llama-3.3-70b-versatile", "name": "llama-3.3-70b-versatile"}],
                     "rerankers": [{"id": "llama-3.3-70b-versatile", "name": "llama-3.3-70b-versatile"}],
                     "classifiers": [{"id": "llama-3.3-70b-versatile", "name": "llama-3.3-70b-versatile"}],

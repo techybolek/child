@@ -5,13 +5,14 @@
 
 'use client'
 
-import { useState } from 'react'
-import { Message } from '@/lib/types'
-import { askQuestion } from '@/lib/api'
+import { useState, useEffect } from 'react'
+import { Message, ModelsResponse } from '@/lib/types'
+import { askQuestion, fetchAvailableModels } from '@/lib/api'
 import { generateId } from '@/lib/utils'
 import { MessageList } from './MessageList'
 import { InputBar } from './InputBar'
 import { ErrorMessage } from './ErrorMessage'
+import { ModelSettings } from './ModelSettings'
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -19,6 +20,54 @@ export function ChatInterface() {
   const [error, setError] = useState<string | null>(null)
   const [sessionId] = useState<string>(generateId())
   const [lastQuestion, setLastQuestion] = useState<string>('')
+  const [selectedProvider, setSelectedProvider] = useState<string>('groq')
+  const [availableModels, setAvailableModels] = useState<ModelsResponse | null>(null)
+  const [selectedModels, setSelectedModels] = useState<{
+    generator: string | null
+    reranker: string | null
+    classifier: string | null
+  }>({
+    generator: null,
+    reranker: null,
+    classifier: null,
+  })
+
+  // Fetch available models on mount and when provider changes
+  useEffect(() => {
+    console.log('[ChatInterface] Provider changed to:', selectedProvider)
+    const loadModels = async () => {
+      try {
+        console.log('[ChatInterface] Fetching models for provider:', selectedProvider)
+        const models = await fetchAvailableModels(selectedProvider)
+        console.log('[ChatInterface] Fetched models:', models)
+        setAvailableModels(models)
+      } catch (err) {
+        console.error('Failed to fetch models:', err)
+      }
+    }
+    loadModels()
+  }, [selectedProvider])
+
+  const handleProviderChange = (provider: string) => {
+    console.log('[ChatInterface] handleProviderChange called with:', provider)
+    setSelectedProvider(provider)
+    // Reset model selections when provider changes
+    setSelectedModels({
+      generator: null,
+      reranker: null,
+      classifier: null,
+    })
+  }
+
+  const handleModelChange = (
+    type: 'generator' | 'reranker' | 'classifier',
+    modelId: string | null
+  ) => {
+    setSelectedModels((prev) => ({
+      ...prev,
+      [type]: modelId,
+    }))
+  }
 
   const handleSubmit = async (question: string) => {
     // Clear any previous errors
@@ -40,8 +89,13 @@ export function ChatInterface() {
     setIsLoading(true)
 
     try {
-      // Call API
-      const response = await askQuestion(question, sessionId)
+      // Call API with selected provider and models
+      const response = await askQuestion(question, sessionId, {
+        provider: selectedProvider,
+        llm_model: selectedModels.generator || undefined,
+        reranker_model: selectedModels.reranker || undefined,
+        intent_model: selectedModels.classifier || undefined,
+      })
 
       // Add assistant message
       const assistantMessage: Message = {
@@ -96,14 +150,23 @@ export function ChatInterface() {
               Get answers about childcare assistance in Texas
             </p>
           </div>
-          {messages.length > 0 && (
-            <button
-              onClick={handleClearConversation}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-            >
-              Clear
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            <ModelSettings
+              availableModels={availableModels}
+              selectedProvider={selectedProvider}
+              selectedModels={selectedModels}
+              onProviderChange={handleProviderChange}
+              onModelChange={handleModelChange}
+            />
+            {messages.length > 0 && (
+              <button
+                onClick={handleClearConversation}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
       </header>
 

@@ -29,6 +29,10 @@ export interface Message {
 export interface ChatRequest {
   question: string
   session_id?: string
+  provider?: string
+  llm_model?: string
+  reranker_model?: string
+  intent_model?: string
 }
 
 export interface ChatResponse {
@@ -46,4 +50,23 @@ export interface HealthResponse {
   chatbot_initialized: boolean
   timestamp: string
   error?: string
+}
+
+export interface Model {
+  id: string
+  name: string
+}
+
+export interface DefaultModels {
+  generator: string
+  reranker: string
+  classifier: string
+}
+
+export interface ModelsResponse {
+  provider: string
+  generators: Model[]
+  rerankers: Model[]
+  classifiers: Model[]
+  defaults: DefaultModels
 }

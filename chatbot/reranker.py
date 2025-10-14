@@ -36,13 +36,27 @@ class LLMJudgeReranker:
         # Use the configured model or the one passed in constructor
         model = self.model or ("openai/gpt-oss-20b" if self.provider == 'groq' else "gpt-4o-mini")
 
+        print(f"[Reranker] Using model: {model}")
+
+        # Build API parameters
+        params = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "response_format": {"type": "json_object"}
+        }
+
+        # GPT-5 only supports default temperature (1), don't set it
+        if not model.startswith('gpt-5'):
+            params['temperature'] = 0.1
+
+        # GPT-5 models use max_completion_tokens, older models use max_tokens
+        if model.startswith('gpt-5'):
+            params['max_completion_tokens'] = 2000
+        else:
+            params['max_tokens'] = 2000
+
         # Get scores
-        response = self.client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.1,
-            response_format={"type": "json_object"}
-        )
+        response = self.client.chat.completions.create(**params)
 
         scores = json.loads(response.choices[0].message.content)
 

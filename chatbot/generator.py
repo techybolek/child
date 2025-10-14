@@ -33,13 +33,26 @@ class ResponseGenerator:
         # Use the configured model or the one passed in constructor
         model = self.model or ("openai/gpt-oss-20b" if self.provider == 'groq' else "gpt-4-turbo-preview")
 
+        print(f"[Generator] Using model: {model}")
+
+        # Build API parameters
+        params = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+
+        # GPT-5 only supports default temperature (1), don't set it
+        if not model.startswith('gpt-5'):
+            params['temperature'] = 0.1
+
+        # GPT-5 models use max_completion_tokens, older models use max_tokens
+        if model.startswith('gpt-5'):
+            params['max_completion_tokens'] = 1000
+        else:
+            params['max_tokens'] = 1000
+
         # Generate
-        response = self.client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.1,
-            max_tokens=1000
-        )
+        response = self.client.chat.completions.create(**params)
 
         return {
             'answer': response.choices[0].message.content,

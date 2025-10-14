@@ -10,23 +10,40 @@ from .. import config
 class RAGHandler(BaseHandler):
     """Handles information queries using RAG pipeline: Retrieval → Reranking → Generation"""
 
-    def __init__(self):
+    def __init__(self, llm_model=None, reranker_model=None, provider=None):
+        """
+        Initialize RAG handler with optional custom models and provider
+
+        Args:
+            llm_model: Optional model for generation
+            reranker_model: Optional model for reranking
+            provider: Optional provider ('groq' or 'openai') for all components
+        """
         self.retriever = QdrantRetriever()
 
-        # Initialize reranker
-        reranker_api_key = config.GROQ_API_KEY if config.RERANKER_PROVIDER == 'groq' else config.OPENAI_API_KEY
+        # Use provider override or config default
+        effective_provider = provider or config.LLM_PROVIDER
+
+        # Initialize reranker with provider override or config default
+        reranker_api_key = config.GROQ_API_KEY if effective_provider == 'groq' else config.OPENAI_API_KEY
+        reranker_model_default = config.RERANKER_MODEL if not provider else (
+            'openai/gpt-oss-20b' if provider == 'groq' else 'gpt-4o-mini'
+        )
         self.reranker = LLMJudgeReranker(
             api_key=reranker_api_key,
-            provider=config.RERANKER_PROVIDER,
-            model=config.RERANKER_MODEL
+            provider=effective_provider,
+            model=reranker_model or reranker_model_default
         )
 
-        # Initialize generator
-        generator_api_key = config.GROQ_API_KEY if config.LLM_PROVIDER == 'groq' else config.OPENAI_API_KEY
+        # Initialize generator with provider override or config default
+        generator_api_key = config.GROQ_API_KEY if effective_provider == 'groq' else config.OPENAI_API_KEY
+        llm_model_default = config.LLM_MODEL if not provider else (
+            'openai/gpt-oss-20b' if provider == 'groq' else 'gpt-4o-mini'
+        )
         self.generator = ResponseGenerator(
             api_key=generator_api_key,
-            provider=config.LLM_PROVIDER,
-            model=config.LLM_MODEL
+            provider=effective_provider,
+            model=llm_model or llm_model_default
         )
 
     def handle(self, query: str) -> dict:

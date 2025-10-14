@@ -29,4 +29,4 @@ RERANKER_MODEL = 'openai/gpt-oss-20b' if RERANKER_PROVIDER == 'groq' else 'gpt-4
 
 # Intent classification settings
 INTENT_CLASSIFIER_PROVIDER = os.getenv('INTENT_CLASSIFIER_PROVIDER', 'groq')  # 'groq' or 'openai'
-INTENT_CLASSIFIER_MODEL = 'llama-3.3-70b-versatile' if INTENT_CLASSIFIER_PROVIDER == 'groq' else 'gpt-4o-mini'
+INTENT_CLASSIFIER_MODEL = 'openai/gpt-oss-20b' if INTENT_CLASSIFIER_PROVIDER == 'groq' else 'gpt-4o-mini'

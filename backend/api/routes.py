@@ -8,7 +8,7 @@ from typing import Dict, Any, List
 import os
 from groq import Groq
 
-from .models import ChatRequest, ChatResponse, HealthResponse, Source, ActionItem, ModelsResponse, GroqModel, DefaultModels
+from .models import ChatRequest, ChatResponse, HealthResponse, Source, ActionItem, ModelsResponse, Model, DefaultModels
 from services.chatbot_service import ChatbotService
 
 # Import chatbot config to get default models
@@ -47,51 +47,81 @@ async def health_check() -> Dict[str, Any]:
 
 
 @router.get("/models", response_model=ModelsResponse)
-async def get_available_models() -> Dict[str, Any]:
+async def get_available_models(provider: str = 'groq') -> Dict[str, Any]:
     """
-    Get available GROQ models
+    Get available models for the specified provider
+
+    Args:
+        provider: 'groq' or 'openai' (default: 'groq')
 
     Returns:
         List of available models grouped by use case
     """
     try:
-        groq_api_key = os.getenv('GROQ_API_KEY')
-        if not groq_api_key:
-            raise HTTPException(
-                status_code=500,
-                detail="GROQ_API_KEY not configured"
+        if provider == 'openai':
+            # Return static list of OpenAI models
+            # New 5-series models recently released by OpenAI are included
+            openai_models = [
+                Model(id='gpt-4o-mini', name='gpt-4o-mini'),
+                Model(id='gpt-5-mini', name='gpt-5-mini'),
+                Model(id='gpt-5-nano', name='gpt-5-nano'),
+                Model(id='gpt-5', name='gpt-5'),
+            ]
+
+            # OpenAI-specific defaults
+            defaults = DefaultModels(
+                generator='gpt-4o-mini',
+                reranker='gpt-4o-mini',
+                classifier='gpt-4o-mini'
             )
 
-        client = Groq(api_key=groq_api_key)
-        models_response = client.models.list()
+            return {
+                "provider": "openai",
+                "generators": openai_models,
+                "rerankers": openai_models,
+                "classifiers": openai_models,
+                "defaults": defaults
+            }
 
-        # Filter text generation models (exclude whisper/audio models)
-        text_models = [
-            GroqModel(id=model.id, name=model.id)
-            for model in models_response.data
-            if 'whisper' not in model.id.lower()
-        ]
+        else:  # provider == 'groq'
+            groq_api_key = os.getenv('GROQ_API_KEY')
+            if not groq_api_key:
+                raise HTTPException(
+                    status_code=500,
+                    detail="GROQ_API_KEY not configured"
+                )
 
-        # Sort models alphabetically
-        text_models.sort(key=lambda m: m.id)
+            client = Groq(api_key=groq_api_key)
+            models_response = client.models.list()
 
-        # Get default models from config
-        defaults = DefaultModels(
-            generator=chatbot_config.LLM_MODEL,
-            reranker=chatbot_config.RERANKER_MODEL,
-            classifier=chatbot_config.INTENT_CLASSIFIER_MODEL
-        )
+            # Filter text generation models (exclude whisper/audio models)
+            text_models = [
+                Model(id=model.id, name=model.id)
+                for model in models_response.data
+                if 'whisper' not in model.id.lower()
+            ]
 
-        # For GROQ, all text models can be used for all purposes
-        return {
-            "generators": text_models,
-            "rerankers": text_models,
-            "classifiers": text_models,
-            "defaults": defaults
-        }
+            # Sort models alphabetically
+            text_models.sort(key=lambda m: m.id)
+
+            # Groq-specific defaults from config
+            defaults = DefaultModels(
+                generator=chatbot_config.LLM_MODEL,
+                reranker=chatbot_config.RERANKER_MODEL,
+                classifier=chatbot_config.INTENT_CLASSIFIER_MODEL
+            )
+
+            # For GROQ, all text models can be used for all purposes
+            return {
+                "provider": "groq",
+                "generators": text_models,
+                "rerankers": text_models,
+                "classifiers": text_models,
+                "defaults": defaults
+            }
 
     except Exception as e:
-        print(f"Error fetching GROQ models: {str(e)}")
+        print(f"Error fetching models: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"Failed to fetch models: {str(e)}"
@@ -122,14 +152,15 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
         sys.path.insert(0, str(parent_dir))
         from chatbot.chatbot import TexasChildcareChatbot
 
-        # If custom models specified, create new chatbot instance
+        # If custom models or provider specified, create new chatbot instance
         # Otherwise use singleton
-        if request.llm_model or request.reranker_model or request.intent_model:
+        if request.llm_model or request.reranker_model or request.intent_model or request.provider:
             start_time = time.time()
             chatbot = TexasChildcareChatbot(
                 llm_model=request.llm_model,
                 reranker_model=request.reranker_model,
-                intent_model=request.intent_model
+                intent_model=request.intent_model,
+                provider=request.provider
             )
             result = chatbot.ask(request.question)
             processing_time = time.time() - start_time
