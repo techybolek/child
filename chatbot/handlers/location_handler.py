@@ -1,6 +1,7 @@
 """Location search handler for childcare facility search queries"""
 
 from .base import BaseHandler
+from ..prompts import LOCATION_SEARCH_TEMPLATE
 
 
 class LocationSearchHandler(BaseHandler):
@@ -9,18 +10,8 @@ class LocationSearchHandler(BaseHandler):
     def handle(self, query: str) -> dict:
         """Return template response with link to Texas HHS childcare search"""
 
-        answer = """To search for childcare facilities near you, use the official Texas HHS Childcare Search tool:
-
-**What you can do:**
-- Search by address, city, or ZIP code
-- Filter by facility type, age groups, and services
-- View licensing status and inspection reports
-- Check capacity and contact information
-
-If you have questions about childcare assistance programs or eligibility, I'm here to help!"""
-
         return {
-            'answer': answer,
+            'answer': LOCATION_SEARCH_TEMPLATE,
             'sources': [],
             'response_type': 'location_search',
             'action_items': [

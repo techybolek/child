@@ -1,6 +1,7 @@
 from openai import OpenAI
 from groq import Groq
 import json
+from .prompts import RERANKING_PROMPT
 
 
 class LLMJudgeReranker:
@@ -30,13 +31,7 @@ class LLMJudgeReranker:
             for i, chunk in enumerate(chunks)
         ])
 
-        prompt = f"""Score how relevant each chunk is to this question (0-10):
-
-Question: {query}
-
-{chunks_text}
-
-Return JSON: {{"chunk_0": <score>, "chunk_1": <score>, ...}}"""
+        prompt = RERANKING_PROMPT.format(query=query, chunks_text=chunks_text)
 
         # Use the configured model or the one passed in constructor
         model = self.model or ("openai/gpt-oss-20b" if self.provider == 'groq' else "gpt-4o-mini")

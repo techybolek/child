@@ -1,5 +1,6 @@
 from openai import OpenAI
 from groq import Groq
+from .prompts import RESPONSE_GENERATION_PROMPT
 
 
 class ResponseGenerator:
@@ -27,22 +28,7 @@ class ResponseGenerator:
         context = self._format_context(context_chunks)
 
         # Build prompt
-        prompt = f"""You are an expert on Texas childcare assistance programs.
-
-Answer the question using ONLY the provided documents. Always cite sources using [Doc X] format.
-
-Key rules:
-- State income limits with exact amounts and year/BCY
-- For application questions, list steps in order
-- If info missing, say "I don't have information on..."
-- Never make up numbers or dates
-
-DOCUMENTS:
-{context}
-
-QUESTION: {query}
-
-ANSWER (with citations):"""
+        prompt = RESPONSE_GENERATION_PROMPT.format(context=context, query=query)
 
         # Use the configured model or the one passed in constructor
         model = self.model or ("openai/gpt-oss-20b" if self.provider == 'groq' else "gpt-4-turbo-preview")

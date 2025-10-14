@@ -240,6 +240,40 @@ Comprehensive Docker deployment implementation covering:
 
 ---
 
+### 12. [gcp_deployment_implementation.md](gcp_deployment_implementation.md) ⭐
+**Phase:** Cloud Deployment
+**Date:** October 14, 2025
+
+**Status:** ✓ Complete - Live in Production
+
+Comprehensive Google Cloud Platform deployment implementation covering:
+- **Executive Summary** - Production deployment to Cloud Run (serverless containers)
+- **Architecture Overview** - Cloud Run services, Artifact Registry, Secret Manager
+- **Production URLs** - Live frontend and backend endpoints with HTTPS
+- **Files Created** - 4 deployment scripts + comprehensive documentation
+  - setup_gcp.sh - One-time GCP infrastructure setup
+  - set_secrets.sh - Secure API key management
+  - deploy.sh - Automated build, push, deploy workflow
+  - DEPLOYMENT_GUIDE.md - 400+ line operational guide
+- **Implementation Challenges** - 4 major issues solved
+  - API naming confusion (run.googleapis.com vs cloudrun.googleapis.com)
+  - Reserved environment variables (PORT conflict)
+  - Frontend build-time variables (NEXT_PUBLIC_API_URL)
+  - CORS policy configuration
+- **Environment Variables Strategy** - Secrets (Secret Manager) vs direct env vars
+- **Cloud Run Configuration** - Service specs, auto-scaling, resource limits
+- **Testing Results** - Health check, RAG query, frontend integration (all passed)
+- **Performance Metrics** - Cold start times, response times, auto-scaling behavior
+- **Cost Analysis** - ~$5-10/month estimated for low traffic
+- **Deployment Workflow** - First-time and subsequent deployment procedures
+- **Monitoring & Management** - Logs, Cloud Console links, rollback procedures
+- **Security Features** - Secret Manager, IAM, HTTPS, CORS protection
+- **Comparison** - Docker Compose (local) vs Cloud Run (GCP)
+
+**Read this** for complete Google Cloud Platform deployment details and production operations.
+
+---
+
 ## Quick Reference
 
 ### Project Status
@@ -252,6 +286,7 @@ Comprehensive Docker deployment implementation covering:
 - ✅ **Interactive Interface (CLI):** Fully Functional
 - ✅ **Web Frontend (Backend + Frontend):** Fully Implemented
 - ✅ **Docker Deployment:** Complete - Ready for Testing
+- ✅ **GCP Cloud Run Deployment:** Complete - Live in Production
 
 ### Key Deliverables
 1. **Web Scraping:** 30 optimized content chunks (avg 832 words)
@@ -264,6 +299,7 @@ Comprehensive Docker deployment implementation covering:
 8. **Quality analysis reports**
 9. **Web Frontend** - Complete FastAPI backend + Next.js 15 frontend application
 10. **Docker Deployment** - Production-ready containerization with automated testing
+11. **GCP Cloud Run Deployment** - Live production deployment with HTTPS, auto-scaling, and secure secret management
 
 ### File Locations
 
@@ -302,6 +338,19 @@ Comprehensive Docker deployment implementation covering:
 - **Test Script:** `/test_docker.sh`
 - **Deployment Guide:** `/DOCKER_DEPLOYMENT.md`
 - **Implementation Docs:** `/SPECS/docker_deployment_implementation.md`
+
+**GCP Cloud Run Deployment:**
+- **GCP Scripts:** `/GCP/`
+  - `gcp_config.sh` - Project configuration
+  - `setup_gcp.sh` - One-time infrastructure setup
+  - `set_secrets.sh` - Secret management
+  - `deploy.sh` - Deployment automation
+- **Deployment Guide:** `/GCP/DEPLOYMENT_GUIDE.md`
+- **Implementation Docs:** `/SPECS/gcp_deployment_implementation.md`
+- **Production URLs:**
+  - Frontend: `https://tx-childcare-frontend-usozgowdxq-uc.a.run.app`
+  - Backend: `https://tx-childcare-backend-usozgowdxq-uc.a.run.app`
+  - API Docs: `https://tx-childcare-backend-usozgowdxq-uc.a.run.app/docs`
 
 ### Quick Start
 
@@ -366,6 +415,23 @@ docker compose up --build
 # API Docs: http://localhost:8000/docs
 ```
 
+**GCP Cloud Run Deployment:**
+```bash
+# One-time setup
+gcloud auth login
+cd GCP
+./setup_gcp.sh
+./set_secrets.sh
+
+# Deploy
+./deploy.sh
+
+# Access production URLs:
+# Frontend: https://tx-childcare-frontend-usozgowdxq-uc.a.run.app
+# Backend: https://tx-childcare-backend-usozgowdxq-uc.a.run.app
+# API Docs: https://tx-childcare-backend-usozgowdxq-uc.a.run.app/docs
+```
+
 ---
 
 ## Project Timeline
@@ -394,6 +460,13 @@ docker compose up --build
 | Oct 13, 2025 | Docker - Phase 2 | Health check optimization |
 | Oct 13, 2025 | Docker - Phase 3 | Frontend multi-stage build |
 | Oct 13, 2025 | Docker Complete | Production-ready containerization |
+| Oct 14, 2025 | GCP - Setup | GCP infrastructure setup (Artifact Registry, Secret Manager) |
+| Oct 14, 2025 | GCP - Secrets | API keys stored securely in Secret Manager |
+| Oct 14, 2025 | GCP - Deployment | Initial deployment to Cloud Run |
+| Oct 14, 2025 | GCP - Fix 1 | Fixed reserved environment variables issue |
+| Oct 14, 2025 | GCP - Fix 2 | Fixed frontend build-time API URL configuration |
+| Oct 14, 2025 | GCP - Fix 3 | Fixed CORS policy for cross-origin requests |
+| Oct 14, 2025 | GCP Complete | Live in production with HTTPS, auto-scaling |
 
 ---
 
@@ -453,8 +526,12 @@ docker compose up --build
 **Deployment:**
 - docker - Containerization
 - docker-compose - Orchestration
+- gcloud - Google Cloud Platform CLI
+- Cloud Run - Serverless container platform
+- Artifact Registry - Docker image storage
+- Secret Manager - Secure secret storage
 
-**Platform:** Ubuntu Linux (WSL2)
+**Platform:** Ubuntu Linux (WSL2) + Google Cloud Platform (us-central1)
 
 ---
 
@@ -515,8 +592,15 @@ This project successfully implements a complete end-to-end RAG application for T
 
 5. **Docker Deployment**: Production-ready containerization with optimized Docker images (backend + frontend), docker-compose orchestration, health checks, automated testing, and comprehensive deployment documentation
 
-6. **Complete Infrastructure**: All components are production-ready, documented, containerized, and ready for immediate deployment
+6. **GCP Cloud Run Deployment**: Live production deployment on Google Cloud Platform with Cloud Run (serverless containers), Artifact Registry (image storage), Secret Manager (secure secrets), automatic HTTPS, auto-scaling (0-10 instances), and ~$5-10/month estimated cost
+
+7. **Complete Infrastructure**: All components are production-ready, documented, containerized, deployed to production, and accessible via public HTTPS endpoints
+
+**Production URLs:**
+- Frontend: https://tx-childcare-frontend-usozgowdxq-uc.a.run.app
+- Backend: https://tx-childcare-backend-usozgowdxq-uc.a.run.app
+- API Docs: https://tx-childcare-backend-usozgowdxq-uc.a.run.app/docs
 
 ---
 
-Last Updated: October 13, 2025
+Last Updated: October 14, 2025

@@ -4,6 +4,7 @@ from openai import OpenAI
 from groq import Groq
 from . import config
 from .handlers import RAGHandler, LocationSearchHandler
+from .prompts import INTENT_CLASSIFICATION_PROMPT
 
 
 class IntentRouter:
@@ -34,20 +35,7 @@ class IntentRouter:
         Returns:
             Intent string: 'location_search' or 'information'
         """
-        prompt = f"""Classify this user query into ONE category:
-
-Categories:
-- location_search: User wants to FIND or SEARCH for childcare facilities/providers near a location (e.g., "find daycare near me", "search for providers in Austin", "where can I find childcare")
-- information: User wants INFORMATION about policies, eligibility, programs, requirements, income limits, application process, etc.
-
-Rules:
-- If query mentions "find", "search", "near", "location", or "where can I" → location_search
-- If query asks "what", "how", "who qualifies", "income limits", "requirements" → information
-- Default to information if uncertain
-
-Query: "{query}"
-
-Respond with ONLY the category name (location_search or information):"""
+        prompt = INTENT_CLASSIFICATION_PROMPT.format(query=query)
 
         response = self.client.chat.completions.create(
             model=config.INTENT_CLASSIFIER_MODEL,
