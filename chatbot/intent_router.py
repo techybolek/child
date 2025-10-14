@@ -55,6 +55,7 @@ class IntentRouter:
         """
         print(f"[Intent Classifier] Using model: {self.intent_model}")
         prompt = INTENT_CLASSIFICATION_PROMPT.format(query=query)
+        print(f"[Intent Classifier] Prompt:\n{prompt}\n")
 
         # Build API parameters
         params = {
@@ -67,21 +68,39 @@ class IntentRouter:
             params['temperature'] = 0
 
         # GPT-5 models use max_completion_tokens, older models use max_tokens
+        # GPT-5 uses reasoning tokens which count against the limit, so need higher limit
         if self.intent_model.startswith('gpt-5'):
-            params['max_completion_tokens'] = 10
+            params['max_completion_tokens'] = 200
         else:
-            params['max_tokens'] = 10
+            params['max_tokens'] = 50
 
-        response = self.client.chat.completions.create(**params)
+        try:
+            response = self.client.chat.completions.create(**params)
 
-        intent = response.choices[0].message.content.strip().lower()
+            # Log full response for debugging
+            print(f"[Intent Classifier] API Response: {response}")
 
-        # Validate intent
-        if intent not in self.handlers:
-            intent = 'information'  # Default fallback
+            # Extract content with null check
+            content = response.choices[0].message.content
+            if content is None:
+                print(f"[Intent Classifier] WARNING: Response content is None, defaulting to 'information'")
+                return 'information'
 
-        print(f"[Intent Classifier] Classified as: {intent}")
-        return intent
+            intent = content.strip().lower()
+            print(f"[Intent Classifier] Raw response: {intent}")
+
+            # Validate intent
+            if intent not in self.handlers:
+                print(f"[Intent Classifier] WARNING: Unknown intent '{intent}', defaulting to 'information'")
+                intent = 'information'  # Default fallback
+
+            print(f"[Intent Classifier] Classified as: {intent}")
+            return intent
+
+        except Exception as e:
+            print(f"[Intent Classifier] ERROR: {type(e).__name__}: {str(e)}")
+            print(f"[Intent Classifier] Defaulting to 'information' due to error")
+            return 'information'
 
     def route(self, query: str) -> dict:
         """

@@ -7,7 +7,7 @@ Categories:
 - information: User wants INFORMATION about policies, eligibility, programs, requirements, income limits, application process, etc.
 
 Rules:
-- If query mentions "find", "search", "near", "location", or "where can I" → location_search
+- If query mentions "find", "search", "near", "location", or "where can I" "show schools" or "near me" → location_search
 - If query asks "what", "how", "who qualifies", "income limits", "requirements" → information
 - Default to information if uncertain
 

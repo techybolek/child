@@ -46,18 +46,41 @@ class ResponseGenerator:
             params['temperature'] = 0.1
 
         # GPT-5 models use max_completion_tokens, older models use max_tokens
+        # GPT-5 uses reasoning tokens which count against the limit, so need higher limit
         if model.startswith('gpt-5'):
-            params['max_completion_tokens'] = 1000
+            params['max_completion_tokens'] = 5000
         else:
             params['max_tokens'] = 1000
 
         # Generate
-        response = self.client.chat.completions.create(**params)
+        try:
+            response = self.client.chat.completions.create(**params)
 
-        return {
-            'answer': response.choices[0].message.content,
-            'usage': response.usage
-        }
+            # Log full response for debugging
+            print(f"[Generator] API Response: {response}")
+
+            # Extract content with null check
+            content = response.choices[0].message.content
+            if content is None or content.strip() == '':
+                print(f"[Generator] ERROR: Response content is empty")
+                print(f"[Generator] Finish reason: {response.choices[0].finish_reason}")
+                return {
+                    'answer': 'I apologize, but I was unable to generate a response. Please try again.',
+                    'usage': response.usage
+                }
+
+            print(f"[Generator] Response length: {len(content)} chars")
+            return {
+                'answer': content,
+                'usage': response.usage
+            }
+
+        except Exception as e:
+            print(f"[Generator] ERROR: {type(e).__name__}: {str(e)}")
+            return {
+                'answer': f'I apologize, but an error occurred while generating the response: {str(e)}',
+                'usage': None
+            }
 
     def _format_context(self, chunks: list):
         """Format chunks with citation markers"""
