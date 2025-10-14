@@ -5,12 +5,20 @@ import os
 from typing import List
 
 # CORS settings
+# Allow frontend URL from environment variable or use defaults
+FRONTEND_URL = os.getenv("FRONTEND_URL", "")
 CORS_ORIGINS: List[str] = [
     "http://localhost:3000",  # Next.js development
     "http://127.0.0.1:3000",
-    # Add production frontend URL here when deployed
-    # "https://yourdomain.com",
+    "https://tx-childcare-frontend-usozgowdxq-uc.a.run.app",  # Production frontend
 ]
+
+# Add custom frontend URL if provided
+if FRONTEND_URL and FRONTEND_URL not in CORS_ORIGINS:
+    CORS_ORIGINS.append(FRONTEND_URL)
+
+# Regex pattern to allow all Cloud Run domains
+CORS_ORIGIN_REGEX = r"https://.*\.run\.app"
 
 # API settings
 API_TITLE = "Texas Childcare Chatbot API"

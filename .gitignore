@@ -8,3 +8,8 @@ scraped_content
 
 # Docker environment files
 .env.docker
+
+# GCP deployment files
+GCP/*.key.json
+GCP/.gcloud/
+GCP/service-account-key.json
