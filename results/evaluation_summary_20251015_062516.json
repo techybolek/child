@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-10-15T06:25:16.095392",
+  "total_evaluated": 2,
+  "average_scores": {
+    "accuracy": 5.0,
+    "completeness": 1.5,
+    "citation_quality": 5.0,
+    "coherence": 2.5,
+    "composite": 77.08333333333334
+  },
+  "performance": {
+    "excellent": 0,
+    "good": 2,
+    "needs_review": 0,
+    "failed": 0,
+    "pass_rate": 100.0
+  },
+  "response_time": {
+    "average": 3.709744691848755,
+    "min": 3.1978964805603027,
+    "max": 4.221592903137207
+  }
+}
