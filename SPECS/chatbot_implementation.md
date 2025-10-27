@@ -110,7 +110,7 @@ LLM_PROVIDER = os.getenv('LLM_PROVIDER', 'groq')  # Default: GROQ
 RERANKER_PROVIDER = os.getenv('RERANKER_PROVIDER', 'groq')
 
 # Model Selection (auto-configured based on provider)
-LLM_MODEL = 'openai/gpt-oss-20b' if LLM_PROVIDER == 'groq' else 'gpt-5-imini'
+LLM_MODEL = 'openai/gpt-oss-20b' if LLM_PROVIDER == 'groq' else 'gpt-5-mini'
 RERANKER_MODEL = 'openai/gpt-oss-20b' if RERANKER_PROVIDER == 'groq' else 'gpt-4o-mini'
 
 # Generation Parameters

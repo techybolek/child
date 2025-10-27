@@ -33,11 +33,6 @@ SEED_URLS = [
     'https://childcare.twc.texas.gov/',
 ]
 
-# Optional: Add representative regional site if it exists
-OPTIONAL_SEED_URLS = [
-    'https://www.wfsgc.org/childcare',  # Gulf Coast - may need adjustment
-]
-
 # ===== TWC URL PATTERNS TO TARGET =====
 # Only scrape TWC pages matching these patterns
 TWC_CHILD_CARE_PATTERNS = [
@@ -54,8 +49,6 @@ TWC_CHILD_CARE_PATTERNS = [
 # ===== RATE LIMITING & TIMEOUTS =====
 DELAY_BETWEEN_REQUESTS = 1.5  # seconds
 TIMEOUT_PER_PAGE = 30         # seconds
-MAX_RETRIES = 2
-BACKOFF_FACTOR = 2            # Exponential backoff multiplier
 
 # ===== SCRAPING LIMITS =====
 MAX_PAGES = 500               # Maximum pages to scrape total
@@ -80,10 +73,6 @@ EXCLUDED_PDF_FILENAMES = [
     'child-care-teacher-desk-aid-march-2023-twc.pdf',
     'texas-pcqc-user-guide-2023.pdf',
 ]
-
-# ===== DOCUMENT EXTRACTION =====
-# Supported document types
-SUPPORTED_DOCUMENTS = ['.docx', '.xlsx']
 
 # ===== CONTENT PROCESSING =====
 # Chunk size range (in words)
@@ -150,49 +139,19 @@ SELECTORS_TO_REMOVE = [
 ]
 
 # ===== LOGGING =====
-LOG_LEVEL = 'INFO'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 LOG_FILE = os.path.join(REPORTS_DIR, 'scraping_log.txt')
 
 # ===== OUTPUT FILES =====
-METADATA_FILE = os.path.join(RAW_DIR, 'metadata.json')
 CONTENT_CHUNKS_FILE = os.path.join(PROCESSED_DIR, 'content_chunks.json')
 SITE_MAP_FILE = os.path.join(PROCESSED_DIR, 'site_map.json')
 ANALYSIS_REPORT_FILE = os.path.join(REPORTS_DIR, 'content_analysis.txt')
 
 # ===== DRY RUN SETTINGS =====
-DRY_RUN_MODE = False         # Set to True to test with limited pages
 DRY_RUN_MAX_PAGES = 5        # Only scrape this many pages in dry run
 
 # ===== MISC =====
 SCRAPE_TIMESTAMP = datetime.now().isoformat()
-PROJECT_NAME = 'Texas Child Care Solutions Scraper'
-VERSION = '1.0.0'
-
-# ===== VECTOR DB SETTINGS =====
-LOAD_DB_DIR = os.path.join(BASE_DIR, 'LOAD_DB')
-LOAD_DB_LOGS_DIR = os.path.join(LOAD_DB_DIR, 'logs')
-LOAD_DB_CHECKPOINTS_DIR = os.path.join(LOAD_DB_DIR, 'checkpoints')
-LOAD_DB_REPORTS_DIR = os.path.join(LOAD_DB_DIR, 'reports')
-
-# Qdrant collection settings
-QDRANT_COLLECTION_NAME = 'tro-child-1'
-QDRANT_API_URL = os.getenv('QDRANT_API_URL')
-QDRANT_API_KEY = os.getenv('QDRANT_API_KEY')
-
-# Text chunking settings
-CHUNK_SIZE = 1000              # Characters per chunk
-CHUNK_OVERLAP = 200            # Overlap between chunks
-CHUNK_SEPARATORS = ["\n\n", "\n", ". ", " ", ""]  # Priority order for splitting
-
-# Embedding model settings - OpenAI
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-EMBEDDING_MODEL = 'text-embedding-3-small'  # OpenAI embedding model
-EMBEDDING_DIMENSION = 1536                   # Dimension for text-embedding-3-small
-
-# Batch processing
-BATCH_SIZE = 10                # PDFs to process in each batch
-UPLOAD_BATCH_SIZE = 100        # Vectors to upload per batch
 
 # ===== HELPER FUNCTIONS =====
 def is_twc_child_care_url(url):

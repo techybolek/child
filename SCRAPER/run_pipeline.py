@@ -29,15 +29,6 @@ def ensure_directories():
         config.REPORTS_DIR,
     ]
 
-    # Add vector DB directories if they're defined
-    if hasattr(config, 'LOAD_DB_DIR'):
-        directories.extend([
-            config.LOAD_DB_DIR,
-            config.LOAD_DB_LOGS_DIR,
-            config.LOAD_DB_CHECKPOINTS_DIR,
-            config.LOAD_DB_REPORTS_DIR,
-        ])
-
     for directory in directories:
         os.makedirs(directory, exist_ok=True)
 

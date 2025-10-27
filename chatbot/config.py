@@ -19,7 +19,7 @@ MIN_SCORE_THRESHOLD = 0.3
 LLM_PROVIDER = os.getenv('LLM_PROVIDER', 'groq')  # 'groq' or 'openai'
 
 # Generation settings
-LLM_MODEL = 'openai/gpt-oss-20b' if LLM_PROVIDER == 'groq' else 'gpt-5-imini'
+LLM_MODEL = 'openai/gpt-oss-20b' if LLM_PROVIDER == 'groq' else 'gpt-4o-mini'
 TEMPERATURE = 0.1
 MAX_TOKENS = 1000
 

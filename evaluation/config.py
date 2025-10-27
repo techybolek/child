@@ -31,3 +31,6 @@ THRESHOLDS = {
     'good': 70,
     'needs_review': 50
 }
+
+# Stop evaluation if score falls below this threshold
+STOP_ON_FAIL_THRESHOLD = 70

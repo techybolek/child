@@ -63,14 +63,23 @@ class IntentRouter:
             "messages": [{"role": "user", "content": prompt}],
         }
 
-        # GPT-5 only supports default temperature (1), don't set it
-        if not self.intent_model.startswith('gpt-5'):
+        # Check if model supports reasoning (GPT-5 or openai/gpt-oss-20b)
+        is_reasoning_model = (
+            self.intent_model.startswith('gpt-5') or
+            self.intent_model == 'openai/gpt-oss-20b'
+        )
+
+        # Reasoning models only support default temperature (1), don't set it
+        if not is_reasoning_model:
             params['temperature'] = 0
 
-        # GPT-5 models use max_completion_tokens, older models use max_tokens
-        # GPT-5 uses reasoning tokens which count against the limit, so need higher limit
-        if self.intent_model.startswith('gpt-5'):
-            params['max_completion_tokens'] = 200
+        # Reasoning models use higher token limits due to reasoning tokens
+        if is_reasoning_model:
+            # Use max_completion_tokens for GPT-5, max_tokens for others
+            if self.intent_model.startswith('gpt-5'):
+                params['max_completion_tokens'] = 200
+            else:
+                params['max_tokens'] = 200
         else:
             params['max_tokens'] = 50
 

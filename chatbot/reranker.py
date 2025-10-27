@@ -49,9 +49,9 @@ class LLMJudgeReranker:
         if not model.startswith('gpt-5'):
             params['temperature'] = 0.1
 
-        # GPT-5 models use max_completion_tokens, older models use max_tokens
-        # GPT-5 uses reasoning tokens which count against the limit, so need higher limit
-        if model.startswith('gpt-5'):
+        # Reasoning models (GPT-5, openai/gpt-oss) use reasoning tokens which count against limit
+        # Need higher limit to leave room for JSON output after reasoning
+        if model.startswith('gpt-5') or model.startswith('openai/gpt-oss'):
             params['max_completion_tokens'] = 4000
         else:
             params['max_tokens'] = 2000

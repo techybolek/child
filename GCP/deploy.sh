@@ -50,9 +50,9 @@ gcloud config set project "${PROJECT_ID}" --quiet
 echo "✓ Prerequisites verified"
 echo ""
 
-# Build Docker images
+# Build and deploy backend first
 echo "=================================================="
-echo "Building Docker Images"
+echo "Step 1: Build & Deploy Backend"
 echo "=================================================="
 
 echo ""
@@ -67,38 +67,12 @@ docker build \
 echo "✓ Backend image built"
 
 echo ""
-echo "Building frontend image..."
-cd "${PROJECT_ROOT}/frontend"
-docker build \
-    --platform linux/amd64 \
-    -t frontend:latest \
-    -t "${FRONTEND_IMAGE}" \
-    .
-echo "✓ Frontend image built"
-
-# Push images to Artifact Registry
-echo ""
-echo "=================================================="
-echo "Pushing Images to Artifact Registry"
-echo "=================================================="
-
-echo ""
 echo "Pushing backend image..."
 docker push "${BACKEND_IMAGE}"
 echo "✓ Backend image pushed"
 
-echo ""
-echo "Pushing frontend image..."
-docker push "${FRONTEND_IMAGE}"
-echo "✓ Frontend image pushed"
-
-# Deploy backend to Cloud Run
-echo ""
-echo "=================================================="
-echo "Deploying Backend to Cloud Run"
-echo "=================================================="
-
 # Check if secrets exist and have values
+echo ""
 echo "Checking secrets..."
 for secret in "qdrant-api-key" "openai-api-key" "groq-api-key"; do
     if ! gcloud secrets versions access latest --secret="${secret}" &> /dev/null; then
@@ -145,11 +119,27 @@ BACKEND_URL=$(gcloud run services describe "${BACKEND_SERVICE}" \
 echo "✓ Backend deployed"
 echo "  URL: ${BACKEND_URL}"
 
-# Deploy frontend to Cloud Run
+# Now build and deploy frontend with actual backend URL
 echo ""
 echo "=================================================="
-echo "Deploying Frontend to Cloud Run"
+echo "Step 2: Build & Deploy Frontend"
 echo "=================================================="
+
+echo ""
+echo "Building frontend image with backend URL: ${BACKEND_URL}"
+cd "${PROJECT_ROOT}/frontend"
+docker build \
+    --platform linux/amd64 \
+    --build-arg NEXT_PUBLIC_API_URL="${BACKEND_URL}" \
+    -t frontend:latest \
+    -t "${FRONTEND_IMAGE}" \
+    .
+echo "✓ Frontend image built with API_URL=${BACKEND_URL}"
+
+echo ""
+echo "Pushing frontend image..."
+docker push "${FRONTEND_IMAGE}"
+echo "✓ Frontend image pushed"
 
 echo ""
 echo "Deploying frontend service..."

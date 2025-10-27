@@ -274,6 +274,40 @@ Comprehensive Google Cloud Platform deployment implementation covering:
 
 ---
 
+### 13. [evaluation_system_implementation.md](evaluation_system_implementation.md) ⭐
+**Phase:** Quality Assurance & Testing
+**Date:** October 15, 2025
+
+**Status:** ✓ Complete and Operational
+
+Comprehensive LLM-as-a-judge evaluation system implementation covering:
+- **Executive Summary** - Automated chatbot evaluation with multi-criteria scoring
+- **Architecture Overview** - 5-stage pipeline (Parse → Query → Judge → Check → Report)
+- **Key Components** - Detailed technical descriptions
+  - config.py - Judge configuration (GROQ, thresholds, scoring weights)
+  - qa_parser.py - Extract Q&A pairs from markdown files
+  - evaluator.py - Direct RAG query (bypasses intent classification)
+  - judge.py - LLM-based multi-criteria scoring
+  - batch_evaluator.py - Orchestration with stop-on-failure
+  - reporter.py - Comprehensive report generation
+- **Scoring System** - Multi-criteria evaluation
+  - Factual Accuracy (0-5, 50% weight)
+  - Completeness (0-5, 30% weight)
+  - Citation Quality (0-5, 10% weight)
+  - Coherence (0-3, 10% weight)
+  - Composite Score (0-100)
+- **Q&A Dataset** - 2,387 questions from 45 PDF documents
+- **Stop-on-Failure** - Immediate detailed diagnostics when score < 70
+- **Direct RAG Testing** - Bypasses intent classification for focused evaluation
+- **Usage Instructions** - CLI commands and options
+- **Technical Decisions** - Why LLM-as-judge, why stop-on-failure, why GROQ
+- **Performance Metrics** - ~4.7s per question, ~3.1 hours full evaluation
+- **Cost Analysis** - ~$24 for full evaluation (GROQ)
+
+**Read this** for complete evaluation system details and testing procedures.
+
+---
+
 ## Quick Reference
 
 ### Project Status
@@ -287,6 +321,7 @@ Comprehensive Google Cloud Platform deployment implementation covering:
 - ✅ **Web Frontend (Backend + Frontend):** Fully Implemented
 - ✅ **Docker Deployment:** Complete - Ready for Testing
 - ✅ **GCP Cloud Run Deployment:** Complete - Live in Production
+- ✅ **Evaluation System:** Complete - LLM-as-a-judge with 2,387 test questions
 
 ### Key Deliverables
 1. **Web Scraping:** 30 optimized content chunks (avg 832 words)
@@ -300,6 +335,7 @@ Comprehensive Google Cloud Platform deployment implementation covering:
 9. **Web Frontend** - Complete FastAPI backend + Next.js 15 frontend application
 10. **Docker Deployment** - Production-ready containerization with automated testing
 11. **GCP Cloud Run Deployment** - Live production deployment with HTTPS, auto-scaling, and secure secret management
+12. **Evaluation System** - LLM-as-a-judge with 2,387 Q&A pairs, multi-criteria scoring, and automated reporting
 
 ### File Locations
 
@@ -351,6 +387,19 @@ Comprehensive Google Cloud Platform deployment implementation covering:
   - Frontend: `https://tx-childcare-frontend-usozgowdxq-uc.a.run.app`
   - Backend: `https://tx-childcare-backend-usozgowdxq-uc.a.run.app`
   - API Docs: `https://tx-childcare-backend-usozgowdxq-uc.a.run.app/docs`
+
+**Evaluation System:**
+- **Evaluation Package:** `/evaluation/`
+  - `config.py` - Judge configuration and scoring weights
+  - `qa_parser.py` - Q&A markdown file parser
+  - `evaluator.py` - Chatbot query wrapper (direct RAG)
+  - `judge.py` - LLM-based multi-criteria judge
+  - `batch_evaluator.py` - Orchestration with stop-on-failure
+  - `reporter.py` - Report generation
+- **CLI Entry Point:** `/run_evaluation.py`
+- **Q&A Dataset:** `/QUESTIONS/pdfs/` (45 markdown files)
+- **Results Directory:** `/results/` (gitignored)
+- **Implementation Docs:** `/SPECS/evaluation_system_implementation.md`
 
 ### Quick Start
 
@@ -432,6 +481,25 @@ cd GCP
 # API Docs: https://tx-childcare-backend-usozgowdxq-uc.a.run.app/docs
 ```
 
+**Evaluation System:**
+```bash
+# Activate environment
+source .venv/bin/activate
+
+# Test with 5 questions
+python run_evaluation.py --test --limit 5
+
+# Evaluate specific file
+python run_evaluation.py --file "bcy-26-income-eligibility-and-maximum-psoc-twc-qa.md"
+
+# Full evaluation (2,387 questions, ~3 hours)
+python run_evaluation.py
+
+# Results: results/evaluation_summary_*.json
+#          results/detailed_results_*.jsonl
+#          results/evaluation_report_*.txt
+```
+
 ---
 
 ## Project Timeline
@@ -467,6 +535,11 @@ cd GCP
 | Oct 14, 2025 | GCP - Fix 2 | Fixed frontend build-time API URL configuration |
 | Oct 14, 2025 | GCP - Fix 3 | Fixed CORS policy for cross-origin requests |
 | Oct 14, 2025 | GCP Complete | Live in production with HTTPS, auto-scaling |
+| Oct 15, 2025 | Evaluation - Design | LLM-as-a-judge architecture design |
+| Oct 15, 2025 | Evaluation - Implementation | Built 6-module evaluation system |
+| Oct 15, 2025 | Evaluation - Direct RAG | Bypassed intent classification for focused testing |
+| Oct 15, 2025 | Evaluation - Stop-on-Failure | Added immediate failure diagnostics |
+| Oct 15, 2025 | Evaluation Complete | 2,387 Q&A pairs, multi-criteria scoring, reporting |
 
 ---
 
@@ -594,7 +667,9 @@ This project successfully implements a complete end-to-end RAG application for T
 
 6. **GCP Cloud Run Deployment**: Live production deployment on Google Cloud Platform with Cloud Run (serverless containers), Artifact Registry (image storage), Secret Manager (secure secrets), automatic HTTPS, auto-scaling (0-10 instances), and ~$5-10/month estimated cost
 
-7. **Complete Infrastructure**: All components are production-ready, documented, containerized, deployed to production, and accessible via public HTTPS endpoints
+7. **Evaluation System**: Automated chatbot testing using LLM-as-a-judge approach with 2,387 question-answer pairs from 45 PDF documents, multi-criteria scoring (accuracy, completeness, citation quality, coherence), stop-on-failure diagnostics, and comprehensive reporting
+
+8. **Complete Infrastructure**: All components are production-ready, documented, containerized, deployed to production, and accessible via public HTTPS endpoints
 
 **Production URLs:**
 - Frontend: https://tx-childcare-frontend-usozgowdxq-uc.a.run.app
@@ -603,4 +678,4 @@ This project successfully implements a complete end-to-end RAG application for T
 
 ---
 
-Last Updated: October 14, 2025
+Last Updated: October 15, 2025

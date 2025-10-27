@@ -10,11 +10,24 @@ def main():
 
     try:
         chatbot = TexasChildcareChatbot()
-        print("Ready! Ask me anything about Texas childcare assistance.")
-        print("Type 'quit' or 'exit' to end the session.\n")
     except Exception as e:
         print(f"Error initializing chatbot: {e}")
         sys.exit(1)
+
+    # Check if question provided as command-line argument
+    if len(sys.argv) > 1:
+        question = ' '.join(sys.argv[1:])
+        response = chatbot.ask(question)
+        print("\nANSWER:")
+        print(response['answer'])
+        if response['sources']:
+            print("\n\nSOURCES:")
+            for i, source in enumerate(response['sources'], 1):
+                print(f"{i}. {source['doc']}, Page {source['page']}")
+        return
+
+    print("Ready! Ask me anything about Texas childcare assistance.")
+    print("Type 'quit' or 'exit' to end the session.\n")
 
     while True:
         try:

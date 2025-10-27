@@ -13,3 +13,8 @@ scraped_content
 GCP/*.key.json
 GCP/.gcloud/
 GCP/service-account-key.json
+.results
+LOAD_DB/checkpoints
+LOAD_DB/logs
+LOAD_DB/reports
+results

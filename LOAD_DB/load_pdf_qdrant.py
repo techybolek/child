@@ -12,9 +12,6 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 import glob
 
-# Add parent directory to path to import SCRAPER module
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 try:
     from langchain.text_splitter import RecursiveCharacterTextSplitter
     from langchain_openai import OpenAIEmbeddings
@@ -25,7 +22,22 @@ try:
 except ImportError as e:
     raise ImportError(f"Required libraries missing: {e}\nInstall with: pip install -r requirements.txt")
 
-from SCRAPER import config
+import config
+
+
+def ensure_directories():
+    """Create all required directories if they don't exist."""
+    directories = [
+        config.LOAD_DB_LOGS_DIR,
+        config.LOAD_DB_CHECKPOINTS_DIR,
+        config.LOAD_DB_REPORTS_DIR,
+    ]
+    for directory in directories:
+        os.makedirs(directory, exist_ok=True)
+
+
+# Ensure directories exist before logging setup
+ensure_directories()
 
 # Set up logging
 logging.basicConfig(

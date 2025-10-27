@@ -48,20 +48,39 @@ class BatchEvaluator:
             print(f"\n[{i}/{len(qa_pairs)}] Processing: {qa['source_file']} Q{qa['question_num']}")
             print(f"Question: {qa['question'][:80]}...")
 
-            # Query chatbot
-            print("  → Querying chatbot...")
-            chatbot_response = self.evaluator.query(qa['question'])
-            print(f"  ✓ Response received ({chatbot_response['response_time']:.2f}s)")
+            try:
+                # Query chatbot
+                print("  → Querying chatbot...")
+                chatbot_response = self.evaluator.query(qa['question'])
+                print(f"  ✓ Response received ({chatbot_response['response_time']:.2f}s)")
+            except Exception as e:
+                print(f"\n❌ ERROR: Failed to query chatbot")
+                print(f"Question: {qa['question']}")
+                print(f"Error type: {type(e).__name__}")
+                print(f"Error message: {str(e)}")
+                raise
 
-            # Judge response
-            print("  → Judging response...")
-            scores = self.judge.evaluate(
-                question=qa['question'],
-                expected_answer=qa['expected_answer'],
-                chatbot_answer=chatbot_response['answer'],
-                sources=chatbot_response['sources']
-            )
-            print(f"  ✓ Score: {scores['composite_score']:.1f}/100")
+            try:
+                # Judge response
+                print("  → Judging response...")
+                scores = self.judge.evaluate(
+                    question=qa['question'],
+                    expected_answer=qa['expected_answer'],
+                    chatbot_answer=chatbot_response['answer'],
+                    sources=chatbot_response['sources']
+                )
+                print(f"  ✓ Score: {scores['composite_score']:.1f}/100")
+            except Exception as e:
+                print(f"\n❌ ERROR: Failed to judge response")
+                print(f"Question: {qa['question']}")
+                print(f"Chatbot answer: {chatbot_response['answer'][:200]}...")
+                print(f"Error type: {type(e).__name__}")
+                print(f"Error message: {str(e)}")
+                raise
+
+            # Check if score is below threshold - stop immediately if so
+            if scores['composite_score'] < config.STOP_ON_FAIL_THRESHOLD:
+                self._print_failure_and_stop(qa, chatbot_response, scores)
 
             # Store result
             result = {
@@ -100,3 +119,41 @@ class BatchEvaluator:
         with open(checkpoint_file, 'w') as f:
             json.dump({'results': results, 'stats': stats}, f, indent=2)
         print(f"\n  💾 Checkpoint saved: {checkpoint_file}")
+
+    def _print_failure_and_stop(self, qa: dict, chatbot_response: dict, scores: dict):
+        """Print detailed failure information and stop evaluation"""
+        print("\n" + "=" * 80)
+        print("⚠️  LOW SCORE DETECTED - STOPPING EVALUATION")
+        print("=" * 80)
+        print(f"Source: {qa['source_file']} Q{qa['question_num']}")
+        print(f"Composite Score: {scores['composite_score']:.1f}/100 (Threshold: {config.STOP_ON_FAIL_THRESHOLD})")
+
+        print("\nQUESTION:")
+        print(qa['question'])
+
+        print("\nEXPECTED ANSWER:")
+        print(qa['expected_answer'])
+
+        print("\nCHATBOT ANSWER:")
+        print(chatbot_response['answer'])
+
+        print("\nSCORES:")
+        print(f"  Factual Accuracy:    {scores['accuracy']:.1f}/5")
+        print(f"  Completeness:        {scores['completeness']:.1f}/5")
+        print(f"  Citation Quality:    {scores['citation_quality']:.1f}/5")
+        print(f"  Coherence:           {scores['coherence']:.1f}/3")
+        print(f"  Composite:           {scores['composite_score']:.1f}/100")
+
+        print("\nJUDGE REASONING:")
+        print(scores['reasoning'])
+
+        if chatbot_response['sources']:
+            print("\nSOURCES CITED:")
+            for source in chatbot_response['sources']:
+                print(f"  - {source['doc']}, Page {source['page']}")
+        else:
+            print("\nSOURCES CITED: None")
+
+        print("=" * 80)
+
+        raise SystemExit(f"Evaluation stopped due to low score ({scores['composite_score']:.1f} < {config.STOP_ON_FAIL_THRESHOLD})")

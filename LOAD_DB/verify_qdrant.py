@@ -3,12 +3,8 @@ Verify Qdrant collection and test queries
 """
 
 import os
-import sys
 import logging
 from typing import List, Dict, Any
-
-# Add parent directory to path to import SCRAPER module
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from qdrant_client import QdrantClient
@@ -16,7 +12,7 @@ try:
 except ImportError as e:
     raise ImportError(f"Required libraries missing: {e}\nInstall with: pip install -r requirements.txt")
 
-from SCRAPER import config
+import config
 
 # Set up logging
 logging.basicConfig(
