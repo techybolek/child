@@ -156,4 +156,61 @@ class BatchEvaluator:
 
         print("=" * 80)
 
+        self._generate_test_file(qa, chatbot_response, scores)
+
         raise SystemExit(f"Evaluation stopped due to low score ({scores['composite_score']:.1f} < {config.STOP_ON_FAIL_THRESHOLD})")
+
+    def _generate_test_file(self, qa: dict, chatbot_response: dict, scores: dict):
+        """Generate test_failed.py for the failed question"""
+        # Escape single quotes in strings for the generated code
+        question = qa['question'].replace("'", "\\'")
+        expected_answer = qa['expected_answer'].replace("'", "\\'")
+        source_file = qa['source_file'].replace("'", "\\'")
+
+        # Generate test file content
+        test_content = f'''"""
+Auto-generated test for failed evaluation
+
+Source: {source_file} Q{qa['question_num']}
+Composite Score: {scores['composite_score']:.1f}/100 (Failed threshold: {config.STOP_ON_FAIL_THRESHOLD})
+Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+"""
+
+from chatbot.handlers.rag_handler import RAGHandler
+
+# Expected answer (from Q&A file):
+# {expected_answer}
+
+# Initialize handler (bypasses intent detection, goes directly to RAG)
+handler = RAGHandler()
+
+# Failed question
+question = '{question}'
+
+# Query chatbot via RAGHandler
+response = handler.handle(question)
+
+print("QUESTION:")
+print(question)
+
+print("\\nEXPECTED ANSWER:")
+print("""{expected_answer}""")
+
+print("\\nCHATBOT ANSWER:")
+print(response['answer'])
+
+print("\\nSOURCES:")
+if response['sources']:
+    for source in response['sources']:
+        print(f"- {{source['doc']}}, Page {{source['page']}}")
+else:
+    print("No sources cited")
+'''
+
+        # Write to test_failed.py in project root
+        test_file = Path('.') / 'test_failed.py'
+        with open(test_file, 'w') as f:
+            f.write(test_content)
+
+        print(f"\n✨ Generated test_failed.py for quick debugging")
+        print(f"   Run with: python test_failed.py")

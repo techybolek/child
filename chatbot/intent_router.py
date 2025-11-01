@@ -63,15 +63,15 @@ class IntentRouter:
             "messages": [{"role": "user", "content": prompt}],
         }
 
+        # Set temperature to 0 for maximum determinism
+        params['temperature'] = 0
+        params['seed'] = config.SEED
+
         # Check if model supports reasoning (GPT-5 or openai/gpt-oss-20b)
         is_reasoning_model = (
             self.intent_model.startswith('gpt-5') or
             self.intent_model == 'openai/gpt-oss-20b'
         )
-
-        # Reasoning models only support default temperature (1), don't set it
-        if not is_reasoning_model:
-            params['temperature'] = 0
 
         # Reasoning models use higher token limits due to reasoning tokens
         if is_reasoning_model:

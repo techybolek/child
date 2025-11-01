@@ -1,5 +1,6 @@
 from openai import OpenAI
 from groq import Groq
+from . import config
 from .prompts import RESPONSE_GENERATION_PROMPT
 
 
@@ -39,11 +40,9 @@ class ResponseGenerator:
         params = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0,
+            "seed": config.SEED,
         }
-
-        # GPT-5 only supports default temperature (1), don't set it
-        if not model.startswith('gpt-5'):
-            params['temperature'] = 0.1
 
         # Reasoning models (GPT-5, openai/gpt-oss) use reasoning tokens which count against limit
         # Need higher limit to leave room for actual response after reasoning

@@ -26,10 +26,9 @@ Extracts content from Texas childcare websites in multiple formats (HTML, .docx,
 Loads PDF documents into Qdrant vector database with OpenAI embeddings.
 
 **Key modules:**
+- `config.py` - Vector DB configuration (Qdrant, embeddings, chunking)
 - `load_pdf_qdrant.py` - Main loading script using LangChain
 - `verify_qdrant.py` - Collection verification and testing
-
-**Important:** This pipeline uses SCRAPER/config.py for shared configuration (paths, Qdrant settings, embedding models).
 
 ### 3. RAG Chatbot (chatbot/)
 Multi-provider conversational AI with **intent-based routing** and handler pattern architecture.
@@ -163,41 +162,59 @@ npm run dev
 
 ## Key Configuration Details
 
-### Shared Configuration (SCRAPER/config.py)
+### Scraper Configuration (SCRAPER/config.py)
 
-The `SCRAPER/config.py` file serves as the **central configuration** for the entire project, not just the scraper:
+Scraper-specific settings:
+- **Scraping settings:** Allowed domains, seed URLs, rate limiting, timeouts
+- **Content filters:** Excluded PDFs, minimum content thresholds
+- **Content processing:** Chunking (in words), content type classification
+- **Directory paths:** Output directories for scraped content
 
-- **Scraping settings:** Domains, URLs, rate limiting, content filters
-- **Vector DB settings:** Qdrant collection name, embedding model, chunk size
-- **Directory paths:** All pipelines use paths defined here
+### Vector Database Configuration (LOAD_DB/config.py)
 
-Both the scraper and LOAD_DB pipeline import from `SCRAPER/config.py`.
+Vector database-specific settings:
+- **Qdrant settings:** Collection name, API URL/key
+- **Embeddings:** OpenAI embedding model and dimensions
+- **Chunking:** Character-based chunk size and overlap (for vector DB)
+- **Batch processing:** Upload batch sizes
 
 ### Chatbot Configuration (chatbot/config.py)
 
-Chatbot-specific settings only:
+Chatbot-specific settings:
 - LLM provider selection (GROQ/OpenAI)
 - Model names for generation and reranking
 - Intent classifier provider and model
 - Retrieval parameters (top_k, thresholds)
+- Qdrant collection settings
 
 ### Important Constants
 
+**SCRAPER/config.py:**
 ```python
-# Vector DB (from SCRAPER/config.py)
+CHUNK_MIN_WORDS = 500          # Word-based chunking
+CHUNK_MAX_WORDS = 1000
+CHUNK_OVERLAP_WORDS = 150
+MAX_PAGES = 500                # Total pages to scrape
+```
+
+**LOAD_DB/config.py:**
+```python
 QDRANT_COLLECTION_NAME = 'tro-child-1'
 EMBEDDING_MODEL = 'text-embedding-3-small'
 EMBEDDING_DIMENSION = 1536
-CHUNK_SIZE = 1000  # characters
+CHUNK_SIZE = 1000              # Character-based chunking
 CHUNK_OVERLAP = 200
+UPLOAD_BATCH_SIZE = 100
+```
 
-# Chatbot (from chatbot/config.py)
-LLM_PROVIDER = 'groq'  # default
+**chatbot/config.py:**
+```python
+LLM_PROVIDER = 'groq'          # default
 LLM_MODEL = 'openai/gpt-oss-20b' if using GROQ
-RERANKER_PROVIDER = 'groq'  # default
+RERANKER_PROVIDER = 'groq'     # default
 RERANKER_MODEL = 'openai/gpt-oss-20b' if using GROQ
 INTENT_CLASSIFIER_PROVIDER = 'groq'  # default
-INTENT_CLASSIFIER_MODEL = 'llama-3.3-70b-versatile' if using GROQ
+INTENT_CLASSIFIER_MODEL = 'openai/gpt-oss-20b' if using GROQ
 RETRIEVAL_TOP_K = 20
 RERANK_TOP_K = 7
 ```
@@ -213,6 +230,7 @@ RERANK_TOP_K = 7
 │   ├── content_processor.py
 │   └── run_pipeline.py
 ├── LOAD_DB/                   # Vector DB pipeline
+│   ├── config.py             # Vector DB configuration
 │   ├── load_pdf_qdrant.py    # Main loader
 │   ├── verify_qdrant.py      # Verification
 │   ├── logs/                 # Loading logs
@@ -277,11 +295,14 @@ RERANK_TOP_K = 7
 
 ## Pipeline Dependencies
 
-1. **Web Scraper** → Outputs to `scraped_content/raw/pdfs/`
-2. **Vector DB Loader** → Reads from `scraped_content/raw/pdfs/` and loads to Qdrant
-3. **Chatbot** → Queries Qdrant collection `tro-child-1`
+1. **Web Scraper** (SCRAPER/) → Outputs to `scraped_content/raw/pdfs/`
+   - Uses `SCRAPER/config.py` for scraping settings
+2. **Vector DB Loader** (LOAD_DB/) → Reads from `scraped_content/raw/pdfs/` and loads to Qdrant
+   - Uses `LOAD_DB/config.py` for Qdrant and embedding settings
+3. **Chatbot** (chatbot/) → Queries Qdrant collection `tro-child-1`
+   - Uses `chatbot/config.py` for LLM and retrieval settings
 
-Each pipeline can run independently once its inputs are available.
+Each pipeline has independent configuration and can run independently once its inputs are available.
 
 ## Intent-Based Routing Architecture
 
@@ -327,9 +348,10 @@ Generator, reranker, and intent classifier can use different providers independe
 ## Critical Architecture Notes
 
 ### Config File Hierarchy
-- **SCRAPER/config.py**: Shared by scraper and LOAD_DB (paths, Qdrant, embeddings)
+- **SCRAPER/config.py**: Scraper-specific settings (domains, URLs, chunking in words)
+- **LOAD_DB/config.py**: Vector DB settings (Qdrant, embeddings, chunking in characters)
 - **chatbot/config.py**: Chatbot-only settings (LLM providers, retrieval params)
-- When modifying vector DB settings, update SCRAPER/config.py, not chatbot/config.py
+- Each pipeline has independent configuration; no shared configs
 
 ### LangChain Integration
 The LOAD_DB pipeline evolved through 4 phases:
@@ -369,13 +391,6 @@ PyMuPDF document lifecycle bug in the web scraper prevents PDF content extractio
 ### Empty Domain Field
 Documents may have empty `domain` field in metadata. `source_url` is always populated, so use that for source tracking.
 
-## Performance Notes
-
-- **Scraping:** ~30 chunks from HTML/documents (30 pages)
-- **Vector DB Loading:** 42 PDFs → 3,722 chunks in ~1:45 minutes
-- **Chatbot Response Time:** 3-6 seconds average (includes retrieval, reranking, generation)
-- **GROQ vs OpenAI:** GROQ is significantly faster for LLM calls but OpenAI may have higher quality
-
 ## Documentation
 
 All detailed implementation documentation is in `SPECS/`:
@@ -401,9 +416,13 @@ To add new PDFs to the vector database:
 4. Chatbot automatically uses updated collection
 
 To change embedding model or chunk size:
-1. Edit `SCRAPER/config.py` (NOT chatbot/config.py)
+1. Edit `LOAD_DB/config.py` (Vector DB configuration)
 2. Re-run `load_pdf_qdrant.py` (will clear and rebuild collection)
 3. No chatbot changes needed
+
+To change scraper behavior:
+1. Edit `SCRAPER/config.py` (Scraper-specific configuration)
+2. Re-run `cd SCRAPER && python run_pipeline.py`
 
 ## Git Notes
 
@@ -422,5 +441,3 @@ Git ignores:
 ## Important
 # You’re a pragmatic software engineer. Your only goal is to solve the stated problem using the smallest, simplest possible solution. Avoid any form of future-proofing, abstraction, optimization, or unnecessary features. Just write what is needed to meet the requirement—nothing more. Apply YAGNI and KISS principles. If the task is to write code, provide the minimal (but correct) code that works, without extra comments or explanations unless explicitly requested.
 # The code is not in production. We are working with a prototype.
-
-
