@@ -23,6 +23,8 @@ except ImportError as e:
     raise ImportError(f"Required libraries missing: {e}\nInstall with: pip install -r requirements.txt")
 
 import config
+from contextual_processor import ContextualChunkProcessor
+from prompts import MASTER_CONTEXT
 
 
 def ensure_directories():
@@ -54,7 +56,7 @@ logger = logging.getLogger(__name__)
 class PDFToQdrantLoader:
     """Handles loading PDFs to Qdrant vector database."""
 
-    def __init__(self, test_mode: bool = False, max_pdfs: Optional[int] = None, clear_collection: bool = True):
+    def __init__(self, test_mode: bool = False, max_pdfs: Optional[int] = None, clear_collection: bool = True, contextual_mode: bool = False):
         """
         Initialize the PDF to Qdrant loader.
 
@@ -62,10 +64,15 @@ class PDFToQdrantLoader:
             test_mode: If True, runs in test mode with limited PDFs
             max_pdfs: Maximum number of PDFs to process (for testing)
             clear_collection: If True, clears the collection before loading (default: True)
+            contextual_mode: If True, generates contextual metadata for chunks
         """
         self.test_mode = test_mode
         self.max_pdfs = max_pdfs or (3 if test_mode else None)
         self.clear_collection = clear_collection
+        self.contextual_mode = contextual_mode
+
+        # Set collection name based on contextual mode
+        self.collection_name = config.QDRANT_COLLECTION_NAME_CONTEXTUAL if contextual_mode else config.QDRANT_COLLECTION_NAME
 
         # Initialize Qdrant client
         if not config.QDRANT_API_URL or not config.QDRANT_API_KEY:
@@ -94,6 +101,19 @@ class PDFToQdrantLoader:
             length_function=len,
         )
 
+        # Initialize contextual processor if enabled
+        self.contextual_processor = None
+        self.document_context_cache = {}
+        if self.contextual_mode:
+            if not config.GROQ_API_KEY:
+                raise ValueError("GROQ_API_KEY must be set in environment for contextual mode")
+            logger.info(f"Initializing contextual processor with model: {config.GROQ_MODEL}")
+            self.contextual_processor = ContextualChunkProcessor(
+                groq_api_key=config.GROQ_API_KEY,
+                model=config.GROQ_MODEL
+            )
+            logger.info("Contextual processor initialized")
+
         # Statistics
         self.stats = {
             'pdfs_processed': 0,
@@ -101,7 +121,8 @@ class PDFToQdrantLoader:
             'total_chunks': 0,
             'total_pages': 0,
             'start_time': datetime.now(),
-            'failed_pdfs': []
+            'failed_pdfs': [],
+            'contextual_mode': self.contextual_mode
         }
 
     def clear_and_recreate_collection(self):
@@ -111,15 +132,15 @@ class PDFToQdrantLoader:
             collection_names = [c.name for c in collections]
 
             # Delete existing collection if it exists
-            if config.QDRANT_COLLECTION_NAME in collection_names:
-                logger.warning(f"Deleting existing collection '{config.QDRANT_COLLECTION_NAME}'")
-                self.client.delete_collection(config.QDRANT_COLLECTION_NAME)
+            if self.collection_name in collection_names:
+                logger.warning(f"Deleting existing collection '{self.collection_name}'")
+                self.client.delete_collection(self.collection_name)
                 logger.info("Collection deleted successfully")
 
             # Create fresh collection
-            logger.info(f"Creating fresh collection '{config.QDRANT_COLLECTION_NAME}'")
+            logger.info(f"Creating fresh collection '{self.collection_name}'")
             self.client.create_collection(
-                collection_name=config.QDRANT_COLLECTION_NAME,
+                collection_name=self.collection_name,
                 vectors_config=VectorParams(
                     size=config.EMBEDDING_DIMENSION,
                     distance=Distance.COSINE
@@ -136,15 +157,15 @@ class PDFToQdrantLoader:
             collections = self.client.get_collections().collections
             collection_names = [c.name for c in collections]
 
-            if config.QDRANT_COLLECTION_NAME in collection_names:
-                logger.info(f"Collection '{config.QDRANT_COLLECTION_NAME}' already exists")
+            if self.collection_name in collection_names:
+                logger.info(f"Collection '{self.collection_name}' already exists")
                 # Get collection info
-                collection_info = self.client.get_collection(config.QDRANT_COLLECTION_NAME)
+                collection_info = self.client.get_collection(self.collection_name)
                 logger.info(f"Current vectors count: {collection_info.points_count}")
             else:
-                logger.info(f"Creating collection '{config.QDRANT_COLLECTION_NAME}'")
+                logger.info(f"Creating collection '{self.collection_name}'")
                 self.client.create_collection(
-                    collection_name=config.QDRANT_COLLECTION_NAME,
+                    collection_name=self.collection_name,
                     vectors_config=VectorParams(
                         size=config.EMBEDDING_DIMENSION,
                         distance=Distance.COSINE
@@ -230,6 +251,33 @@ class PDFToQdrantLoader:
         logger.info(f"Created {len(chunked_docs)} chunks from {os.path.basename(pdf_path)}")
         self.stats['total_chunks'] += len(chunked_docs)
 
+        # Generate document context if in contextual mode
+        if self.contextual_mode and self.contextual_processor:
+            pdf_name = os.path.basename(pdf_path)
+            pdf_id = os.path.splitext(pdf_name)[0]
+
+            # Get first 2000 chars from combined document content
+            combined_content = "\n".join([doc.page_content for doc in documents])
+            first_2000_chars = combined_content[:2000]
+
+            # Get document metadata for context generation
+            document_title = pdf_name
+            total_pages = len(documents)
+
+            document_context = self.contextual_processor.generate_document_context(
+                pdf_id=pdf_id,
+                document_title=document_title,
+                total_pages=total_pages,
+                first_2000_chars=first_2000_chars,
+            )
+
+            if document_context:
+                self.document_context_cache[pdf_id] = document_context
+                logger.info(f"Generated document context for {pdf_id}")
+            else:
+                logger.warning(f"Failed to generate document context for {pdf_id}")
+                self.document_context_cache[pdf_id] = None
+
         return chunked_docs
 
     def upload_documents_to_qdrant(self, documents: List[Document]):
@@ -244,13 +292,62 @@ class PDFToQdrantLoader:
 
         logger.info(f"Generating embeddings for {len(documents)} chunks...")
 
+        # Prepend contextual metadata if in contextual mode
+        if self.contextual_mode and self.contextual_processor and documents:
+            logger.info("Prepending contextual metadata to chunks...")
+
+            # Get pdf_id from first document metadata
+            pdf_id = documents[0].metadata.get('pdf_id', documents[0].metadata.get('filename', ''))
+            if pdf_id.endswith('.pdf'):
+                pdf_id = os.path.splitext(pdf_id)[0]
+
+            # Get document context from cache
+            document_context = self.document_context_cache.get(pdf_id)
+
+            if document_context:
+                # Prepare chunk data for context generation
+                chunks_for_context = []
+                for doc in documents:
+                    chunks_for_context.append({
+                        'page_num': doc.metadata.get('page', 1),
+                        'total_pages': doc.metadata.get('total_pages', 1),
+                        'chunk_index': doc.metadata.get('chunk_index', 0),
+                        'total_chunks': doc.metadata.get('total_chunks', 1),
+                        'chunk_text': doc.page_content,
+                    })
+
+                # Generate chunk contexts in batches
+                chunk_contexts = self.contextual_processor.generate_all_chunk_contexts(
+                    chunks_for_context,
+                    document_context
+                )
+
+                # Prepend contexts to documents
+                for i, doc in enumerate(documents):
+                    if chunk_contexts and i in chunk_contexts:
+                        chunk_context = chunk_contexts[i]
+                        doc.page_content = f"{MASTER_CONTEXT}\n\n{document_context}\n\n{chunk_context}\n\n{doc.page_content}"
+                    else:
+                        # Fallback if context generation failed for this chunk
+                        doc.page_content = f"{MASTER_CONTEXT}\n\n{document_context}\n\n{doc.page_content}"
+
+                    doc.metadata['has_context'] = True
+                logger.info(f"Prepended contexts to {len(documents)} chunks")
+            else:
+                logger.warning(f"No document context available for {pdf_id}, skipping context prepending")
+                for doc in documents:
+                    doc.metadata['has_context'] = False
+        else:
+            for doc in documents:
+                doc.metadata['has_context'] = False
+
         # Generate embeddings
         texts = [doc.page_content for doc in documents]
         embeddings = self.embeddings.embed_documents(texts)
 
         # Get current max ID to avoid conflicts
         try:
-            collection_info = self.client.get_collection(config.QDRANT_COLLECTION_NAME)
+            collection_info = self.client.get_collection(self.collection_name)
             current_count = collection_info.points_count
         except:
             current_count = 0
@@ -275,7 +372,7 @@ class PDFToQdrantLoader:
         for i in range(0, len(points), batch_size):
             batch = points[i:i + batch_size]
             self.client.upsert(
-                collection_name=config.QDRANT_COLLECTION_NAME,
+                collection_name=self.collection_name,
                 points=batch
             )
             logger.info(f"Uploaded batch {i//batch_size + 1} ({len(batch)} points)")
@@ -328,8 +425,9 @@ Processing Summary:
   - Total PDFs failed: {self.stats['pdfs_failed']}
   - Total pages extracted: {self.stats['total_pages']}
   - Total chunks created: {self.stats['total_chunks']}
+  - Contextual Mode: {self.stats['contextual_mode']}
 
-Collection: {config.QDRANT_COLLECTION_NAME}
+Collection: {self.collection_name}
   - Qdrant URL: {config.QDRANT_API_URL}
   - Embedding Model: {config.EMBEDDING_MODEL}
   - Chunk Size: {config.CHUNK_SIZE} characters
@@ -425,13 +523,16 @@ def main():
     parser.add_argument('--max-pdfs', type=int, help='Maximum number of PDFs to process')
     parser.add_argument('--no-clear', action='store_true',
                        help='Do NOT clear collection before loading (default: clears collection)')
+    parser.add_argument('--contextual', action='store_true',
+                       help='Enable contextual retrieval mode (generates 3-tier context hierarchy)')
 
     args = parser.parse_args()
 
     loader = PDFToQdrantLoader(
         test_mode=args.test,
         max_pdfs=args.max_pdfs,
-        clear_collection=not args.no_clear  # Clear by default, unless --no-clear is specified
+        clear_collection=not args.no_clear,  # Clear by default, unless --no-clear is specified
+        contextual_mode=args.contextual
     )
 
     loader.run()
