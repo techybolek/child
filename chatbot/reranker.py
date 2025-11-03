@@ -26,11 +26,21 @@ class LLMJudgeReranker:
     def rerank(self, query: str, chunks: list, top_k: int = 7):
         """Rerank using LLM relevance scoring"""
 
-        # Build prompt
-        chunks_text = "\n\n".join([
-            f"CHUNK {i}:\n{chunk['text'][:300]}..."
-            for i, chunk in enumerate(chunks)
-        ])
+        # Build prompt with full context information
+        chunks_text_parts = []
+        for i, chunk in enumerate(chunks):
+            part = f"CHUNK {i}:\n"
+            
+            # Include chunk context if available (generated during indexing)
+            if chunk.get('chunk_context'):
+                part += f"[Context] {chunk['chunk_context']}\n"
+            
+            # Include the actual chunk text
+            part += f"{chunk['text'][:300]}..."
+            
+            chunks_text_parts.append(part)
+
+        chunks_text = "\n\n".join(chunks_text_parts)
 
         prompt = RERANKING_PROMPT.format(query=query, chunks_text=chunks_text)
 
