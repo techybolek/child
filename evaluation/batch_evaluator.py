@@ -8,8 +8,8 @@ from . import config
 
 
 class BatchEvaluator:
-    def __init__(self):
-        self.evaluator = ChatbotEvaluator()
+    def __init__(self, collection_name=None):
+        self.evaluator = ChatbotEvaluator(collection_name=collection_name)
         self.judge = LLMJudge()
 
     def evaluate_all(self, limit: int = None):
@@ -174,37 +174,52 @@ Auto-generated test for failed evaluation
 Source: {source_file} Q{qa['question_num']}
 Composite Score: {scores['composite_score']:.1f}/100 (Failed threshold: {config.STOP_ON_FAIL_THRESHOLD})
 Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
+Usage:
+    python test_failed.py                          # Use default collection
+    python test_failed.py --collection tro-child-1  # Use specific collection
 """
 
+import argparse
 from chatbot.handlers.rag_handler import RAGHandler
 
-# Expected answer (from Q&A file):
-# {expected_answer}
 
-# Initialize handler (bypasses intent detection, goes directly to RAG)
-handler = RAGHandler()
+def main():
+    parser = argparse.ArgumentParser(description='Test failed evaluation question')
+    parser.add_argument('--collection', type=str, help='Qdrant collection name')
+    args = parser.parse_args()
 
-# Failed question
-question = '{question}'
+    # Expected answer (from Q&A file):
+    # {expected_answer}
 
-# Query chatbot via RAGHandler
-response = handler.handle(question)
+    # Initialize handler (bypasses intent detection, goes directly to RAG)
+    handler = RAGHandler(collection_name=args.collection)
 
-print("QUESTION:")
-print(question)
+    # Failed question
+    question = '{question}'
 
-print("\\nEXPECTED ANSWER:")
-print("""{expected_answer}""")
+    # Query chatbot via RAGHandler
+    response = handler.handle(question)
 
-print("\\nCHATBOT ANSWER:")
-print(response['answer'])
+    print("QUESTION:")
+    print(question)
 
-print("\\nSOURCES:")
-if response['sources']:
-    for source in response['sources']:
-        print(f"- {{source['doc']}}, Page {{source['page']}}")
-else:
-    print("No sources cited")
+    print("\\nEXPECTED ANSWER:")
+    print("""{expected_answer}""")
+
+    print("\\nCHATBOT ANSWER:")
+    print(response['answer'])
+
+    print("\\nSOURCES:")
+    if response['sources']:
+        for source in response['sources']:
+            print(f"- {{source['doc']}}, Page {{source['page']}}")
+    else:
+        print("No sources cited")
+
+
+if __name__ == '__main__':
+    main()
 '''
 
         # Write to test_failed.py in project root

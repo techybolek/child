@@ -10,7 +10,7 @@ from .. import config
 class RAGHandler(BaseHandler):
     """Handles information queries using RAG pipeline: Retrieval → Reranking → Generation"""
 
-    def __init__(self, llm_model=None, reranker_model=None, provider=None):
+    def __init__(self, llm_model=None, reranker_model=None, provider=None, collection_name=None):
         """
         Initialize RAG handler with optional custom models and provider
 
@@ -18,8 +18,9 @@ class RAGHandler(BaseHandler):
             llm_model: Optional model for generation
             reranker_model: Optional model for reranking
             provider: Optional provider ('groq' or 'openai') for all components
+            collection_name: Optional Qdrant collection name
         """
-        self.retriever = QdrantRetriever()
+        self.retriever = QdrantRetriever(collection_name=collection_name)
 
         # Use provider override or config default
         effective_provider = provider or config.LLM_PROVIDER

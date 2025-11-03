@@ -4,7 +4,7 @@ from . import config
 
 
 class QdrantRetriever:
-    def __init__(self):
+    def __init__(self, collection_name=None):
         self.client = QdrantClient(
             url=config.QDRANT_API_URL,
             api_key=config.QDRANT_API_KEY
@@ -12,7 +12,8 @@ class QdrantRetriever:
         self.embeddings = OpenAIEmbeddings(
             model=config.EMBEDDING_MODEL
         )
-        self.collection = config.COLLECTION_NAME
+        self.collection = collection_name or config.COLLECTION_NAME
+        print(f"[Retriever] Using Qdrant collection: {self.collection}")
 
     def search(self, query: str, top_k: int = 20):
         """Search Qdrant for relevant chunks"""

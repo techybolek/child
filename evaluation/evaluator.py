@@ -3,8 +3,8 @@ from chatbot.handlers.rag_handler import RAGHandler
 
 
 class ChatbotEvaluator:
-    def __init__(self):
-        self.handler = RAGHandler()
+    def __init__(self, collection_name=None):
+        self.handler = RAGHandler(collection_name=collection_name)
 
     def query(self, question: str) -> dict:
         """Query chatbot and return response with timing"""

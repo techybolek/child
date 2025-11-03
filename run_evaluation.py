@@ -17,14 +17,20 @@ def main():
     parser.add_argument('--test', action='store_true', help='Test mode')
     parser.add_argument('--limit', type=int, help='Limit number of questions to evaluate')
     parser.add_argument('--file', type=str, help='Evaluate specific Q&A file')
+    parser.add_argument('--collection', type=str, help='Qdrant collection name')
     args = parser.parse_args()
 
     print("=" * 80)
     print("CHATBOT EVALUATION SYSTEM - LLM as a Judge")
     print("=" * 80)
+    if args.collection:
+        print(f"\nUsing Qdrant collection: {args.collection}")
+    else:
+        from chatbot import config
+        print(f"\nUsing Qdrant collection: {config.COLLECTION_NAME} (default)")
 
     # Initialize
-    evaluator = BatchEvaluator()
+    evaluator = BatchEvaluator(collection_name=args.collection)
     reporter = Reporter()
 
     # Run evaluation

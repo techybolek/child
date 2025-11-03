@@ -1,37 +1,52 @@
 """
 Auto-generated test for failed evaluation
 
-Source: bcy-26-income-eligibility-and-maximum-psoc-twc-qa.md Q4
-Composite Score: 41.7/100 (Failed threshold: 70)
-Generated: 2025-11-01 13:01:40
+Source: bcy-26-psoc-chart-twc-qa.md Q3
+Composite Score: 25.0/100 (Failed threshold: 70)
+Generated: 2025-11-03 09:14:09
+
+Usage:
+    python test_failed.py                          # Use default collection
+    python test_failed.py --collection tro-child-1  # Use specific collection
 """
 
+import argparse
 from chatbot.handlers.rag_handler import RAGHandler
 
-# Expected answer (from Q&A file):
-# A family of 5 with bi-weekly income must earn no more than $4,106 per pay period to remain eligible for the program in Board Contract Year 2026. This corresponds to an annual income limit of $106,768.
 
-# Initialize handler (bypasses intent detection, goes directly to RAG)
-handler = RAGHandler()
+def main():
+    parser = argparse.ArgumentParser(description='Test failed evaluation question')
+    parser.add_argument('--collection', type=str, help='Qdrant collection name')
+    args = parser.parse_args()
 
-# Failed question
-question = 'If a family of 5 earns income bi-weekly, what is their maximum income to remain eligible for the program?'
+    # Expected answer (from Q&A file):
+    # A family of 4 earning $3,159 per month falls into the 35% State Median Income bracket. For one child in care, their monthly PSoC would be $135, which equals approximately $31 per week. This represents 4.26% of their monthly income.
 
-# Query chatbot via RAGHandler
-response = handler.handle(question)
+    # Initialize handler (bypasses intent detection, goes directly to RAG)
+    handler = RAGHandler(collection_name=args.collection)
 
-print("QUESTION:")
-print(question)
+    # Failed question
+    question = 'What is the monthly PSoC for a family of 4 with one child in care earning $3,159 per month?'
 
-print("\nEXPECTED ANSWER:")
-print("""A family of 5 with bi-weekly income must earn no more than $4,106 per pay period to remain eligible for the program in Board Contract Year 2026. This corresponds to an annual income limit of $106,768.""")
+    # Query chatbot via RAGHandler
+    response = handler.handle(question)
 
-print("\nCHATBOT ANSWER:")
-print(response['answer'])
+    print("QUESTION:")
+    print(question)
 
-print("\nSOURCES:")
-if response['sources']:
-    for source in response['sources']:
-        print(f"- {source['doc']}, Page {source['page']}")
-else:
-    print("No sources cited")
+    print("\nEXPECTED ANSWER:")
+    print("""A family of 4 earning $3,159 per month falls into the 35% State Median Income bracket. For one child in care, their monthly PSoC would be $135, which equals approximately $31 per week. This represents 4.26% of their monthly income.""")
+
+    print("\nCHATBOT ANSWER:")
+    print(response['answer'])
+
+    print("\nSOURCES:")
+    if response['sources']:
+        for source in response['sources']:
+            print(f"- {source['doc']}, Page {source['page']}")
+    else:
+        print("No sources cited")
+
+
+if __name__ == '__main__':
+    main()
