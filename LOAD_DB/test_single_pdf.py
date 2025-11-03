@@ -8,6 +8,7 @@ Tests the new simplified prompts by loading just one PDF file.
 import os
 import sys
 import glob
+from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -44,6 +45,13 @@ def load_single_pdf(pdf_filename: str):
     print(f"Mode: Contextual with simplified prompts")
     print(f"{'='*80}\n")
 
+    # Clean cache: delete cached document context to force fresh generation
+    pdf_id = os.path.splitext(pdf_filename)[0]
+    cache_file = Path(config.LOAD_DB_CHECKPOINTS_DIR) / f"doc_context_{pdf_id}.json"
+    if cache_file.exists():
+        cache_file.unlink()
+        print(f"✓ Cleaned cache: deleted {cache_file.name}\n")
+
     # Clear and recreate collection
     loader.clear_and_recreate_collection()
 
@@ -54,7 +62,11 @@ def load_single_pdf(pdf_filename: str):
         print("ERROR: No documents extracted from PDF")
         sys.exit(1)
 
-    print(f"✓ Extracted {len(documents)} pages from PDF")
+    # Limit to first 10 chunks for quick testing
+    original_count = len(documents)
+    documents = documents[:10]
+    print(f"✓ Extracted {original_count} pages from PDF")
+    print(f"✓ Limited to first {len(documents)} chunks for testing")
 
     # Upload to Qdrant
     loader.upload_documents_to_qdrant(documents)
@@ -70,5 +82,6 @@ def load_single_pdf(pdf_filename: str):
     print(f"{'='*80}\n")
 
 if __name__ == "__main__":
-    pdf_name = "texas-early-learning-strategic-plan-2024-2026-final-accessible.pdf"
+    # Test with child care services guide (has good prose + tables)
+    pdf_name = "child-care-services-guide-twc.pdf"
     load_single_pdf(pdf_name)

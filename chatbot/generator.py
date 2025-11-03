@@ -82,11 +82,28 @@ class ResponseGenerator:
             }
 
     def _format_context(self, chunks: list):
-        """Format chunks with citation markers"""
+        """Format chunks with citation markers and injected contexts"""
         parts = []
+        master_context_injected = False
+        last_filename = None
+
         for i, chunk in enumerate(chunks, 1):
-            parts.append(
-                f"[Doc {i}: {chunk['filename']}, Page {chunk['page']}]\n"
-                f"{chunk['text']}\n"
-            )
+            # Inject master context once at the beginning
+            if not master_context_injected and chunk.get('master_context'):
+                parts.append(f"[System Context]\n{chunk['master_context']}\n")
+                master_context_injected = True
+
+            # Inject document context when switching to a new document
+            if chunk['filename'] != last_filename and chunk.get('document_context'):
+                parts.append(f"[Document Context: {chunk['filename']}]\n{chunk['document_context']}\n")
+                last_filename = chunk['filename']
+
+            # Build chunk entry with optional chunk context
+            chunk_entry = f"[Doc {i}: {chunk['filename']}, Page {chunk['page']}]\n"
+            if chunk.get('chunk_context'):
+                chunk_entry += f"{chunk['chunk_context']}\n\n"
+            chunk_entry += chunk['text']
+
+            parts.append(chunk_entry)
+
         return "\n".join(parts)

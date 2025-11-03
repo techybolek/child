@@ -26,9 +26,14 @@ Document Context (generated per PDF)
     ↓
 Chunk Context (generated per chunk)
     ↓
-[Prepended to chunk content before embedding]
+[EMBEDDING TIME: Concatenate contexts + content, but store separately]
     ↓
-Final Chunk = [Master + Document + Chunk Context] + Original Content
+STORAGE IN QDRANT:
+  - page_content: [Original Chunk Content Only]
+  - metadata.master_context: [Master Context]
+  - metadata.document_context: [Document Context]
+  - metadata.chunk_context: [Chunk Context]
+  - embedding: computed from [Master + Document + Chunk + Original]
 ```
 
 ### Tier 1: Master Context (Static)
@@ -139,24 +144,55 @@ Context:"""
 
 ### Final Chunk Assembly
 
-Each chunk in Qdrant will contain:
+Each chunk in Qdrant will be stored with **contexts separate from page content**:
 
+**Stored in Qdrant point:**
 ```
-[MASTER CONTEXT]
-This is official Texas Workforce Commission (TWC) documentation...
+page_content (returned to user):
+  "Family of 5\nMaximum income per pay period: $4,106\nMaximum annual income: $106,768\n..."
 
-[DOCUMENT CONTEXT]
-This TWC desk aid specifies Board Contract Year (BCY) 2026 income...
+metadata:
+  {
+    "master_context": "This is official Texas Workforce Commission (TWC) documentation...",
+    "document_context": "This TWC desk aid specifies Board Contract Year (BCY) 2026 income...",
+    "chunk_context": "This section from the BCY 2026 income limits document provides...",
+    "has_context": True
+  }
 
-[CHUNK CONTEXT]
-This section from the BCY 2026 income limits document provides...
-
-[ORIGINAL CHUNK CONTENT]
-Family of 5
-Maximum income per pay period: $4,106
-Maximum annual income: $106,768
-...
+embedding (computed from):
+  "[MASTER CONTEXT]\nThis is official Texas Workforce Commission (TWC) documentation...\n\n[DOCUMENT CONTEXT]\nThis TWC desk aid specifies Board Contract Year (BCY) 2026 income...\n\n[CHUNK CONTEXT]\nThis section from the BCY 2026 income limits document provides...\n\n[ORIGINAL CHUNK CONTENT]\nFamily of 5\nMaximum income per pay period: $4,106\nMaximum annual income: $106,768\n..."
 ```
+
+**Key Design**: The full concatenated text is used ONLY for computing the embedding. Users see clean, unpolluted chunk content when results are retrieved.
+
+---
+
+## Key Technical Detail: Context Storage vs. Embedding
+
+**Critical Design Decision**: Contexts are used for EMBEDDING COMPUTATION, not for chunk storage.
+
+**Embedding Process** (what Qdrant uses for similarity ranking):
+```
+Input to embedding model: [Master Context] + [Doc Context] + [Chunk Context] + [Original Content]
+↓
+OpenAI embedding-3-small computes vector representation
+↓
+This enriched vector helps the model distinguish BCY 2026 from older documents
+```
+
+**Storage in Qdrant** (what users see when chunks are retrieved):
+```
+point.payload['text'] (page_content): [Original Content Only] ✓ CLEAN
+point.payload['master_context']: [Master Context] (metadata)
+point.payload['document_context']: [Document Context] (metadata)
+point.payload['chunk_context']: [Chunk Context] (metadata)
+```
+
+**Why this matters**:
+- Embedding gets semantic richness from contexts (fixes retrieval ranking)
+- Users see clean, focused content without bloat
+- Contexts are available in metadata if needed for UI enhancements later
+- No pollution of the actual content shown to end users
 
 ---
 
@@ -265,8 +301,19 @@ python evaluation/batch_evaluator.py  # With original collection
   - In `upload_documents_to_qdrant()` **before** embedding (only if contextual enabled):
     - For each batch of 10 documents
     - Call `processor.generate_chunk_contexts_batch(batch, document_context)`
-    - Prepend contexts to `doc.page_content`: `doc.page_content = f"{master_context}\n\n{document_context}\n\n{chunk_context}\n\n{original_content}"`
-    - Add `has_context: True` to metadata
+    - **Prepare enriched text for embedding ONLY**:
+      ```python
+      enriched_for_embedding = f"{master_context}\n\n{document_context}\n\n{chunk_context}\n\n{original_content}"
+      # Use this enriched_for_embedding to compute the embedding
+      ```
+    - **Keep original content in page_content**: `doc.page_content` remains unchanged (original chunk text only)
+    - Store contexts in metadata:
+      ```python
+      doc.metadata['master_context'] = master_context
+      doc.metadata['document_context'] = document_context
+      doc.metadata['chunk_context'] = chunk_context
+      doc.metadata['has_context'] = True
+      ```
     - Include context token counts in logs
   - Use appropriate Qdrant collection name (`tro-child-1` vs `tro-child-1-contextual` based on `--contextual` flag)
 
@@ -297,7 +344,8 @@ python evaluation/batch_evaluator.py  # With original collection
   python verify_qdrant.py  # Should verify tro-child-1-contextual by default or with explicit flag
   ```
   - Check metadata: Verify `has_context: True` is set in all points
-  - Check that contexts are prepended to chunk text
+  - Check that `page_content` contains ONLY original chunk text (no context prepended)
+  - Check that `metadata` contains separate fields: `master_context`, `document_context`, `chunk_context`
   - Count total chunks in collection (should match 3 PDFs)
 
 - [ ] Sample random chunks and verify structure:
@@ -307,7 +355,12 @@ python evaluation/batch_evaluator.py  # With original collection
   client = QdrantClient(url="...", api_key="...")
   points = client.scroll(collection_name="tro-child-1-contextual", limit=5)
   for point in points[0]:
-      print(point.payload['text'][:500])  # Should show [Master] [Document] [Chunk] [Original]
+      print("Page content (should be clean):")
+      print(point.payload['text'][:200])
+      print("\nMetadata contexts:")
+      print("Master:", point.payload['master_context'][:100])
+      print("Document:", point.payload['document_context'][:100])
+      print("Chunk:", point.payload['chunk_context'][:100])
   ```
 
 ### Phase 6: Validation on Failing Test (1 hour)
@@ -456,10 +509,14 @@ python evaluation/batch_evaluator.py  # With original collection
 2. ✅ Contextual processor module created with GROQ integration
 3. ✅ New `tro-child-1-contextual` collection created (separate from original)
 4. ✅ Test load (3 PDFs) completes successfully: `python load_pdf_qdrant.py --test --contextual --clear`
-5. ✅ Verification confirms all test chunks have `has_context: True` and contexts prepended
+5. ✅ Verification confirms all test chunks have:
+   - `has_context: True` in metadata
+   - `page_content` contains ONLY original chunk text (no context prepended)
+   - `metadata.master_context`, `metadata.document_context`, `metadata.chunk_context` populated separately
 6. ✅ `test_failed.py` with contextual collection returns correct answer: "$4,106 per pay period"
+   - Retrieved chunk shows clean content, not padded with context metadata
 7. ✅ Head-to-head comparison: Original collection still returns "$3,918" (unchanged behavior)
-8. ✅ BCY 2026 chunk moves into top 10 retrieval results (was rank 24) in contextual collection
+8. ✅ BCY 2026 chunk moves into top 10 retrieval results (was rank 24) in contextual collection due to enriched embedding
 9. ✅ Full pipeline (37 PDFs) completes successfully
 10. ✅ Batch evaluation composite score improves on contextual collection (from 41.7/100 baseline)
 

@@ -7,7 +7,8 @@ QDRANT_API_URL = os.getenv('QDRANT_API_URL')
 QDRANT_API_KEY = os.getenv('QDRANT_API_KEY')
 
 # Qdrant settings
-COLLECTION_NAME = 'tro-child-1'
+#COLLECTION_NAME = 'tro-child-1'
+COLLECTION_NAME = 'tro-child-1-contextual'
 EMBEDDING_MODEL = 'text-embedding-3-small'
 
 # Retrieval settings

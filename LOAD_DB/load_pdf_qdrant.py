@@ -18,13 +18,14 @@ try:
     from langchain_community.document_loaders import PyMuPDFLoader
     from langchain.docstore.document import Document
     from qdrant_client import QdrantClient
-    from qdrant_client.models import Distance, VectorParams, PointStruct
+    from qdrant_client.models import Distance, VectorParams, PointStruct, PayloadSchemaType
 except ImportError as e:
     raise ImportError(f"Required libraries missing: {e}\nInstall with: pip install -r requirements.txt")
 
 import config
 from contextual_processor import ContextualChunkProcessor
 from prompts import MASTER_CONTEXT
+from text_cleaner import clean_text, is_likely_toc
 
 
 def ensure_directories():
@@ -120,10 +121,14 @@ class PDFToQdrantLoader:
             'pdfs_failed': 0,
             'total_chunks': 0,
             'total_pages': 0,
+            'total_filtered_chunks': 0,
             'start_time': datetime.now(),
             'failed_pdfs': [],
             'contextual_mode': self.contextual_mode
         }
+
+        # Track filtered chunks for reporting
+        self.filtered_chunks = []
 
     def clear_and_recreate_collection(self):
         """Delete and recreate the Qdrant collection (clears all data)."""
@@ -147,6 +152,15 @@ class PDFToQdrantLoader:
                 )
             )
             logger.info("Collection created successfully")
+
+            # Create payload index on filename field for efficient filtering
+            logger.info("Creating payload index on 'filename' field")
+            self.client.create_payload_index(
+                collection_name=self.collection_name,
+                field_name='filename',
+                field_schema=PayloadSchemaType.KEYWORD
+            )
+            logger.info("Payload index created successfully")
         except Exception as e:
             logger.error(f"Error recreating collection: {e}")
             raise
@@ -172,6 +186,15 @@ class PDFToQdrantLoader:
                     )
                 )
                 logger.info("Collection created successfully")
+
+                # Create payload index on filename field for efficient filtering
+                logger.info("Creating payload index on 'filename' field")
+                self.client.create_payload_index(
+                    collection_name=self.collection_name,
+                    field_name='filename',
+                    field_schema=PayloadSchemaType.KEYWORD
+                )
+                logger.info("Payload index created successfully")
         except Exception as e:
             logger.error(f"Error ensuring collection exists: {e}")
             raise
@@ -222,6 +245,10 @@ class PDFToQdrantLoader:
         self.stats['total_pages'] += len(documents)
         logger.info(f"Loaded {len(documents)} pages from {os.path.basename(pdf_path)}")
 
+        # Clean page numbers and artifacts from extracted text
+        for doc in documents:
+            doc.page_content = clean_text(doc.page_content)
+
         # Load metadata from JSON file if available
         metadata_json = self.load_pdf_metadata(pdf_path)
 
@@ -242,8 +269,31 @@ class PDFToQdrantLoader:
 
         # Split documents into chunks
         chunked_docs = self.text_splitter.split_documents(documents)
+        original_chunk_count = len(chunked_docs)
 
-        # Add chunk index to metadata
+        # Filter out table of contents and structural metadata chunks
+        filtered_chunks = []
+        toc_chunks_filtered = 0
+        for doc in chunked_docs:
+            if not is_likely_toc(doc.page_content):
+                filtered_chunks.append(doc)
+            else:
+                toc_chunks_filtered += 1
+                logger.debug(f"Filtered out TOC chunk: {doc.page_content[:100]}...")
+                # Track filtered chunk for reporting
+                self.filtered_chunks.append({
+                    'pdf_name': os.path.basename(pdf_path),
+                    'chunk_preview': doc.page_content[:200],
+                    'chunk_length': len(doc.page_content)
+                })
+
+        chunked_docs = filtered_chunks
+        if toc_chunks_filtered > 0:
+            logger.info(f"Filtered out {toc_chunks_filtered} TOC/metadata chunks ({original_chunk_count} → {len(chunked_docs)})")
+
+        self.stats['total_filtered_chunks'] += toc_chunks_filtered
+
+        # Add chunk index to metadata (re-index after filtering)
         for i, doc in enumerate(chunked_docs):
             doc.metadata['chunk_index'] = i
             doc.metadata['total_chunks'] = len(chunked_docs)
@@ -283,6 +333,11 @@ class PDFToQdrantLoader:
     def upload_documents_to_qdrant(self, documents: List[Document]):
         """
         Upload documents to Qdrant with embeddings.
+        
+        For contextual mode:
+        - Embedding is computed from [Master + Document + Chunk contexts + Original content]
+        - Storage keeps only original content in page_content
+        - Contexts stored separately in metadata for potential future use
 
         Args:
             documents: List of LangChain Document objects
@@ -292,9 +347,15 @@ class PDFToQdrantLoader:
 
         logger.info(f"Generating embeddings for {len(documents)} chunks...")
 
-        # Prepend contextual metadata if in contextual mode
+        # Store original content before any modifications
+        original_contents = [doc.page_content for doc in documents]
+        
+        # Prepare content for embedding (may include context)
+        texts_for_embedding = []
+
+        # Generate contextual metadata if in contextual mode
         if self.contextual_mode and self.contextual_processor and documents:
-            logger.info("Prepending contextual metadata to chunks...")
+            logger.info("Generating contextual metadata for chunks...")
 
             # Get pdf_id from first document metadata
             pdf_id = documents[0].metadata.get('pdf_id', documents[0].metadata.get('filename', ''))
@@ -322,28 +383,43 @@ class PDFToQdrantLoader:
                     document_context
                 )
 
-                # Prepend contexts to documents
+                # Prepare enriched text for embedding and store contexts in metadata
                 for i, doc in enumerate(documents):
+                    # Store all contexts in metadata (for retrieval visibility and future use)
+                    doc.metadata['master_context'] = MASTER_CONTEXT
+                    doc.metadata['document_context'] = document_context
+                    doc.metadata['has_context'] = True
+
                     if chunk_contexts and i in chunk_contexts:
                         chunk_context = chunk_contexts[i]
-                        doc.page_content = f"{MASTER_CONTEXT}\n\n{document_context}\n\n{chunk_context}\n\n{doc.page_content}"
+                        doc.metadata['chunk_context'] = chunk_context
                     else:
-                        # Fallback if context generation failed for this chunk
-                        doc.page_content = f"{MASTER_CONTEXT}\n\n{document_context}\n\n{doc.page_content}"
+                        doc.metadata['chunk_context'] = None
 
-                    doc.metadata['has_context'] = True
-                logger.info(f"Prepended contexts to {len(documents)} chunks")
+                    # Build enriched text for embedding ONLY
+                    # This improves embedding relevance but isn't stored in page_content
+                    enriched_for_embedding = f"{MASTER_CONTEXT}\n\n{document_context}"
+                    if doc.metadata.get('chunk_context'):
+                        enriched_for_embedding += f"\n\n{doc.metadata['chunk_context']}"
+                    enriched_for_embedding += f"\n\n{original_contents[i]}"
+                    
+                    texts_for_embedding.append(enriched_for_embedding)
+
+                logger.info(f"Generated contexts for {len(documents)} chunks")
+                logger.info("Using enriched context for embeddings, but storing only original content")
             else:
-                logger.warning(f"No document context available for {pdf_id}, skipping context prepending")
+                logger.warning(f"No document context available for {pdf_id}, using original content only")
                 for doc in documents:
                     doc.metadata['has_context'] = False
+                texts_for_embedding = original_contents.copy()
         else:
+            # Non-contextual mode: use original content as-is
             for doc in documents:
                 doc.metadata['has_context'] = False
+            texts_for_embedding = original_contents.copy()
 
-        # Generate embeddings
-        texts = [doc.page_content for doc in documents]
-        embeddings = self.embeddings.embed_documents(texts)
+        # Generate embeddings from potentially enriched text
+        embeddings = self.embeddings.embed_documents(texts_for_embedding)
 
         # Get current max ID to avoid conflicts
         try:
@@ -352,10 +428,13 @@ class PDFToQdrantLoader:
         except:
             current_count = 0
 
-        # Create points
+        # Create points (always use original content in page_content, not enriched)
         points = []
         for i, (doc, embedding) in enumerate(zip(documents, embeddings)):
             point_id = current_count + i + 1
+
+            # Ensure page_content is original (not enriched with contexts)
+            doc.page_content = original_contents[i]
 
             point = PointStruct(
                 id=point_id,
@@ -410,6 +489,48 @@ class PDFToQdrantLoader:
             json.dump(checkpoint_data, f, indent=2)
 
         logger.info(f"Checkpoint saved to {checkpoint_path}")
+
+    def write_filtered_chunks_report(self):
+        """Write detailed log of all filtered chunks to a dedicated file."""
+        if not self.filtered_chunks:
+            logger.info("No chunks were filtered out.")
+            return
+
+        filtered_report_path = os.path.join(
+            config.LOAD_DB_REPORTS_DIR,
+            f"filtered_chunks_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        )
+
+        with open(filtered_report_path, 'w') as f:
+            f.write("FILTERED CHUNKS REPORT\n")
+            f.write("=" * 80 + "\n\n")
+            f.write(f"Total chunks filtered: {self.stats['total_filtered_chunks']}\n")
+            f.write(f"Total filtered entries: {len(self.filtered_chunks)}\n")
+            f.write("\n" + "=" * 80 + "\n\n")
+
+            # Group by PDF for better readability
+            by_pdf = {}
+            for chunk in self.filtered_chunks:
+                pdf_name = chunk['pdf_name']
+                if pdf_name not in by_pdf:
+                    by_pdf[pdf_name] = []
+                by_pdf[pdf_name].append(chunk)
+
+            for pdf_name in sorted(by_pdf.keys()):
+                chunks = by_pdf[pdf_name]
+                f.write(f"PDF: {pdf_name}\n")
+                f.write(f"  Filtered chunks: {len(chunks)}\n")
+                f.write("-" * 80 + "\n")
+
+                for i, chunk in enumerate(chunks, 1):
+                    f.write(f"\n  Chunk {i} ({chunk['chunk_length']} chars):\n")
+                    f.write(f"    {chunk['chunk_preview']}\n")
+                    if len(chunk['chunk_preview']) == 200:
+                        f.write(f"    [...truncated...]\n")
+
+                f.write("\n" + "=" * 80 + "\n")
+
+        logger.info(f"Filtered chunks report saved to {filtered_report_path}")
 
     def generate_report(self):
         """Generate final processing report."""
@@ -507,6 +628,9 @@ Timing:
 
         # Final checkpoint
         self.save_checkpoint(processed_pdfs)
+
+        # Write filtered chunks report
+        self.write_filtered_chunks_report()
 
         # Generate report
         self.generate_report()

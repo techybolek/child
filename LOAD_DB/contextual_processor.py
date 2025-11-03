@@ -1,238 +1,241 @@
 """
-Contextual Processor for generating document and chunk contexts.
-
-Uses GROQ API to generate three-tier context hierarchy:
-1. Master Context (static, all documents)
-2. Document Context (generated per PDF)
-3. Chunk Context (generated per chunk)
+Contextual Chunk Processor - Three-tier context generation using GROQ
 """
 
 import json
 import logging
 import os
 import time
-from typing import Dict, List, Optional
+from typing import Optional, List, Dict, Any
+from pathlib import Path
 
-from groq import Groq
+import requests
 
-import config
-from prompts import (
-    MASTER_CONTEXT,
-    build_chunk_context_prompt,
-    build_document_context_prompt,
-)
+from prompts import MASTER_CONTEXT, build_document_context_prompt, build_chunk_context_prompt
 
 logger = logging.getLogger(__name__)
 
 
 class ContextualChunkProcessor:
-    """Generates contextual metadata for documents and chunks using GROQ API."""
-
-    def __init__(self, groq_api_key: str, model: str):
+    """Generates three-tier contextual metadata for chunks using GROQ API."""
+    
+    def __init__(self, groq_api_key: str, model: str = 'openai/gpt-oss-20b'):
         """
         Initialize the contextual processor.
-
+        
         Args:
             groq_api_key: GROQ API key
-            model: GROQ model name (e.g., 'openai/gpt-oss-20b')
+            model: Model to use (default: openai/gpt-oss-20b)
         """
-        self.client = Groq(api_key=groq_api_key)
+        self.api_key = groq_api_key
         self.model = model
+        self.base_url = "https://api.groq.com/openai/v1"
         self.master_context = MASTER_CONTEXT
-        self.retry_count = 3
-        self.retry_delay = 1  # seconds, increases exponentially
-
-    def _make_api_call(
-        self,
-        prompt: str,
-        max_tokens: int = 2000,
-    ) -> Optional[str]:
+        
+        # Checkpoints directory for caching document contexts
+        self.checkpoints_dir = Path(__file__).parent / 'checkpoints'
+        self.checkpoints_dir.mkdir(exist_ok=True)
+        
+    def _make_groq_request(self, prompt: str, max_tokens: int = 300) -> Optional[str]:
         """
-        Make a GROQ API call with exponential backoff retry logic.
-
+        Call GROQ API with exponential backoff retry logic.
+        
         Args:
-            prompt: The prompt to send to GROQ
+            prompt: The prompt to send
             max_tokens: Maximum tokens in response
-
+        
         Returns:
-            Response content or None if failed after retries
+            Generated text or None if failed
         """
-        for attempt in range(self.retry_count):
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.3,
+            "max_tokens": max_tokens,
+        }
+        
+        max_retries = 3
+        base_delay = 2
+        
+        for attempt in range(max_retries):
             try:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0,
-                    seed=42,
-                    max_completion_tokens=max_tokens,
+                response = requests.post(
+                    f"{self.base_url}/chat/completions",
+                    headers=headers,
+                    json=payload,
+                    timeout=30
                 )
-
-                content = response.choices[0].message.content
-                if content is None or content.strip() == "":
-                    logger.warning("API returned empty content, retrying...")
-                    if attempt < self.retry_count - 1:
-                        time.sleep(self.retry_delay * (2 ** attempt))
-                        continue
-                    return None
-
-                return content.strip()
-
-            except Exception as e:
-                logger.error(
-                    f"API error on attempt {attempt + 1}/{self.retry_count}: {type(e).__name__}: {str(e)}"
-                )
-                if attempt < self.retry_count - 1:
-                    time.sleep(self.retry_delay * (2 ** attempt))
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    return result['choices'][0]['message']['content'].strip()
+                
+                elif response.status_code == 429:
+                    # Rate limited - exponential backoff
+                    delay = base_delay * (2 ** attempt)
+                    logger.warning(f"Rate limited. Waiting {delay}s before retry {attempt + 1}/{max_retries}")
+                    time.sleep(delay)
+                    continue
+                
+                elif response.status_code >= 500:
+                    # Server error - retry
+                    logger.warning(f"Server error {response.status_code}. Retrying...")
+                    time.sleep(base_delay * (attempt + 1))
+                    continue
+                
                 else:
+                    logger.error(f"GROQ API error {response.status_code}: {response.text}")
                     return None
-
+            
+            except requests.Timeout:
+                logger.warning(f"Request timeout on attempt {attempt + 1}/{max_retries}")
+                if attempt < max_retries - 1:
+                    time.sleep(base_delay * (attempt + 1))
+                continue
+            
+            except Exception as e:
+                logger.error(f"Error calling GROQ API: {e}")
+                return None
+        
+        logger.error(f"Failed to generate context after {max_retries} retries")
         return None
-
+    
     def generate_document_context(
         self,
         pdf_id: str,
         document_title: str,
         total_pages: int,
         first_2000_chars: str,
+        source_url: str = ""
     ) -> Optional[str]:
         """
-        Generate document-level context (Tier 2).
-
+        Generate Tier 2 document-level context.
+        
         Args:
-            pdf_id: Unique identifier for the PDF (usually filename without extension)
-            document_title: Original filename
-            total_pages: Total pages in document
-            first_2000_chars: First 2000 characters of document content
-
+            pdf_id: PDF identifier (without extension)
+            document_title: Filename
+            total_pages: Total pages
+            first_2000_chars: First 2000 characters of content
+            source_url: Source URL (optional)
+        
         Returns:
-            Generated context string or None if generation failed
+            Generated document context or None if failed
         """
-        cache_path = os.path.join(
-            config.LOAD_DB_CHECKPOINTS_DIR, f"doc_context_{pdf_id}.json"
-        )
-
         # Check cache first
-        if os.path.exists(cache_path):
+        cache_file = self.checkpoints_dir / f"doc_context_{pdf_id}.json"
+        
+        if cache_file.exists():
             try:
-                with open(cache_path, "r") as f:
+                with open(cache_file, 'r') as f:
                     cached = json.load(f)
-                    logger.info(f"Using cached document context for {pdf_id}")
-                    return cached.get("document_context")
+                    logger.info(f"Loaded cached document context for {pdf_id}")
+                    return cached['context']
             except Exception as e:
-                logger.warning(f"Failed to read cache for {pdf_id}: {e}")
-
+                logger.warning(f"Failed to load cache for {pdf_id}: {e}")
+        
         # Generate new context
-        logger.info(f"Generating document context for {pdf_id}...")
+        logger.info(f"Generating document context for {pdf_id}")
+        
         prompt = build_document_context_prompt(
-            document_title,
-            total_pages,
-            first_2000_chars,
+            master_context=self.master_context,
+            document_title=document_title,
+            source_url=source_url,
+            total_pages=total_pages,
+            first_2000_chars=first_2000_chars
         )
-
-        context = self._make_api_call(prompt, max_tokens=500)
-
+        
+        context = self._make_groq_request(prompt, max_tokens=2000)
+        
         if context:
-            # Save to cache
+            # Cache it
             try:
-                os.makedirs(config.LOAD_DB_CHECKPOINTS_DIR, exist_ok=True)
-                with open(cache_path, "w") as f:
-                    json.dump({"document_context": context, "pdf_id": pdf_id}, f)
+                with open(cache_file, 'w') as f:
+                    json.dump({
+                        'pdf_id': pdf_id,
+                        'context': context,
+                        'timestamp': time.time()
+                    }, f)
                 logger.info(f"Cached document context for {pdf_id}")
             except Exception as e:
                 logger.warning(f"Failed to cache document context: {e}")
-
-            logger.info(f"Generated document context for {pdf_id}")
-            return context
-        else:
-            logger.error(f"Failed to generate document context for {pdf_id}")
-            return None
-
+        
+        return context
+    
     def generate_chunk_contexts_batch(
         self,
-        chunks: List[Dict],
-        document_context: str,
-    ) -> Optional[Dict[int, str]]:
+        chunks: List[Dict[str, Any]],
+        document_context: str
+    ) -> List[Dict[str, Any]]:
         """
-        Generate chunk-level contexts in a batch (Tier 3).
-
+        Generate Tier 3 chunk-level contexts for a batch of chunks.
+        
         Args:
-            chunks: List of chunk dictionaries with:
-                - page_num: Page number
-                - total_pages: Total pages in document
-                - chunk_index: Index of chunk
-                - total_chunks: Total chunks in document
-                - chunk_text: The chunk content
-            document_context: Document-level context from Tier 2
-
+            chunks: List of chunk dicts with keys: chunk_text, page_num, chunk_index, total_chunks, total_pages
+            document_context: Tier 2 document context
+        
         Returns:
-            Dictionary mapping chunk_index to generated context, or None if failed
+            List of chunk dicts with added 'chunk_context' key
         """
-        if not chunks:
-            return {}
-
-        logger.info(f"Generating contexts for batch of {len(chunks)} chunks...")
-
-        contexts = {}
-        for i, chunk in enumerate(chunks):
-            logger.debug(f"Processing chunk {i + 1}/{len(chunks)} in batch...")
-
+        logger.info(f"Generating chunk contexts for batch of {len(chunks)} chunks")
+        
+        for chunk in chunks:
             prompt = build_chunk_context_prompt(
-                document_context,
-                chunk["chunk_text"],
+                document_context=document_context,
+                chunk_text=chunk['chunk_text']
             )
-
-            context = self._make_api_call(prompt, max_tokens=300)
-
-            if context:
-                contexts[chunk["chunk_index"]] = context
-            else:
-                logger.warning(
-                    f"Failed to generate context for chunk {chunk['chunk_index']}"
-                )
-
-        logger.info(
-            f"Generated {len(contexts)}/{len(chunks)} chunk contexts in batch"
-        )
-        return contexts if contexts else None
+            
+            chunk_context = self._make_groq_request(prompt, max_tokens=2000)
+            chunk['chunk_context'] = chunk_context if chunk_context else ""
+            
+            logger.debug(f"Generated context for chunk {chunk['chunk_index']}/{chunk['total_chunks']}: {chunk_context[:80]}...")
+        
+        return chunks
 
     def generate_all_chunk_contexts(
         self,
-        all_chunks: List[Dict],
-        document_context: str,
-    ) -> Optional[Dict[int, str]]:
+        chunks: List[Dict[str, Any]],
+        document_context: str
+    ) -> Dict[int, str]:
         """
-        Generate chunk-level contexts for all chunks with rate limiting.
-
+        Generate Tier 3 chunk-level contexts for all chunks in batches.
+        
         Args:
-            all_chunks: List of all chunk dictionaries
-            document_context: Document-level context
-
+            chunks: List of chunk dicts with keys: text, page_num, chunk_index, total_chunks, total_pages
+            document_context: Tier 2 document context
+        
         Returns:
-            Dictionary mapping chunk_index to context
+            Dict mapping chunk index to generated chunk context
         """
-        all_contexts = {}
-
-        for batch_start in range(0, len(all_chunks), config.CONTEXT_BATCH_SIZE):
-            batch_end = min(
-                batch_start + config.CONTEXT_BATCH_SIZE, len(all_chunks)
-            )
-            batch = all_chunks[batch_start:batch_end]
-
-            batch_contexts = self.generate_chunk_contexts_batch(
-                batch, document_context
-            )
-
-            if batch_contexts:
-                all_contexts.update(batch_contexts)
-
-            # Rate limiting between batches
-            if batch_end < len(all_chunks):
-                logger.debug(
-                    f"Rate limiting: sleeping {config.CONTEXT_RATE_LIMIT_DELAY}s before next batch..."
-                )
-                time.sleep(config.CONTEXT_RATE_LIMIT_DELAY)
-
-        logger.info(
-            f"Generated {len(all_contexts)}/{len(all_chunks)} total chunk contexts"
-        )
-        return all_contexts if all_contexts else None
+        logger.info(f"Generating chunk contexts for {len(chunks)} total chunks")
+        
+        chunk_contexts = {}
+        batch_size = 10
+        
+        for batch_start in range(0, len(chunks), batch_size):
+            batch_end = min(batch_start + batch_size, len(chunks))
+            batch = chunks[batch_start:batch_end]
+            
+            logger.info(f"Processing batch {batch_start//batch_size + 1}/{(len(chunks)-1)//batch_size + 1} ({len(batch)} chunks)")
+            
+            # Generate contexts for this batch
+            batch_with_contexts = self.generate_chunk_contexts_batch(batch, document_context)
+            
+            # Extract contexts from batch
+            for i, chunk in enumerate(batch_with_contexts):
+                original_index = batch_start + i
+                chunk_contexts[original_index] = chunk.get('chunk_context', '')
+            
+            # Rate limit between batches
+            if batch_end < len(chunks):
+                import config
+                delay = config.CONTEXT_RATE_LIMIT_DELAY
+                logger.info(f"Rate limiting: waiting {delay}s before next batch")
+                time.sleep(delay)
+        
+        logger.info(f"Generated contexts for {len(chunk_contexts)} chunks")
+        return chunk_contexts
