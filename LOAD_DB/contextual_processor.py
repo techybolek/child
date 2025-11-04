@@ -169,32 +169,48 @@ class ContextualChunkProcessor:
     def generate_chunk_contexts_batch(
         self,
         chunks: List[Dict[str, Any]],
-        document_context: str
-    ) -> List[Dict[str, Any]]:
+        document_context: str,
+        previous_chunk_context: str = None,
+        previous_chunk_text: str = None,
+        use_previous_context: bool = True,
+    ) -> tuple[List[Dict[str, Any]], str, str]:
         """
         Generate Tier 3 chunk-level contexts for a batch of chunks.
         
         Args:
             chunks: List of chunk dicts with keys: chunk_text, page_num, chunk_index, total_chunks, total_pages
             document_context: Tier 2 document context
+            previous_chunk_context: Optional context from previous chunk for continuity
+            previous_chunk_text: Optional text from previous chunk for continuity
+            use_previous_context: Whether to use previous chunk context
         
         Returns:
-            List of chunk dicts with added 'chunk_context' key
+            Tuple of (chunks with contexts, last_chunk_context, last_chunk_text)
         """
-        logger.info(f"Generating chunk contexts for batch of {len(chunks)} chunks")
+        logger.info(f"Generating chunk contexts for batch of {len(chunks)} chunks (use_previous: {use_previous_context})")
+        
+        last_chunk_context = previous_chunk_context
+        last_chunk_text = previous_chunk_text
         
         for chunk in chunks:
+            # Build prompt with optional previous chunk context
             prompt = build_chunk_context_prompt(
                 document_context=document_context,
-                chunk_text=chunk['chunk_text']
+                chunk_text=chunk['chunk_text'],
+                previous_chunk_context=last_chunk_context if use_previous_context else None,
+                previous_chunk_text_snippet=last_chunk_text if use_previous_context else None,
             )
             
             chunk_context = self._make_groq_request(prompt, max_tokens=2000)
             chunk['chunk_context'] = chunk_context if chunk_context else ""
             
             logger.debug(f"Generated context for chunk {chunk['chunk_index']}/{chunk['total_chunks']}: {chunk_context[:80]}...")
+            
+            # Update tracking for next iteration
+            last_chunk_context = chunk_context
+            last_chunk_text = chunk['chunk_text'][-200:] if chunk['chunk_text'] else ""
         
-        return chunks
+        return chunks, last_chunk_context, last_chunk_text
 
     def generate_all_chunk_contexts(
         self,
@@ -211,10 +227,17 @@ class ContextualChunkProcessor:
         Returns:
             Dict mapping chunk index to generated chunk context
         """
+        import config
+        
         logger.info(f"Generating chunk contexts for {len(chunks)} total chunks")
+        logger.info(f"Using previous chunk context: {config.USE_PREVIOUS_CHUNK_CONTEXT}")
         
         chunk_contexts = {}
-        batch_size = 10
+        batch_size = config.CONTEXT_BATCH_SIZE
+        
+        # Track previous chunk for continuity across batches
+        previous_chunk_context = None
+        previous_chunk_text = None
         
         for batch_start in range(0, len(chunks), batch_size):
             batch_end = min(batch_start + batch_size, len(chunks))
@@ -222,17 +245,26 @@ class ContextualChunkProcessor:
             
             logger.info(f"Processing batch {batch_start//batch_size + 1}/{(len(chunks)-1)//batch_size + 1} ({len(batch)} chunks)")
             
-            # Generate contexts for this batch
-            batch_with_contexts = self.generate_chunk_contexts_batch(batch, document_context)
+            # Generate contexts for this batch, passing previous chunk info
+            batch_with_contexts, last_context, last_text = self.generate_chunk_contexts_batch(
+                batch, 
+                document_context,
+                previous_chunk_context=previous_chunk_context,
+                previous_chunk_text=previous_chunk_text,
+                use_previous_context=config.USE_PREVIOUS_CHUNK_CONTEXT,
+            )
             
             # Extract contexts from batch
             for i, chunk in enumerate(batch_with_contexts):
                 original_index = batch_start + i
                 chunk_contexts[original_index] = chunk.get('chunk_context', '')
             
+            # Update previous chunk tracking for next batch
+            previous_chunk_context = last_context
+            previous_chunk_text = last_text
+            
             # Rate limit between batches
             if batch_end < len(chunks):
-                import config
                 delay = config.CONTEXT_RATE_LIMIT_DELAY
                 logger.info(f"Rate limiting: waiting {delay}s before next batch")
                 time.sleep(delay)

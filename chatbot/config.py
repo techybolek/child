@@ -8,7 +8,7 @@ QDRANT_API_KEY = os.getenv('QDRANT_API_KEY')
 
 # Qdrant settings
 #COLLECTION_NAME = 'tro-child-1'
-COLLECTION_NAME = 'tro-child-1-contextual'
+COLLECTION_NAME = 'tro-child-3-contextual'  # Enhanced with improved family size identification prompt
 EMBEDDING_MODEL = 'text-embedding-3-small'
 
 # Retrieval settings

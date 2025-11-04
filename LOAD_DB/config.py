@@ -38,7 +38,8 @@ UPLOAD_BATCH_SIZE = 100        # Vectors to upload per batch
 # ===== CONTEXTUAL RETRIEVAL SETTINGS =====
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 GROQ_MODEL = 'openai/gpt-oss-20b'  # Same model as chatbot RAG
-QDRANT_COLLECTION_NAME_CONTEXTUAL = 'tro-child-1-contextual'
+QDRANT_COLLECTION_NAME_CONTEXTUAL = 'tro-child-3-contextual'  # Enhanced with improved family size identification prompt
 CONTEXT_BATCH_SIZE = 10        # Chunks per context generation batch
 CONTEXT_RATE_LIMIT_DELAY = 2   # Seconds between batches
 ENABLE_CONTEXTUAL_RETRIEVAL = True
+USE_PREVIOUS_CHUNK_CONTEXT = True  # Include previous chunk's context and text when generating chunk context

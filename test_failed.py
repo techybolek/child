@@ -1,9 +1,9 @@
 """
 Auto-generated test for failed evaluation
 
-Source: bcy-26-psoc-chart-twc-qa.md Q3
-Composite Score: 25.0/100 (Failed threshold: 70)
-Generated: 2025-11-03 09:14:09
+Source: bcy-26-income-eligibility-and-maximum-psoc-twc-qa.md Q4
+Composite Score: 14.6/100 (Failed threshold: 70)
+Generated: 2025-11-03 15:24:35
 
 Usage:
     python test_failed.py                          # Use default collection
@@ -20,13 +20,13 @@ def main():
     args = parser.parse_args()
 
     # Expected answer (from Q&A file):
-    # A family of 4 earning $3,159 per month falls into the 35% State Median Income bracket. For one child in care, their monthly PSoC would be $135, which equals approximately $31 per week. This represents 4.26% of their monthly income.
+    # A family of 5 with bi-weekly income must earn no more than $4,106 per pay period to remain eligible for the program in Board Contract Year 2026. This corresponds to an annual income limit of $106,768.
 
     # Initialize handler (bypasses intent detection, goes directly to RAG)
     handler = RAGHandler(collection_name=args.collection)
 
     # Failed question
-    question = 'What is the monthly PSoC for a family of 4 with one child in care earning $3,159 per month?'
+    question = 'If a family of 5 earns income bi-weekly, what is their maximum income to remain eligible for the program?'
 
     # Query chatbot via RAGHandler
     response = handler.handle(question)
@@ -35,7 +35,7 @@ def main():
     print(question)
 
     print("\nEXPECTED ANSWER:")
-    print("""A family of 4 earning $3,159 per month falls into the 35% State Median Income bracket. For one child in care, their monthly PSoC would be $135, which equals approximately $31 per week. This represents 4.26% of their monthly income.""")
+    print("""A family of 5 with bi-weekly income must earn no more than $4,106 per pay period to remain eligible for the program in Board Contract Year 2026. This corresponds to an annual income limit of $106,768.""")
 
     print("\nCHATBOT ANSWER:")
     print(response['answer'])
