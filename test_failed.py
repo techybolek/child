@@ -1,9 +1,9 @@
 """
 Auto-generated test for failed evaluation
 
-Source: bcy-26-income-eligibility-and-maximum-psoc-twc-qa.md Q4
-Composite Score: 14.6/100 (Failed threshold: 70)
-Generated: 2025-11-03 15:24:35
+Source: bcy-26-psoc-chart-twc-qa.md Q2
+Composite Score: 45.8/100 (Failed threshold: 70)
+Generated: 2025-11-03 18:54:37
 
 Usage:
     python test_failed.py                          # Use default collection
@@ -20,13 +20,13 @@ def main():
     args = parser.parse_args()
 
     # Expected answer (from Q&A file):
-    # A family of 5 with bi-weekly income must earn no more than $4,106 per pay period to remain eligible for the program in Board Contract Year 2026. This corresponds to an annual income limit of $106,768.
+    # The PSoC includes an add-on percentage for each additional child beyond the first child. This add-on varies by income level - for example, at 15% SMI, there\'s a 0.225% add-on per additional child, while at 35% SMI it\'s 0.525%. Notably, at 85% SMI (the highest income bracket), there is no additional charge for extra children (0.000% add-on). At higher income levels (75% and 85% SMI), the add-on is significantly lower at 0.072% and 0.000% respectively.
 
     # Initialize handler (bypasses intent detection, goes directly to RAG)
     handler = RAGHandler(collection_name=args.collection)
 
     # Failed question
-    question = 'If a family of 5 earns income bi-weekly, what is their maximum income to remain eligible for the program?'
+    question = 'How does the PSoC change when families have multiple children in care?'
 
     # Query chatbot via RAGHandler
     response = handler.handle(question)
@@ -35,7 +35,7 @@ def main():
     print(question)
 
     print("\nEXPECTED ANSWER:")
-    print("""A family of 5 with bi-weekly income must earn no more than $4,106 per pay period to remain eligible for the program in Board Contract Year 2026. This corresponds to an annual income limit of $106,768.""")
+    print("""The PSoC includes an add-on percentage for each additional child beyond the first child. This add-on varies by income level - for example, at 15% SMI, there\'s a 0.225% add-on per additional child, while at 35% SMI it\'s 0.525%. Notably, at 85% SMI (the highest income bracket), there is no additional charge for extra children (0.000% add-on). At higher income levels (75% and 85% SMI), the add-on is significantly lower at 0.072% and 0.000% respectively.""")
 
     print("\nCHATBOT ANSWER:")
     print(response['answer'])

@@ -12,15 +12,20 @@ def clean_page_numbers(text: str) -> str:
     """
     Remove standalone page numbers and page markers.
 
+    IMPORTANT: Preserves table row labels (numbers followed by table data).
+
     Handles patterns like:
-    - "2" (single digit/number on its own line)
+    - "2" (single digit/number on its own line) - ONLY if not a table row label
     - "Page 2 of 10"
     - "2 of 90"
+
+    Preserves:
+    - Table row labels: "12\n$138,062" (family size indicators)
     """
     lines = text.split('\n')
     cleaned_lines = []
 
-    for line in lines:
+    for i, line in enumerate(lines):
         stripped = line.strip()
 
         # Skip empty lines
@@ -28,8 +33,17 @@ def clean_page_numbers(text: str) -> str:
             cleaned_lines.append(line)
             continue
 
-        # Skip lines that are just page numbers (1-3 digits)
+        # Check if this is a standalone number (potential page number or table row label)
         if re.match(r'^\d{1,3}$', stripped):
+            # Context check: Look at next line to distinguish table labels from page numbers
+            if i + 1 < len(lines):
+                next_line = lines[i + 1].strip()
+                # If next line starts with $, this is a table row label - KEEP IT
+                if next_line.startswith('$') or re.match(r'^\s*\$', next_line):
+                    cleaned_lines.append(line)
+                    continue
+
+            # Otherwise, it's likely a page number - REMOVE IT
             continue
 
         # Skip "Page X of Y" patterns

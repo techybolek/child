@@ -17,7 +17,7 @@
 **A5:** For a family of 8, the maximum parent share of cost is $8,891 annually. This breaks down to $741 monthly, $171 weekly, $370 bi-monthly, or $342 bi-weekly, allowing families to calculate their obligation based on their payment schedule.
 
 ### Q6: What is the source or reference for these income eligibility limits and parent share of cost amounts?
-**A6:** These limits are based on the LIHEAP IM2025-02 Federal Poverty Guidelines and State Median Income Estimates, which are optional for use in federal Fiscal Year 2025 and mandatory for use in FY26.
+**A6:** The source for these limits is not explicitly stated in the BCY 2026 document. The income eligibility limits are documented in TWC's Income Limit Eligibility Code Card (wd-24-23-att1-twc.pdf), and the maximum parent share of cost amounts are specified in this BCY 2026 table (bcy-26-income-eligibility-and-maximum-psoc-twc.pdf).
 
 ### Q7: How do I determine if my weekly income of $2,000 makes me eligible if I have 3 children (family of 4)?
 **A7:** With weekly income of $2,000 and a family size of 4, you would exceed the income eligibility limit. The maximum weekly income for a family of 4 is $1,770, so an income of $2,000 per week would make you ineligible for the program.
