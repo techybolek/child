@@ -16,6 +16,7 @@ class QdrantRetriever:
         print(f"[Retriever] Using Qdrant collection: {self.collection}")
 
     def search(self, query: str, top_k: int = 20):
+        print(f"[Retriever] Using Qdrant collection: {self.collection}")
         """Search Qdrant for relevant chunks"""
         # Embed query
         query_vector = self.embeddings.embed_query(query)

@@ -1,9 +1,9 @@
 """
 Auto-generated test for failed evaluation
 
-Source: bcy-26-psoc-chart-twc-qa.md Q2
+Source: bcy-26-psoc-chart-twc-qa.md Q5
 Composite Score: 45.8/100 (Failed threshold: 70)
-Generated: 2025-11-03 18:54:37
+Generated: 2025-11-04 11:58:34
 
 Usage:
     python test_failed.py                          # Use default collection
@@ -20,13 +20,13 @@ def main():
     args = parser.parse_args()
 
     # Expected answer (from Q&A file):
-    # The PSoC includes an add-on percentage for each additional child beyond the first child. This add-on varies by income level - for example, at 15% SMI, there\'s a 0.225% add-on per additional child, while at 35% SMI it\'s 0.525%. Notably, at 85% SMI (the highest income bracket), there is no additional charge for extra children (0.000% add-on). At higher income levels (75% and 85% SMI), the add-on is significantly lower at 0.072% and 0.000% respectively.
+    # For a family of 5, the monthly income thresholds are: $105 (1% SMI), $1,571 (15% SMI), $2,617 (25% SMI), $3,664 (35% SMI), $4,711 (45% SMI), $5,757 (55% SMI), $6,804 (65% SMI), $7,851 (75% SMI), and $8,897 (85% SMI). These thresholds determine which sliding fee scale bracket the family falls into.
 
     # Initialize handler (bypasses intent detection, goes directly to RAG)
     handler = RAGHandler(collection_name=args.collection)
 
     # Failed question
-    question = 'How does the PSoC change when families have multiple children in care?'
+    question = 'What income levels correspond to each State Median Income (SMI) percentage for a family of 5?'
 
     # Query chatbot via RAGHandler
     response = handler.handle(question)
@@ -35,7 +35,7 @@ def main():
     print(question)
 
     print("\nEXPECTED ANSWER:")
-    print("""The PSoC includes an add-on percentage for each additional child beyond the first child. This add-on varies by income level - for example, at 15% SMI, there\'s a 0.225% add-on per additional child, while at 35% SMI it\'s 0.525%. Notably, at 85% SMI (the highest income bracket), there is no additional charge for extra children (0.000% add-on). At higher income levels (75% and 85% SMI), the add-on is significantly lower at 0.072% and 0.000% respectively.""")
+    print("""For a family of 5, the monthly income thresholds are: $105 (1% SMI), $1,571 (15% SMI), $2,617 (25% SMI), $3,664 (35% SMI), $4,711 (45% SMI), $5,757 (55% SMI), $6,804 (65% SMI), $7,851 (75% SMI), and $8,897 (85% SMI). These thresholds determine which sliding fee scale bracket the family falls into.""")
 
     print("\nCHATBOT ANSWER:")
     print(response['answer'])

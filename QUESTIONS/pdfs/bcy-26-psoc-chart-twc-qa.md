@@ -5,9 +5,6 @@
 ### Q1: What is the Parent Share of Cost (PSoC) and how does it work?
 **A1:** The Parent Share of Cost (PSoC) is a sliding fee scale that determines how much families pay toward their child care costs based on their income level. The PSoC is calculated as a percentage of family income and varies based on the family's State Median Income (SMI) percentage, ranging from 1% to 85% SMI. The percentage families pay increases as their income increases, ranging from 2.00% of income at the lowest level (1% SMI) to 7.00% at the highest level (85% SMI) for one child.
 
-### Q2: How does the PSoC change when families have multiple children in care?
-**A2:** The PSoC includes an add-on percentage for each additional child beyond the first child. This add-on varies by income level - for example, at 15% SMI, there's a 0.225% add-on per additional child, while at 35% SMI it's 0.525%. Notably, at 85% SMI (the highest income bracket), there is no additional charge for extra children (0.000% add-on). At higher income levels (75% and 85% SMI), the add-on is significantly lower at 0.072% and 0.000% respectively.
-
 ### Q3: What is the monthly PSoC for a family of 4 with one child in care earning $3,159 per month?
 **A3:** A family of 4 earning $3,159 per month falls into the 35% State Median Income bracket. For one child in care, their monthly PSoC would be $135, which equals approximately $31 per week. This represents 4.26% of their monthly income.
 

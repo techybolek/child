@@ -308,6 +308,52 @@ Comprehensive LLM-as-a-judge evaluation system implementation covering:
 
 ---
 
+### 14. [evaluation_system.md](evaluation_system.md) 📖
+**Phase:** Quality Assurance & Testing - User Guide
+**Date:** November 4, 2025
+
+**Status:** ✓ Complete - Concise Reference Documentation
+
+Concise user-friendly guide to the evaluation system covering:
+- **Quick Start** - Essential commands for running evaluations
+- **System Overview** - Architecture and pipeline flow
+- **Auto-Generated test_failed.py** - How the debug script works
+- **Input Format** - Q&A markdown file structure and parsing rules
+- **Output Format** - Detailed breakdown of 4 report types (JSONL, JSON, TXT)
+- **Scoring System** - Criteria, weights, composite calculation, thresholds
+- **Command Reference** - All CLI options with examples
+- **Configuration** - Config settings and customization
+- **Typical Workflow** - Step-by-step evaluation process
+- **Key Files** - Module overview
+
+**Read this** for quick reference when using the evaluation system. For implementation details, see evaluation_system_implementation.md.
+
+---
+
+### 15. [loading_pipeline.md](loading_pipeline.md) 📖
+**Phase:** Vector Database - User Guide
+**Date:** November 4, 2025
+
+**Status:** ✓ Complete - Concise Reference Documentation
+
+Concise user-friendly guide to the PDF loading pipeline covering:
+- **Quick Start** - Essential commands for loading PDFs
+- **Architecture Overview** - 7-phase pipeline diagram
+- **Collections** - Standard vs contextual modes
+- **Three-Tier Contextual Embeddings** - Master → Document → Chunk context
+- **Text Cleaning** - Intelligent page number removal preserving table row labels
+- **Surgical Reload** - Reload single PDF in 2 minutes (vs 1 hour full reload)
+- **Pipeline Phases** - Load → Clean → Chunk → Filter → Enhance → Embed → Upload
+- **Configuration** - Collections, embeddings, chunking, contextual settings
+- **Command Reference** - Full loading, surgical reload, verification
+- **Performance Metrics** - Speed, cost, output for each mode
+- **Key Files** - Scripts and prompts overview
+- **Troubleshooting** - Common issues and solutions
+
+**Read this** for quick reference when loading PDFs. For implementation details, see load_pdf_qdrant_implementation.md.
+
+---
+
 ## Quick Reference
 
 ### Project Status
