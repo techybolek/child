@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
 """
-Retrieve all chunks from a specific PDF file in Qdrant.
+Retrieve chunks from a specific PDF file in Qdrant with optional filtering.
 
 Usage:
     python retrieve_chunks_by_filename.py
     # Uses default: bcy-26-income-eligibility-and-maximum-psoc-twc.pdf
 
     python retrieve_chunks_by_filename.py --filename "child-care-services-guide-twc.pdf"
-    # Retrieves chunks from specified file
+    # Retrieves all chunks from specified file
+
+    python retrieve_chunks_by_filename.py --filename "doc.pdf" --chunk 5
+    # Retrieves only chunk #5 from the file (0-indexed)
+
+    python retrieve_chunks_by_filename.py --filename "doc.pdf" --text-length 1000
+    # Show 1000 characters of text per chunk
+
+    python retrieve_chunks_by_filename.py --filename "doc.pdf" --text-length -1
+    # Show full text (no truncation)
 
     python retrieve_chunks_by_filename.py --output chunks.json
     # Saves results to JSON file
@@ -53,21 +62,33 @@ class ChunkRetriever:
         )
         self.collection_name = collection_name
 
-    def retrieve_by_filename(self, filename: str) -> List[dict]:
+    def retrieve_by_filename(self, filename: str, chunk_index: Optional[int] = None) -> List[dict]:
         """
         Retrieve all chunks from a specific PDF file.
 
         Args:
             filename: Name of the PDF file (e.g., "child-care-services-guide-twc.pdf")
+            chunk_index: Optional specific chunk index to retrieve (0-indexed)
 
         Returns:
             List of chunks sorted by chunk_index
         """
-        logger.info(f"Retrieving chunks from '{filename}'...")
+        if chunk_index is not None:
+            logger.info(f"Retrieving chunk {chunk_index} from '{filename}'...")
+        else:
+            logger.info(f"Retrieving chunks from '{filename}'...")
 
         all_chunks = []
         offset = None
         batch_count = 0
+
+        # Build filter conditions (only filename - chunk_index requires server-side index)
+        filter_conditions = [
+            models.FieldCondition(
+                key='filename',
+                match=models.MatchValue(value=filename)
+            )
+        ]
 
         while True:
             batch_count += 1
@@ -77,14 +98,7 @@ class ChunkRetriever:
             try:
                 points, next_offset = self.client.scroll(
                     collection_name=self.collection_name,
-                    scroll_filter=models.Filter(
-                        must=[
-                            models.FieldCondition(
-                                key='filename',
-                                match=models.MatchValue(value=filename)
-                            )
-                        ]
-                    ),
+                    scroll_filter=models.Filter(must=filter_conditions),
                     limit=100,
                     offset=offset,
                     with_payload=True,
@@ -110,10 +124,16 @@ class ChunkRetriever:
         # Sort by chunk_index to restore document order
         all_chunks.sort(key=lambda p: p.payload.get('chunk_index', 0))
 
-        logger.info(f"✓ Retrieved {len(all_chunks)} chunks from '{filename}'")
+        # Filter by chunk_index client-side if specified
+        if chunk_index is not None:
+            all_chunks = [p for p in all_chunks if p.payload.get('chunk_index') == chunk_index]
+            logger.info(f"✓ Retrieved chunk {chunk_index} from '{filename}'")
+        else:
+            logger.info(f"✓ Retrieved {len(all_chunks)} chunks from '{filename}'")
+
         return all_chunks
 
-    def format_chunks_display(self, points: List) -> str:
+    def format_chunks_display(self, points: List, text_length: int = 500) -> str:
         """Format chunks for console display."""
         if not points:
             return "No chunks found."
@@ -128,15 +148,29 @@ class ChunkRetriever:
             chunk_idx = payload.get('chunk_index', 0)
             total = payload.get('total_chunks', 1)
             page = payload.get('page', 'N/A')
-            text_preview = payload.get('text', '')[:150]
+            filename = payload.get('filename', 'Unknown')
+            text = payload.get('text', '')
+            text_preview = text if len(text) <= text_length else text[:text_length] + '...'
 
-            output.append(f"Chunk {chunk_idx + 1}/{total} (Page {page})")
-            output.append(f"  Point ID: {point.id}")
-            output.append(f"  Text: {text_preview}...")
+            output.append(f"Chunk {chunk_idx}/{total} - Page {page}")
+            output.append(f"Filename: {filename}")
+            output.append(f"Point ID: {point.id}")
+            output.append("-" * 80)
+            output.append(f"Text:\n{text_preview}")
+            output.append("-" * 80)
 
-            # Show context info if available
+            # Show context content if available
             if payload.get('has_context'):
-                output.append(f"  [Contextual metadata available]")
+                doc_context = payload.get('document_context')
+                chunk_context = payload.get('chunk_context')
+
+                if doc_context:
+                    output.append(f"Document Context:\n{doc_context}")
+                if chunk_context:
+                    output.append(f"Chunk Context:\n{chunk_context}")
+
+                if doc_context or chunk_context:
+                    output.append("-" * 80)
 
             output.append("")
 
@@ -180,7 +214,7 @@ class ChunkRetriever:
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description='Retrieve all chunks from a specific PDF file in Qdrant'
+        description='Retrieve chunks from a specific PDF file in Qdrant'
     )
     parser.add_argument(
         '--filename',
@@ -189,10 +223,22 @@ def main():
         help='PDF filename to retrieve chunks from (default: bcy-26-income-eligibility-and-maximum-psoc-twc.pdf)'
     )
     parser.add_argument(
+        '--chunk',
+        '-c',
+        type=int,
+        help='Specific chunk index to retrieve (0-indexed, optional)'
+    )
+    parser.add_argument(
         '--collection',
         type=str,
         default=config.QDRANT_COLLECTION_NAME_CONTEXTUAL,
         help=f'Qdrant collection name (default: {config.QDRANT_COLLECTION_NAME_CONTEXTUAL})'
+    )
+    parser.add_argument(
+        '--text-length',
+        type=int,
+        default=500,
+        help='Maximum characters to display for chunk text (default: 500, use -1 for full text)'
     )
     parser.add_argument(
         '--output',
@@ -209,10 +255,11 @@ def main():
 
     try:
         retriever = ChunkRetriever(collection_name=args.collection)
-        chunks = retriever.retrieve_by_filename(args.filename)
+        chunks = retriever.retrieve_by_filename(args.filename, chunk_index=args.chunk)
 
         if not args.quiet:
-            display = retriever.format_chunks_display(chunks)
+            text_length = None if args.text_length == -1 else args.text_length
+            display = retriever.format_chunks_display(chunks, text_length=text_length or 999999)
             print(display)
 
         # Save to JSON if requested

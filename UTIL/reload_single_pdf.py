@@ -161,7 +161,14 @@ class SinglePDFReloader:
                 page.page_content = clean_text(page.page_content)
 
             # Split into chunks
-            chunks = self.text_splitter.split_documents(pages)
+            # Special case: Single-page PDFs are loaded as a single chunk to preserve table structure
+            if len(pages) == 1:
+                chunks = pages  # Don't split, use entire page as one chunk
+                page_chars = len(pages[0].page_content)
+                logger.info(f"Single-page PDF: loading as 1 chunk ({page_chars} characters)")
+            else:
+                chunks = self.text_splitter.split_documents(pages)
+                logger.info(f"Multi-page PDF ({len(pages)} pages): split into {len(chunks)} chunks")
 
             # Filter out TOC chunks
             original_count = len(chunks)

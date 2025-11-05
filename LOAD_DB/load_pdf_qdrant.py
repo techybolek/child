@@ -268,7 +268,15 @@ class PDFToQdrantLoader:
                 })
 
         # Split documents into chunks
-        chunked_docs = self.text_splitter.split_documents(documents)
+        # Special case: Single-page PDFs are loaded as a single chunk to preserve table structure
+        if len(documents) == 1:
+            chunked_docs = documents  # Don't split, use entire page as one chunk
+            page_chars = len(documents[0].page_content)
+            logger.info(f"  Single-page PDF: loading as 1 chunk ({page_chars} characters)")
+        else:
+            chunked_docs = self.text_splitter.split_documents(documents)
+            logger.info(f"  Multi-page PDF ({len(documents)} pages): split into {len(chunked_docs)} chunks")
+
         original_chunk_count = len(chunked_docs)
 
         # Filter out table of contents and structural metadata chunks
