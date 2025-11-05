@@ -1,9 +1,9 @@
 """
 Auto-generated test for failed evaluation
 
-Source: child-care-provider-desk-aid-twc-qa.md Q1
-Composite Score: 8.3/100 (Failed threshold: 70)
-Generated: 2025-11-05 16:38:40
+Source: child-care-provider-desk-aid-twc-qa.md Q3
+Composite Score: 4.2/100 (Failed threshold: 70)
+Generated: 2025-11-05 16:51:39
 
 Usage:
     python test_failed.py                          # Use default collection
@@ -20,13 +20,13 @@ def main():
     args = parser.parse_args()
 
     # Expected answer (from Q&A file):
-    # The Child Care Provider Desk Aid is a guide that helps child care providers learn how to use WorkInTexas.com to post job openings and search for candidates for their child care programs. It provides step-by-step instructions for registering as an employer, creating job postings (called job orders), and searching for potential employees through the WorkInTexas.com platform.
+    # The three representative types are: (1) Direct Representative of your Organization - which includes employees, principals, and owners of the organization that is registering; (2) Third Party Agents (TPA) - companies that represent one or more registered organizations and perform activities on their behalf; and (3) Professional Employer Organization (PEO) - companies that manage payroll for one or more registered organizations and serve as the employer of record for tax and insurance purposes.
 
     # Initialize handler (bypasses intent detection, goes directly to RAG)
     handler = RAGHandler(collection_name=args.collection)
 
     # Failed question
-    question = 'What is the purpose of the Child Care Provider Desk Aid?'
+    question = 'What are the three representative types available when registering on WorkInTexas.com?'
 
     # Query chatbot via RAGHandler
     response = handler.handle(question)
@@ -35,7 +35,9 @@ def main():
     print(question)
 
     print("\nEXPECTED ANSWER:")
-    print("""The Child Care Provider Desk Aid is a guide that helps child care providers learn how to use WorkInTexas.com to post job openings and search for candidates for their child care programs. It provides step-by-step instructions for registering as an employer, creating job postings (called job orders), and searching for potential employees through the WorkInTexas.com platform.""")
+    print("""The three representative types are: (1) Direct Representative of your Organization - which includes employees, principals, and owners of the organization that is registering; (2) Third Party Agents (TPA) - companies that represent one or more registered organizations and perform activities on their behalf; and (3) Professional Employer Organization (PEO) - companies that manage payroll for one or more registered organizations and serve as the employer of record for tax and insurance purposes.
+
+---""")
 
     print("\nCHATBOT ANSWER:")
     print(response['answer'])

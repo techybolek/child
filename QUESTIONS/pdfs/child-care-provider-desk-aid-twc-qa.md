@@ -4,7 +4,7 @@
 
 ---
 
-### Q1: What is the purpose of the Child Care Provider Desk Aid?
+### Q1: What is the purpose of the Child Care Provider Desk Aid for WorkInTexas.com?
 **A1:** The Child Care Provider Desk Aid is a guide that helps child care providers learn how to use WorkInTexas.com to post job openings and search for candidates for their child care programs. It provides step-by-step instructions for registering as an employer, creating job postings (called job orders), and searching for potential employees through the WorkInTexas.com platform.
 
 ---
