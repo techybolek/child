@@ -42,22 +42,12 @@ PREVIOUS CHUNK TEXT (last 200 chars):
 {previous_chunk_text_snippet}
 
 """
-        prompt += """CRITICAL INSTRUCTIONS:
-1. This chunk likely CONTINUES from the previous chunk
-2. Look at the ACTUAL DATA VALUES in this chunk's body (income numbers, amounts, percentages)
-3. IGNORE section headers at the END of the chunk - they mark the NEXT section, not this one
-4. Identify family size, table type, and income ranges from the chunk's PRIMARY CONTENT, not from end-of-chunk markers
-5. Cross-reference with previous context to confirm continuity and correct family size
-
-"""
 
     prompt += f"""Here is the chunk we want to situate within the overall document:
 {chunk_text}
 
 ---
 
-Give a short succinct context to situate this chunk within the overall document for the purposes of improving search retrieval.
-Focus on: table type, family size (if applicable), income ranges covered, and what specific data this chunk contains.
-Answer only with the succinct context and nothing else."""
+Give a short succinct context to situate this chunk within the overall document for the purposes of improving search retrieval. Answer only with the succinct context and nothing else."""
 
     return prompt

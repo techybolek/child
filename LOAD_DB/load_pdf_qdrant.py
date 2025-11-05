@@ -19,6 +19,7 @@ try:
     from langchain.docstore.document import Document
     from qdrant_client import QdrantClient
     from qdrant_client.models import Distance, VectorParams, PointStruct, PayloadSchemaType
+    from docling.document_converter import DocumentConverter
 except ImportError as e:
     raise ImportError(f"Required libraries missing: {e}\nInstall with: pip install -r requirements.txt")
 
@@ -124,7 +125,10 @@ class PDFToQdrantLoader:
             'total_filtered_chunks': 0,
             'start_time': datetime.now(),
             'failed_pdfs': [],
-            'contextual_mode': self.contextual_mode
+            'contextual_mode': self.contextual_mode,
+            'tables_detected': 0,
+            'docling_used': 0,
+            'pymupdf_used': 0
         }
 
         # Track filtered chunks for reporting
@@ -220,9 +224,63 @@ class PDFToQdrantLoader:
 
         return None
 
+    def extract_pdf_with_pymupdf(self, pdf_path: str) -> List[Document]:
+        """
+        Extract PDF content using PyMuPDF (fast, standard text extraction).
+
+        Args:
+            pdf_path: Path to PDF file
+
+        Returns:
+            List of LangChain Document objects (one per page)
+        """
+        loader = PyMuPDFLoader(pdf_path)
+        documents = loader.load()
+        return documents
+
+    def extract_pdf_with_docling(self, pdf_path: str) -> List[Document]:
+        """
+        Extract PDF content using Docling (slow but table-aware).
+
+        Args:
+            pdf_path: Path to PDF file
+
+        Returns:
+            List of LangChain Document objects with markdown content
+        """
+        try:
+            # Convert PDF using Docling
+            converter = DocumentConverter()
+            result = converter.convert(pdf_path)
+
+            # Export entire document to markdown
+            markdown_content = result.document.export_to_markdown()
+
+            if not markdown_content.strip():
+                logger.warning(f"Empty markdown content for {pdf_path}")
+                return []
+
+            # Create a single document with full markdown
+            # The chunker will split it at natural boundaries (\n\n, \n, etc.)
+            doc = Document(
+                page_content=markdown_content,
+                metadata={
+                    'source': pdf_path,
+                    'format': 'markdown',
+                    'extractor': 'docling'
+                }
+            )
+
+            return [doc]
+
+        except Exception as e:
+            logger.error(f"Docling extraction failed for {pdf_path}: {e}")
+            logger.warning(f"Falling back to PyMuPDF for {pdf_path}")
+            return self.extract_pdf_with_pymupdf(pdf_path)
+
     def process_pdf(self, pdf_path: str) -> List[Document]:
         """
-        Process a single PDF: load with LangChain, chunk, and prepare documents.
+        Process a single PDF: check config for table PDFs, route to appropriate extraction method, chunk, and prepare documents.
 
         Args:
             pdf_path: Path to PDF file
@@ -232,10 +290,19 @@ class PDFToQdrantLoader:
         """
         logger.info(f"Processing PDF: {os.path.basename(pdf_path)}")
 
-        # Load PDF using LangChain's PyMuPDFLoader
-        # This automatically extracts text and creates Document objects with page metadata
-        loader = PyMuPDFLoader(pdf_path)
-        documents = loader.load()
+        # Check if PDF is in table whitelist (config.TABLE_PDFS)
+        pdf_filename = os.path.basename(pdf_path)
+        has_table = pdf_filename in config.TABLE_PDFS
+
+        if has_table:
+            logger.info(f"  ✓ PDF in table whitelist, using Docling")
+            self.stats['tables_detected'] += 1
+            self.stats['docling_used'] += 1
+            documents = self.extract_pdf_with_docling(pdf_path)
+        else:
+            logger.info(f"  → Standard PDF, using PyMuPDF")
+            self.stats['pymupdf_used'] += 1
+            documents = self.extract_pdf_with_pymupdf(pdf_path)
 
         if not documents:
             logger.warning(f"No content extracted from {pdf_path}")
@@ -555,6 +622,11 @@ Processing Summary:
   - Total pages extracted: {self.stats['total_pages']}
   - Total chunks created: {self.stats['total_chunks']}
   - Contextual Mode: {self.stats['contextual_mode']}
+
+Table Detection (Two-Tier System):
+  - Tables detected: {self.stats['tables_detected']}
+  - PDFs processed with Docling: {self.stats['docling_used']}
+  - PDFs processed with PyMuPDF: {self.stats['pymupdf_used']}
 
 Collection: {self.collection_name}
   - Qdrant URL: {config.QDRANT_API_URL}

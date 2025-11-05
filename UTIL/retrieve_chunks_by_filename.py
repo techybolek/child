@@ -82,23 +82,16 @@ class ChunkRetriever:
         offset = None
         batch_count = 0
 
-        # Build filter conditions (only filename - chunk_index requires server-side index)
-        filter_conditions = [
-            models.FieldCondition(
-                key='filename',
-                match=models.MatchValue(value=filename)
-            )
-        ]
-
+        # Scroll through all points and filter client-side
+        # Check both 'doc' and 'filename' fields for backward compatibility
         while True:
             batch_count += 1
             logger.debug(f"Fetching batch {batch_count}...")
 
-            # Scroll through filtered points
+            # Scroll through all points (no server-side filter)
             try:
                 points, next_offset = self.client.scroll(
                     collection_name=self.collection_name,
-                    scroll_filter=models.Filter(must=filter_conditions),
                     limit=100,
                     offset=offset,
                     with_payload=True,
@@ -109,17 +102,27 @@ class ChunkRetriever:
                 raise
 
             if not points:
-                logger.warning(f"No chunks found for filename: {filename}")
                 break
 
-            all_chunks.extend(points)
-            logger.debug(f"  Batch {batch_count}: Retrieved {len(points)} points")
+            # Filter client-side for matching filename
+            for point in points:
+                if point.payload:
+                    doc_value = point.payload.get('doc', '')
+                    filename_value = point.payload.get('filename', '')
+                    if doc_value == filename or filename_value == filename:
+                        all_chunks.append(point)
+
+            logger.debug(f"  Batch {batch_count}: Found {len([p for p in points if p.payload and (p.payload.get('doc') == filename or p.payload.get('filename') == filename)])} matching points")
 
             # Check if we've reached the end
             if next_offset is None or len(points) == 0:
                 break
 
             offset = next_offset
+
+        # Check if we found any chunks
+        if not all_chunks:
+            logger.warning(f"No chunks found for filename: {filename}")
 
         # Sort by chunk_index to restore document order
         all_chunks.sort(key=lambda p: p.payload.get('chunk_index', 0))

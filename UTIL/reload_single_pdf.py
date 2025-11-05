@@ -11,9 +11,10 @@ Usage:
 import os
 import sys
 import logging
-from datetime import datetime
-from pathlib import Path
 from typing import List
+
+# Add LOAD_DB to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'LOAD_DB'))
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
@@ -21,6 +22,7 @@ from langchain_community.document_loaders import PyMuPDFLoader
 from langchain.docstore.document import Document
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
+from docling.document_converter import DocumentConverter
 
 import config
 from contextual_processor import ContextualChunkProcessor
@@ -84,6 +86,60 @@ class SinglePDFReloader:
                 model=config.GROQ_MODEL
             )
 
+    def extract_pdf_with_pymupdf(self, pdf_path: str) -> List[Document]:
+        """
+        Extract PDF content using PyMuPDF (fast, standard text extraction).
+
+        Args:
+            pdf_path: Path to PDF file
+
+        Returns:
+            List of LangChain Document objects (one per page)
+        """
+        loader = PyMuPDFLoader(pdf_path)
+        documents = loader.load()
+        return documents
+
+    def extract_pdf_with_docling(self, pdf_path: str) -> List[Document]:
+        """
+        Extract PDF content using Docling (slow but table-aware).
+
+        Args:
+            pdf_path: Path to PDF file
+
+        Returns:
+            List of LangChain Document objects with markdown content
+        """
+        try:
+            # Convert PDF using Docling
+            converter = DocumentConverter()
+            result = converter.convert(pdf_path)
+
+            # Export entire document to markdown
+            markdown_content = result.document.export_to_markdown()
+
+            if not markdown_content.strip():
+                logger.warning(f"Empty markdown content for {pdf_path}")
+                return []
+
+            # Create a single document with full markdown
+            # The chunker will split it at natural boundaries (\n\n, \n, etc.)
+            doc = Document(
+                page_content=markdown_content,
+                metadata={
+                    'source': pdf_path,
+                    'format': 'markdown',
+                    'extractor': 'docling'
+                }
+            )
+
+            return [doc]
+
+        except Exception as e:
+            logger.error(f"Docling extraction failed for {pdf_path}: {e}")
+            logger.warning(f"Falling back to PyMuPDF for {pdf_path}")
+            return self.extract_pdf_with_pymupdf(pdf_path)
+
     def delete_pdf_chunks(self):
         """Delete all chunks for this PDF from Qdrant."""
         logger.info(f"Deleting all chunks for: {self.pdf_filename}")
@@ -112,9 +168,13 @@ class SinglePDFReloader:
                     break
 
                 # Filter points that match our PDF
+                # Check both 'doc' and 'filename' fields for backward compatibility
                 for point in points:
-                    if point.payload and point.payload.get('doc') == self.pdf_filename:
-                        point_ids.append(point.id)
+                    if point.payload:
+                        doc_value = point.payload.get('doc', '')
+                        filename_value = point.payload.get('filename', '')
+                        if doc_value == self.pdf_filename or filename_value == self.pdf_filename:
+                            point_ids.append(point.id)
 
                 if next_offset is None:
                     break
@@ -150,9 +210,15 @@ class SinglePDFReloader:
         try:
             logger.info(f"Processing: {pdf_path}")
 
-            # Load PDF using LangChain's PyMuPDFLoader
-            loader = PyMuPDFLoader(pdf_path)
-            pages = loader.load()
+            # Check if PDF is in table whitelist (config.TABLE_PDFS)
+            has_table = self.pdf_filename in config.TABLE_PDFS
+
+            if has_table:
+                logger.info(f"✓ PDF in table whitelist, using Docling")
+                pages = self.extract_pdf_with_docling(pdf_path)
+            else:
+                logger.info(f"→ Standard PDF, using PyMuPDF")
+                pages = self.extract_pdf_with_pymupdf(pdf_path)
 
             logger.info(f"Loaded {len(pages)} pages")
 
@@ -258,6 +324,7 @@ class SinglePDFReloader:
                 payload = {
                     'text': chunk.page_content,
                     'doc': chunk.metadata.get('source', self.pdf_filename).split('/')[-1],
+                    'filename': self.pdf_filename,
                     'page': chunk.metadata.get('page', 0),
                     'source_url': chunk.metadata.get('source_url', ''),
                 }

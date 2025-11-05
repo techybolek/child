@@ -35,6 +35,15 @@ CHUNK_SEPARATORS = ["\n\n", "\n", ". ", " ", ""]  # Priority order for splitting
 # ===== BATCH PROCESSING =====
 UPLOAD_BATCH_SIZE = 100        # Vectors to upload per batch
 
+# ===== TABLE EXTRACTION SETTINGS =====
+# PDFs that contain tables and should be processed with Docling
+# Docling provides better table extraction (markdown format) but is slower (~40s per PDF)
+# PDFs not in this list will use PyMuPDF (fast, ~1s per PDF)
+TABLE_PDFS = [
+    'bcy-26-income-eligibility-and-maximum-psoc-twc.pdf',
+    'bcy-26-psoc-chart-twc.pdf',
+]
+
 # ===== CONTEXTUAL RETRIEVAL SETTINGS =====
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 GROQ_MODEL = 'openai/gpt-oss-20b'  # Same model as chatbot RAG
