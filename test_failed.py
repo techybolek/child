@@ -1,9 +1,9 @@
 """
 Auto-generated test for failed evaluation
 
-Source: bcy-26-psoc-chart-twc-qa.md Q8
-Composite Score: 66.7/100 (Failed threshold: 70)
-Generated: 2025-11-05 12:54:33
+Source: child-care-provider-desk-aid-twc-qa.md Q1
+Composite Score: 8.3/100 (Failed threshold: 70)
+Generated: 2025-11-05 16:38:40
 
 Usage:
     python test_failed.py                          # Use default collection
@@ -20,13 +20,13 @@ def main():
     args = parser.parse_args()
 
     # Expected answer (from Q&A file):
-    # The document recommends using the PSoC Calculator to determine the exact PSoC amount based on your family\'s specific situation. The calculator takes into account three key factors: family size, monthly income, and the number of children in care, providing precise monthly and weekly PSoC amounts.
+    # The Child Care Provider Desk Aid is a guide that helps child care providers learn how to use WorkInTexas.com to post job openings and search for candidates for their child care programs. It provides step-by-step instructions for registering as an employer, creating job postings (called job orders), and searching for potential employees through the WorkInTexas.com platform.
 
     # Initialize handler (bypasses intent detection, goes directly to RAG)
     handler = RAGHandler(collection_name=args.collection)
 
     # Failed question
-    question = 'What tool is recommended for calculating the exact PSoC amount for a family?'
+    question = 'What is the purpose of the Child Care Provider Desk Aid?'
 
     # Query chatbot via RAGHandler
     response = handler.handle(question)
@@ -35,7 +35,7 @@ def main():
     print(question)
 
     print("\nEXPECTED ANSWER:")
-    print("""The document recommends using the PSoC Calculator to determine the exact PSoC amount based on your family\'s specific situation. The calculator takes into account three key factors: family size, monthly income, and the number of children in care, providing precise monthly and weekly PSoC amounts.""")
+    print("""The Child Care Provider Desk Aid is a guide that helps child care providers learn how to use WorkInTexas.com to post job openings and search for candidates for their child care programs. It provides step-by-step instructions for registering as an employer, creating job postings (called job orders), and searching for potential employees through the WorkInTexas.com platform.""")
 
     print("\nCHATBOT ANSWER:")
     print(response['answer'])

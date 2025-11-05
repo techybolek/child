@@ -14,8 +14,11 @@
 ### Q5: What income levels correspond to each State Median Income (SMI) percentage for a family of 5?
 **A5:** For a family of 5, the monthly income thresholds are: $105 (1% SMI), $1,571 (15% SMI), $2,617 (25% SMI), $3,664 (35% SMI), $4,711 (45% SMI), $5,757 (55% SMI), $6,804 (65% SMI), $7,851 (75% SMI), and $8,897 (85% SMI). These thresholds determine which sliding fee scale bracket the family falls into.
 
-### Q6: What is the maximum weekly PSoC a family of 5 with four children would pay?
-**A6:** The maximum weekly PSoC for a family of 5 with four children is $142, which occurs at the 85% SMI income level ($8,897 monthly income). The corresponding monthly PSoC is $623. Interestingly, this amount is the same whether they have 2, 3, or 4 children in care at this income level.
+### Q6a: What weekly PSoC would a family of 5 with four children pay at the highest income bracket (85% SMI)?
+**A6a:** A family of 5 with four children at 85% SMI ($8,897 monthly income) would pay $142 weekly ($623 monthly). This amount is the same whether they have 2, 3, or 4 children in care at this income level.
+
+### Q6b: What is the absolute maximum weekly PSoC cap for a family of 5, regardless of income?
+**A6b:** The absolute maximum weekly PSoC cap for a family of 5 is $144. This cap applies regardless of income level or number of children in care.
 
 ### Q7: How does the PSoC percentage for one child change across different income brackets?
 **A7:** The PSoC percentage for one child increases progressively across income brackets: 2.00% at 1% SMI, 2.93% at 15% SMI, 3.60% at 25% SMI, 4.26% at 35% SMI, 4.93% at 45% SMI, 5.60% at 55% SMI, 6.26% at 65% SMI, 6.93% at 75% SMI, and 7.00% at 85% SMI. The rate increases more gradually at higher income levels.
