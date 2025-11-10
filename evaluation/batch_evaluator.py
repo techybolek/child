@@ -8,9 +8,13 @@ from . import config
 
 
 class BatchEvaluator:
-    def __init__(self, collection_name=None):
-        self.evaluator = ChatbotEvaluator(collection_name=collection_name)
+    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, retrieval_top_k=None):
+        self.evaluator = ChatbotEvaluator(collection_name=collection_name, retrieval_top_k=retrieval_top_k)
         self.judge = LLMJudge()
+        self.resume = resume
+        self.resume_limit = resume_limit
+        self.debug = debug
+        self.retrieval_top_k = retrieval_top_k
 
     def evaluate_all(self, limit: int = None):
         """Evaluate all Q&A pairs"""
@@ -41,6 +45,39 @@ class BatchEvaluator:
             'total_response_time': 0
         }
 
+        # Track if this is a partial resume (for checkpoint cleanup decision)
+        partial_resume = False
+
+        # Check for existing checkpoint
+        checkpoint_file = Path(config.RESULTS_DIR) / "checkpoint.json"
+        if checkpoint_file.exists():
+            if self.resume:
+                print(f"\n📂 Loading checkpoint from {checkpoint_file}...")
+                checkpoint_data = self._load_checkpoint(checkpoint_file)
+                results = checkpoint_data['results']
+                stats = checkpoint_data['stats']
+
+                # Build set of processed questions to skip
+                processed = {(r['source_file'], r['question_num']) for r in results}
+                qa_pairs = [qa for qa in qa_pairs if (qa['source_file'], qa['question_num']) not in processed]
+
+                total_remaining = len(qa_pairs)
+
+                # Apply resume-limit if specified
+                if self.resume_limit is not None:
+                    qa_pairs = qa_pairs[:self.resume_limit]
+                    partial_resume = (len(qa_pairs) < total_remaining)
+                    print(f"✓ Resuming from checkpoint: {len(results)} already processed")
+                    print(f"  Processing {len(qa_pairs)} of {total_remaining} remaining (--resume-limit {self.resume_limit})")
+                else:
+                    print(f"✓ Resuming from checkpoint: {len(results)} already processed, {len(qa_pairs)} remaining")
+
+                stats['total'] = len(results) + len(qa_pairs)
+            else:
+                print(f"\n⚠️  Checkpoint file exists: {checkpoint_file}")
+                print("Use --resume flag to resume from checkpoint, or delete the file to start fresh")
+                raise SystemExit("Checkpoint exists. Use --resume to continue or delete checkpoint file.")
+
         print(f"\nStarting evaluation...")
         print("=" * 80)
 
@@ -51,8 +88,12 @@ class BatchEvaluator:
             try:
                 # Query chatbot
                 print("  → Querying chatbot...")
-                chatbot_response = self.evaluator.query(qa['question'])
+                chatbot_response = self.evaluator.query(qa['question'], debug=self.debug)
                 print(f"  ✓ Response received ({chatbot_response['response_time']:.2f}s)")
+
+                # Print debug info if enabled
+                if self.debug and 'debug_info' in chatbot_response:
+                    self._print_debug_info(chatbot_response['debug_info'])
             except Exception as e:
                 print(f"\n❌ ERROR: Failed to query chatbot")
                 print(f"Question: {qa['question']}")
@@ -76,11 +117,21 @@ class BatchEvaluator:
                 print(f"Chatbot answer: {chatbot_response['answer'][:200]}...")
                 print(f"Error type: {type(e).__name__}")
                 print(f"Error message: {str(e)}")
-                raise
+
+                # Create fallback score to trigger graceful exit with test_failed.py generation
+                scores = {
+                    'accuracy': 0,
+                    'completeness': 0,
+                    'citation_quality': 0,
+                    'coherence': 0,
+                    'composite_score': 0,
+                    'reasoning': f"Judge evaluation failed: {type(e).__name__}: {str(e)}"
+                }
+                # Fall through to _print_failure_and_stop below
 
             # Check if score is below threshold - stop immediately if so
             if scores['composite_score'] < config.STOP_ON_FAIL_THRESHOLD:
-                self._print_failure_and_stop(qa, chatbot_response, scores)
+                self._print_failure_and_stop(qa, chatbot_response, scores, results, stats)
 
             # Store result
             result = {
@@ -107,6 +158,18 @@ class BatchEvaluator:
         print("\n" + "=" * 80)
         print(f"Evaluation complete! Processed {stats['processed']}/{stats['total']} pairs")
 
+        # Clean up checkpoint on successful completion (unless partial resume)
+        checkpoint_file = Path(config.RESULTS_DIR) / "checkpoint.json"
+        if checkpoint_file.exists():
+            if partial_resume:
+                # Save updated checkpoint for next resume
+                self._save_checkpoint(results, stats)
+                print(f"✓ Checkpoint updated (partial resume - use --resume to continue)")
+            else:
+                # Full completion - delete checkpoint
+                checkpoint_file.unlink()
+                print(f"✓ Checkpoint deleted: {checkpoint_file}")
+
         return {
             'results': results,
             'stats': stats,
@@ -115,12 +178,22 @@ class BatchEvaluator:
 
     def _save_checkpoint(self, results: list, stats: dict):
         """Save checkpoint"""
-        checkpoint_file = Path(config.RESULTS_DIR) / f"checkpoint_{stats['processed']}.json"
+        checkpoint_file = Path(config.RESULTS_DIR) / "checkpoint.json"
+        checkpoint_data = {
+            'results': results,
+            'stats': stats,
+            'timestamp': datetime.now().isoformat()
+        }
         with open(checkpoint_file, 'w') as f:
-            json.dump({'results': results, 'stats': stats}, f, indent=2)
+            json.dump(checkpoint_data, f, indent=2)
         print(f"\n  💾 Checkpoint saved: {checkpoint_file}")
 
-    def _print_failure_and_stop(self, qa: dict, chatbot_response: dict, scores: dict):
+    def _load_checkpoint(self, checkpoint_file: Path) -> dict:
+        """Load checkpoint from file"""
+        with open(checkpoint_file, 'r') as f:
+            return json.load(f)
+
+    def _print_failure_and_stop(self, qa: dict, chatbot_response: dict, scores: dict, results: list, stats: dict):
         """Print detailed failure information and stop evaluation"""
         print("\n" + "=" * 80)
         print("⚠️  LOW SCORE DETECTED - STOPPING EVALUATION")
@@ -156,76 +229,52 @@ class BatchEvaluator:
 
         print("=" * 80)
 
-        self._generate_test_file(qa, chatbot_response, scores)
+        # Save checkpoint before stopping (failed question NOT included - will be re-evaluated on resume)
+        self._save_checkpoint(results, stats)
+
+        print("\n📌 HOW TO RESUME:")
+        print(f"   Checkpoint saved with progress up to (but not including) this failed question.")
+        print(f"   The failed question will be re-evaluated when you resume.\n")
+        print(f"   To re-evaluate just this question:")
+        print(f"     python -m evaluation.run_evaluation --resume --resume-limit 1\n")
+        print(f"   To continue from this question onwards:")
+        print(f"     python -m evaluation.run_evaluation --resume\n")
 
         raise SystemExit(f"Evaluation stopped due to low score ({scores['composite_score']:.1f} < {config.STOP_ON_FAIL_THRESHOLD})")
 
-    def _generate_test_file(self, qa: dict, chatbot_response: dict, scores: dict):
-        """Generate test_failed.py for the failed question"""
-        # Escape single quotes in strings for the generated code
-        question = qa['question'].replace("'", "\\'")
-        expected_answer = qa['expected_answer'].replace("'", "\\'")
-        source_file = qa['source_file'].replace("'", "\\'")
+    def _print_debug_info(self, debug_info: dict):
+        """Print detailed debug information about retrieval and reranking"""
+        print("\n" + "=" * 80)
+        print("🔍 DEBUG INFO")
+        print("=" * 80)
 
-        # Generate test file content
-        test_content = f'''"""
-Auto-generated test for failed evaluation
+        # Initial retrieval
+        if 'retrieved_chunks' in debug_info:
+            chunks = debug_info['retrieved_chunks']
+            print(f"\n📥 INITIAL RETRIEVAL (top-{len(chunks)}):")
+            for i, chunk in enumerate(chunks):
+                doc = chunk.get('doc', 'unknown')
+                page = chunk.get('page', '?')
+                score = chunk.get('score', 0)
+                text = chunk.get('text', '')[:150]
+                print(f"  [{i}] {doc}, Page {page} (score: {score:.3f})")
+                print(f"      {text}...")
 
-Source: {source_file} Q{qa['question_num']}
-Composite Score: {scores['composite_score']:.1f}/100 (Failed threshold: {config.STOP_ON_FAIL_THRESHOLD})
-Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+        # Reranker scores
+        if 'reranker_scores' in debug_info:
+            scores = debug_info['reranker_scores']
+            print(f"\n🎯 RERANKER SCORES:")
+            print(f"  {scores}")
 
-Usage:
-    python test_failed.py                          # Use default collection
-    python test_failed.py --collection tro-child-1  # Use specific collection
-"""
+        # Final chunks
+        if 'final_chunks' in debug_info:
+            chunks = debug_info['final_chunks']
+            print(f"\n✅ FINAL CHUNKS (top-{len(chunks)} after reranking):")
+            for i, chunk in enumerate(chunks):
+                doc = chunk.get('doc', 'unknown')
+                page = chunk.get('page', '?')
+                text = chunk.get('text', '')[:150]
+                print(f"  [{i}] {doc}, Page {page}")
+                print(f"      {text}...")
 
-import argparse
-from chatbot.handlers.rag_handler import RAGHandler
-
-
-def main():
-    parser = argparse.ArgumentParser(description='Test failed evaluation question')
-    parser.add_argument('--collection', type=str, help='Qdrant collection name')
-    args = parser.parse_args()
-
-    # Expected answer (from Q&A file):
-    # {expected_answer}
-
-    # Initialize handler (bypasses intent detection, goes directly to RAG)
-    handler = RAGHandler(collection_name=args.collection)
-
-    # Failed question
-    question = '{question}'
-
-    # Query chatbot via RAGHandler
-    response = handler.handle(question)
-
-    print("QUESTION:")
-    print(question)
-
-    print("\\nEXPECTED ANSWER:")
-    print("""{expected_answer}""")
-
-    print("\\nCHATBOT ANSWER:")
-    print(response['answer'])
-
-    print("\\nSOURCES:")
-    if response['sources']:
-        for source in response['sources']:
-            print(f"- {{source['doc']}}, Page {{source['page']}}")
-    else:
-        print("No sources cited")
-
-
-if __name__ == '__main__':
-    main()
-'''
-
-        # Write to test_failed.py in project root
-        test_file = Path('.') / 'test_failed.py'
-        with open(test_file, 'w') as f:
-            f.write(test_content)
-
-        print(f"\n✨ Generated test_failed.py for quick debugging")
-        print(f"   Run with: python test_failed.py")
+        print("=" * 80)

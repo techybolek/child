@@ -285,7 +285,7 @@ Files created for comparison:
    - Check: All marked with `has_context: True`
 
 3. **Test on failing case** (when ready)
-   - Run: `python test_failed.py` with contextual collection
+   - Run: `python -m evaluation.run_evaluation --resume --resume-limit 1 --collection tro-child-3-contextual`
    - Verify answer includes "$4,106 bi-weekly" (correct answer)
    - Check source ranking (should be top-20)
 

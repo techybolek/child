@@ -3,13 +3,15 @@
 LLM-as-a-Judge Evaluation System for Texas Childcare Chatbot
 
 Usage:
-    python run_evaluation.py                    # Evaluate all Q&A pairs
-    python run_evaluation.py --test --limit 5   # Test with 5 questions
-    python run_evaluation.py --file <filename>  # Evaluate specific file
+    python -m evaluation.run_evaluation                         # Evaluate all Q&A pairs
+    python -m evaluation.run_evaluation --test --limit 5        # Test with 5 questions
+    python -m evaluation.run_evaluation --file <filename>       # Evaluate specific file
+    python -m evaluation.run_evaluation --resume                # Resume from checkpoint
+    python -m evaluation.run_evaluation --resume --resume-limit 1   # Resume and test first question only
 """
 import argparse
-from evaluation.batch_evaluator import BatchEvaluator
-from evaluation.reporter import Reporter
+from .batch_evaluator import BatchEvaluator
+from .reporter import Reporter
 
 
 def main():
@@ -18,6 +20,10 @@ def main():
     parser.add_argument('--limit', type=int, help='Limit number of questions to evaluate')
     parser.add_argument('--file', type=str, help='Evaluate specific Q&A file')
     parser.add_argument('--collection', type=str, help='Qdrant collection name')
+    parser.add_argument('--resume', action='store_true', help='Resume from checkpoint')
+    parser.add_argument('--resume-limit', type=int, help='After resuming, process only first N remaining questions')
+    parser.add_argument('--debug', action='store_true', help='Enable debug mode (show retrieval and reranking details)')
+    parser.add_argument('--retrieval-top-k', type=int, help='Override number of chunks to retrieve (default: from config)')
     args = parser.parse_args()
 
     print("=" * 80)
@@ -30,7 +36,13 @@ def main():
         print(f"\nUsing Qdrant collection: {config.COLLECTION_NAME} (default)")
 
     # Initialize
-    evaluator = BatchEvaluator(collection_name=args.collection)
+    evaluator = BatchEvaluator(
+        collection_name=args.collection,
+        resume=args.resume,
+        resume_limit=args.resume_limit,
+        debug=args.debug,
+        retrieval_top_k=args.retrieval_top_k
+    )
     reporter = Reporter()
 
     # Run evaluation

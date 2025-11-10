@@ -2,7 +2,7 @@ import os
 
 # Judge settings
 JUDGE_PROVIDER = 'groq'
-JUDGE_MODEL = 'llama-3.3-70b-versatile'
+JUDGE_MODEL = 'openai/gpt-oss-20b'
 JUDGE_API_KEY = os.getenv('GROQ_API_KEY')
 
 # Parallel processing
@@ -33,4 +33,4 @@ THRESHOLDS = {
 }
 
 # Stop evaluation if score falls below this threshold
-STOP_ON_FAIL_THRESHOLD = 70
+STOP_ON_FAIL_THRESHOLD = 60

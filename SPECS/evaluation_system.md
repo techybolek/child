@@ -6,19 +6,25 @@ LLM-as-a-Judge evaluation framework for the Texas Childcare Chatbot. Automatical
 
 ```bash
 # Run full evaluation on all Q&A files
-python run_evaluation.py
+python -m evaluation.run_evaluation
 
 # Test mode - evaluate first 5 questions
-python run_evaluation.py --test --limit 5
+python -m evaluation.run_evaluation --test --limit 5
 
 # Evaluate specific Q&A file
-python run_evaluation.py --file bcy-26-psoc-chart-twc-qa.md
+python -m evaluation.run_evaluation --file bcy-26-psoc-chart-twc-qa.md
 
 # Use specific Qdrant collection
-python run_evaluation.py --collection tro-child-3-contextual
+python -m evaluation.run_evaluation --collection tro-child-3-contextual
+
+# Resume from checkpoint
+python -m evaluation.run_evaluation --resume
+
+# Resume and test first question only
+python -m evaluation.run_evaluation --resume --resume-limit 1
 
 # Debug failed question (after stop-on-fail)
-python test_failed.py
+python -m evaluation.run_evaluation --resume --resume-limit 1 --debug
 ```
 
 ## System Overview
@@ -26,7 +32,7 @@ python test_failed.py
 ### Architecture
 
 ```
-run_evaluation.py (entry point)
+evaluation/run_evaluation.py (entry point)
     ↓
 BatchEvaluator (evaluation/batch_evaluator.py)
     ↓
@@ -48,54 +54,57 @@ BatchEvaluator (evaluation/batch_evaluator.py)
 When a question scores < 70:
 - ❌ Evaluation stops immediately
 - 📊 Detailed failure report printed to console
-- 🧪 `test_failed.py` auto-generated in project root
-- 💾 No checkpoint saved
+- 💾 Checkpoint saved (up to but NOT including the failed question)
+- 📌 Resume instructions displayed
 
 **Philosophy**: Fix failures incrementally rather than batch-processing multiple failures.
 
-## Auto-Generated test_failed.py
+## Resume After Failure
 
-### When Generated
+### How Checkpoint System Works
 
-`test_failed.py` is auto-generated when evaluation stops due to a score below threshold (default: 70).
+When evaluation stops on failure:
+1. **Checkpoint Saved**: Progress saved up to (but not including) the failed question
+2. **Failed Question Excluded**: The failed question will be re-evaluated on resume
+3. **Resume Available**: Use `--resume` flag to continue from where you left off
 
-### Contents
-
-The file contains:
-- Auto-generated docstring with source, score, timestamp
-- Imports for RAGHandler
-- Expected answer (from Q&A file) as comment
-- Failed question as variable
-- Code to query RAGHandler directly
-- Formatted output comparing expected vs chatbot answer
-
-### Usage
+### Resume Commands
 
 ```bash
-# Run with default collection
-python test_failed.py
+# Re-evaluate just the failed question
+python -m evaluation.run_evaluation --resume --resume-limit 1
 
-# Run with specific collection
-python test_failed.py --collection tro-child-3-contextual
+# Continue from the failed question onwards
+python -m evaluation.run_evaluation --resume
+
+# Resume with debug output for the failed question
+python -m evaluation.run_evaluation --resume --resume-limit 1 --debug
+
+# Resume with different collection to test changes
+python -m evaluation.run_evaluation --resume --collection tro-child-3-contextual
 ```
 
-**Key benefit**: Bypasses full evaluation pipeline for quick iteration on fixing specific failures.
+### Typical Fix-and-Resume Workflow
 
-### Example Output
+1. **Evaluation stops** on failed question (e.g., Q15)
+2. **Checkpoint saved** with Q1-Q14 complete
+3. **Investigate failure**:
+   - Review detailed failure output in console
+   - Check sources, scores, and judge reasoning
+   - Identify root cause (poor retrieval, missing context, etc.)
+4. **Fix the issue**:
+   - Update chunking, embeddings, or prompts
+   - Reload PDFs to vector database if needed
+5. **Re-evaluate**:
+   - `--resume --resume-limit 1` to test just Q15
+   - `--resume` to continue full evaluation from Q15
 
-```
-QUESTION:
-What income levels correspond to each SMI percentage for a family of 5?
+### Benefits
 
-EXPECTED ANSWER:
-For a family of 5, the monthly income thresholds are: $105 (1% SMI)...
-
-CHATBOT ANSWER:
-[Current chatbot response]
-
-SOURCES:
-- bcy-26-income-eligibility-and-maximum-psoc-twc.pdf, Page 0
-```
+- **No manual tracking**: Checkpoint automatically knows which question failed
+- **Surgical re-evaluation**: `--resume-limit 1` tests only the fixed question
+- **Integrated workflow**: Same evaluation pipeline for all questions
+- **Consistent interface**: No separate debug scripts to maintain
 
 ## Input Format: Q&A Markdown Files
 
@@ -244,37 +253,40 @@ Result: 0-100 scale
 
 ```bash
 # Evaluate all Q&A pairs
-python run_evaluation.py
+python -m evaluation.run_evaluation
 
 # Limit to first N questions
-python run_evaluation.py --limit 10
+python -m evaluation.run_evaluation --limit 10
 
 # Test mode (quick check)
-python run_evaluation.py --test --limit 5
+python -m evaluation.run_evaluation --test --limit 5
 ```
 
 ### Single File Evaluation
 
 ```bash
 # Evaluate specific Q&A file
-python run_evaluation.py --file bcy-26-psoc-chart-twc-qa.md
+python -m evaluation.run_evaluation --file bcy-26-psoc-chart-twc-qa.md
 ```
 
 ### Collection Override
 
 ```bash
 # Use non-default Qdrant collection
-python run_evaluation.py --collection tro-child-3-contextual
+python -m evaluation.run_evaluation --collection tro-child-3-contextual
 ```
 
-### Debug Failed Question
+### Resume After Failure
 
 ```bash
-# Run auto-generated test
-python test_failed.py
+# Resume from checkpoint (re-evaluate failed question)
+python -m evaluation.run_evaluation --resume
 
-# With specific collection
-python test_failed.py --collection tro-child-1
+# Resume and re-evaluate just the failed question
+python -m evaluation.run_evaluation --resume --resume-limit 1
+
+# Resume with debug output
+python -m evaluation.run_evaluation --resume --resume-limit 1 --debug
 ```
 
 ## Configuration
@@ -326,18 +338,17 @@ STOP_ON_FAIL_THRESHOLD = 70          # Stop evaluation if score < 70
 ## Typical Workflow
 
 1. **Create Q&A file**: Add questions to `QUESTIONS/pdfs/your-file-qa.md`
-2. **Run test evaluation**: `python run_evaluation.py --test --limit 5`
-3. **Fix failures**: Use `test_failed.py` for quick iteration
-4. **Run full evaluation**: `python run_evaluation.py`
+2. **Run test evaluation**: `python -m evaluation.run_evaluation --test --limit 5`
+3. **Fix failures**: Use `--resume --resume-limit 1` to re-evaluate failed questions
+4. **Run full evaluation**: `python -m evaluation.run_evaluation` (or `--resume` to continue)
 5. **Review reports**: Check `results/` directory
 
 ## Key Files
 
-- `run_evaluation.py` - Main entry point
+- `evaluation/run_evaluation.py` - Main entry point
 - `evaluation/batch_evaluator.py` - Core evaluation logic
 - `evaluation/evaluator.py` - Chatbot query wrapper
 - `evaluation/judge.py` - LLM-based scoring
 - `evaluation/reporter.py` - Report generation
 - `evaluation/qa_parser.py` - Q&A file parsing
 - `evaluation/config.py` - Configuration
-- `test_failed.py` - Auto-generated debug script (appears after stop-on-fail)

@@ -1,36 +1,31 @@
 import json
+import re
 from groq import Groq
 from . import config
 
-JUDGE_PROMPT = """You are evaluating a chatbot's response to a question about Texas child care services.
-
-Compare the chatbot's answer to the expected answer and score it on these criteria:
-
-1. **Factual Accuracy (0-5)**: Does the chatbot answer contain the same facts as the expected answer?
-2. **Completeness (0-5)**: Are all key points from the expected answer covered?
-3. **Citation Quality (0-5)**: Are the sources provided relevant to the question?
-4. **Coherence (0-3)**: Is the answer well-structured and clear?
-
-IMPORTANT:
-- Do NOT penalize for different formatting or wording
-- Do NOT penalize for extra helpful context not in expected answer
-- Focus on factual correctness and completeness
+JUDGE_PROMPT = """Evaluate this chatbot answer. Return ONLY one JSON object, nothing else.
 
 Question: {question}
 
-Expected Answer: {expected_answer}
+Expected: {expected_answer}
 
-Chatbot Answer: {chatbot_answer}
+Chatbot: {chatbot_answer}
 
-Sources Cited: {sources}
+Sources: {sources}
 
-Return your evaluation as JSON with this exact format:
+Score (0-5 for accuracy/completeness/citations, 0-3 for coherence):
+- Factual Accuracy: same facts as expected?
+- Completeness: all key points covered?
+- Citation Quality: sources relevant?
+- Coherence: clear and structured?
+
+Return ONLY this JSON (no repetition, no extra text):
 {{
     "accuracy": <0-5>,
     "completeness": <0-5>,
     "citation_quality": <0-5>,
     "coherence": <0-3>,
-    "reasoning": "<brief explanation>"
+    "reasoning": "<one sentence>"
 }}
 """
 
@@ -54,15 +49,39 @@ class LLMJudge:
             sources=sources_str
         )
 
-        # Call LLM
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.1
-        )
+        # Call LLM with sufficient tokens to prevent truncation
+        print("  [Judge] Calling LLM judge API...")
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1,
+                max_tokens=1500,  # Increased from 500 to prevent truncation artifacts
+                timeout=30  # 30 second timeout
+            )
+            print(f"  [Judge] Response received ({len(response.choices[0].message.content)} chars)")
+        except Exception as e:
+            print(f"  [Judge] API call failed: {type(e).__name__}: {str(e)}")
+            raise
 
         # Parse JSON response
         content = response.choices[0].message.content
+
+        # Clean up chat template tokens
+        content = content.replace('<|start_header_id|>', '').replace('<|end_header_id|>', '')
+        content = content.replace('assistant', '')
+
+        # Remove repetitive patterns (handles "sources sources" and "word-word word-word")
+        content = re.sub(r'(\b\w+[-\w]*\b)(\s+\1){2,}', r'\1', content)
+
+        # Remove lines that are purely repetitive
+        lines = content.split('\n')
+        cleaned_lines = []
+        for line in lines:
+            words = line.split()
+            if len(words) > 0 and len(set(words)) / len(words) > 0.3:  # Keep if >30% unique words
+                cleaned_lines.append(line)
+        content = '\n'.join(cleaned_lines)
 
         # Extract JSON from response (handle markdown code blocks)
         if '```json' in content:
@@ -72,7 +91,46 @@ class LLMJudge:
         else:
             json_str = content.strip()
 
-        scores = json.loads(json_str)
+        # Extract ONLY the first complete JSON object
+        # Find the first '{' and then find its matching '}'
+        start_idx = json_str.find('{')
+        if start_idx == -1:
+            raise ValueError("No JSON object found in response")
+
+        # Count braces to find the matching closing brace
+        brace_count = 0
+        end_idx = -1
+        for i in range(start_idx, len(json_str)):
+            if json_str[i] == '{':
+                brace_count += 1
+            elif json_str[i] == '}':
+                brace_count -= 1
+                if brace_count == 0:
+                    end_idx = i
+                    break
+
+        if end_idx == -1:
+            # Fallback: use rfind
+            end_idx = json_str.rfind('}')
+
+        if end_idx > start_idx:
+            json_str = json_str[start_idx:end_idx + 1]
+
+        # Clean control characters that break JSON parsing
+        # Replace newlines, tabs, etc. inside JSON strings with spaces
+        json_str = json_str.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+        # Normalize multiple spaces
+        json_str = re.sub(r'\s+', ' ', json_str)
+
+        # Parse JSON
+        try:
+            scores = json.loads(json_str)
+        except json.JSONDecodeError:
+            # If parsing fails, print debug info and re-raise
+            print(f"\n[ERROR] Failed to parse JSON from LLM judge")
+            print(f"Content length: {len(content)} chars")
+            print(f"Extracted JSON:\n{json_str}\n")
+            raise
 
         # Calculate composite score
         composite = (

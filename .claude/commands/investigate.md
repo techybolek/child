@@ -1,5 +1,5 @@
 # Investigate Failed Answer
-> Execute the test to investigate the question that failed the evaluation
+> Execute the evaluation to investigate the question that may be failing
 
 ## Run
-source .venv/bin/activate && python test_failed.py
+source .venv/bin/activate && python -m evaluation.run_evaluation --resume --resume-limit 1 --debug

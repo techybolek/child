@@ -317,7 +317,7 @@ Comprehensive LLM-as-a-judge evaluation system implementation covering:
 Concise user-friendly guide to the evaluation system covering:
 - **Quick Start** - Essential commands for running evaluations
 - **System Overview** - Architecture and pipeline flow
-- **Auto-Generated test_failed.py** - How the debug script works
+- **Resume After Failure** - Checkpoint system and resume workflow
 - **Input Format** - Q&A markdown file structure and parsing rules
 - **Output Format** - Detailed breakdown of 4 report types (JSONL, JSON, TXT)
 - **Scoring System** - Criteria, weights, composite calculation, thresholds

@@ -236,7 +236,7 @@ QDRANT_COLLECTION_NAME_CONTEXTUAL = 'tro-child-1-contextual'  # New with context
 **Comparison Workflow**:
 ```bash
 # Before implementation
-python test_failed.py  # Uses tro-child-1 (old)
+python -m evaluation.run_evaluation --resume --resume-limit 1  # Uses tro-child-1 (old)
 # Output: Wrong answer ($3,918 from 85% SMI)
 
 # After implementation
@@ -244,14 +244,13 @@ python test_failed.py  # Uses tro-child-1 (old)
 python load_pdf_qdrant.py --contextual --clear
 
 # Test with NEW collection
-export QDRANT_COLLECTION_NAME='tro-child-1-contextual'
-python test_failed.py  # Uses tro-child-1-contextual (new)
+python -m evaluation.run_evaluation --resume --resume-limit 1 --collection tro-child-1-contextual
 # Output: Correct answer ($4,106 from BCY 2026)
 
 # Compare batch evaluation results
-python evaluation/batch_evaluator.py  # With contextual collection
+python -m evaluation.run_evaluation --collection tro-child-1-contextual
 # vs.
-python evaluation/batch_evaluator.py  # With original collection
+python -m evaluation.run_evaluation  # With original collection
 ```
 
 ---
@@ -364,24 +363,18 @@ python evaluation/batch_evaluator.py  # With original collection
   ```
 
 ### Phase 6: Validation on Failing Test (1 hour)
-- [ ] Configure chatbot to use contextual collection:
+- [ ] Run the failing test with contextual collection:
   ```bash
   cd /home/tromanow/COHORT/TX
-  export QDRANT_COLLECTION_NAME='tro-child-1-contextual'
-  ```
-
-- [ ] Run the failing test:
-  ```bash
-  python test_failed.py
+  python -m evaluation.run_evaluation --resume --resume-limit 1 --collection tro-child-1-contextual
   ```
   - Verify the chatbot answer now includes "$4,106 bi-weekly" (correct answer)
   - Check source document ranking (should be within top 20)
 
 - [ ] Compare with original collection (for head-to-head):
   ```bash
-  # Reset to original collection
-  unset QDRANT_COLLECTION_NAME  # or export QDRANT_COLLECTION_NAME='tro-child-1'
-  python test_failed.py
+  # Test with original collection
+  python -m evaluation.run_evaluation --resume --resume-limit 1
   # Compare answers and sources
   ```
 
@@ -513,9 +506,11 @@ python evaluation/batch_evaluator.py  # With original collection
    - `has_context: True` in metadata
    - `page_content` contains ONLY original chunk text (no context prepended)
    - `metadata.master_context`, `metadata.document_context`, `metadata.chunk_context` populated separately
-6. ✅ `test_failed.py` with contextual collection returns correct answer: "$4,106 per pay period"
+6. ✅ Resume evaluation with contextual collection returns correct answer: "$4,106 per pay period"
+   - Command: `python -m evaluation.run_evaluation --resume --resume-limit 1 --collection tro-child-1-contextual`
    - Retrieved chunk shows clean content, not padded with context metadata
 7. ✅ Head-to-head comparison: Original collection still returns "$3,918" (unchanged behavior)
+   - Command: `python -m evaluation.run_evaluation --resume --resume-limit 1`
 8. ✅ BCY 2026 chunk moves into top 10 retrieval results (was rank 24) in contextual collection due to enriched embedding
 9. ✅ Full pipeline (37 PDFs) completes successfully
 10. ✅ Batch evaluation composite score improves on contextual collection (from 41.7/100 baseline)

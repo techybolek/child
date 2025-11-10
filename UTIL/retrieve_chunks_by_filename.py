@@ -30,6 +30,12 @@ import argparse
 from typing import List, Optional
 from datetime import datetime
 
+# Add parent directory and LOAD_DB to path for config import
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(script_dir)
+load_db_dir = os.path.join(parent_dir, 'LOAD_DB')
+sys.path.insert(0, load_db_dir)
+
 try:
     from qdrant_client import QdrantClient
     from qdrant_client.http import models

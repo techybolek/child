@@ -23,8 +23,9 @@ class LLMJudgeReranker:
         else:
             self.client = OpenAI(api_key=api_key)
 
-    def rerank(self, query: str, chunks: list, top_k: int = 7):
+    def rerank(self, query: str, chunks: list, top_k: int = 7, debug: bool = False):
         """Rerank using LLM relevance scoring"""
+        debug_info = {}
 
         # Build prompt with full context information
         chunks_text_parts = []
@@ -86,6 +87,10 @@ class LLMJudgeReranker:
             print(f"[Reranker] Raw response length: {len(content)} chars")
             scores = json.loads(content)
 
+            # Store raw scores for debug
+            if debug:
+                debug_info['raw_scores'] = scores
+
         except json.JSONDecodeError as e:
             print(f"[Reranker] JSON Parse Error: {str(e)}")
             print(f"[Reranker] Response content: {content[:200]}...")
@@ -107,4 +112,7 @@ class LLMJudgeReranker:
 
         # Sort and return top_k
         chunks.sort(key=lambda c: c['final_score'], reverse=True)
+
+        if debug:
+            return chunks[:top_k], debug_info
         return chunks[:top_k]

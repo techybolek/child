@@ -163,10 +163,10 @@ python load_pdf_qdrant.py --test --contextual
 - **Original**: `tro-child-1` (no contextual metadata)
 - **Contextual**: `tro-child-1-contextual` (with three-tier contexts)
 
-Use environment variable to switch:
+Test with specific collection:
 ```bash
-export QDRANT_COLLECTION_NAME='tro-child-1-contextual'
-python test_failed.py  # Tests with contextual collection
+# Resume failed evaluation with contextual collection
+python -m evaluation.run_evaluation --resume --resume-limit 1 --collection tro-child-1-contextual
 ```
 
 ## Verification
@@ -237,8 +237,8 @@ Document contexts cached to avoid regeneration:
 
 4. **Validation**:
    ```bash
-   export QDRANT_COLLECTION_NAME='tro-child-1-contextual'
-   python test_failed.py  # Test with contextual collection
+   # Resume failed evaluation with contextual collection
+   python -m evaluation.run_evaluation --resume --resume-limit 1 --collection tro-child-1-contextual
    ```
 
 ## Success Criteria
