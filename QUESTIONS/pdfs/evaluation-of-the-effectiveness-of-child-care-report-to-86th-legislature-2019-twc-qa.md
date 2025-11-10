@@ -25,7 +25,7 @@
 ### Q8: How much are Local Workforce Development Boards required to allocate for quality initiatives?
 **A8:** Texas Government Code §2308.317(c) requires each Local Workforce Development Board to use at least 2 percent of its yearly child care allocation for quality initiatives. These funds must be used for quality child care programs, technical assistance, professional development for child care providers, educational materials for children, and educational information for parents. Priority must be given to initiatives benefiting facilities working toward TRS certification or higher TRS levels.
 
-### Q9: What professional development programs has TWC funded to improve child care quality?
+### Q9: What is the T.E.A.C.H. program and what outcomes has it achieved?
 **A9:** TWC awarded $1 million to the Texas Association for the Education of Young Children (TXAEYC) for the T.E.A.C.H. program, which provides scholarships for Child Development Associate (CDA) certificates, Certified Childcare Professional (CCP) credentials, and associate's degrees in early childhood education. As of November 2018, this resulted in 409 CDA Assessment Fee Scholarships, 106 Associate Degree Scholarships, 349 earned CDA credentials, 10 earned associate's degrees, and an average wage increase of 7-10% for recipients.
 
 ### Q10: How does TWC leverage local funds to expand child care services?
