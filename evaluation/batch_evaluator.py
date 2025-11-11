@@ -94,7 +94,7 @@ class BatchEvaluator:
 
                 # Print debug info if enabled
                 if self.debug and 'debug_info' in chatbot_response:
-                    self._print_debug_info(chatbot_response['debug_info'])
+                    self._print_debug_info(chatbot_response['debug_info'], qa)
             except Exception as e:
                 print(f"\n❌ ERROR: Failed to query chatbot")
                 print(f"Question: {qa['question']}")
@@ -246,16 +246,79 @@ class BatchEvaluator:
 
         raise SystemExit(f"Evaluation stopped due to low score ({scores['composite_score']:.1f} < {config.STOP_ON_FAIL_THRESHOLD})")
 
-    def _print_debug_info(self, debug_info: dict):
+    def _save_debug_info(self, debug_info: dict, qa: dict) -> str:
+        """Save detailed debug information to a file"""
+        # Create debug filename
+        source_clean = qa['source_file'].replace('.md', '').replace('/', '_')
+        debug_filename = f"debug_{source_clean}_Q{qa['question_num']}.txt"
+        debug_path = Path(config.RESULTS_DIR) / debug_filename
+
+        with open(debug_path, 'w') as f:
+            f.write("=" * 80 + "\n")
+            f.write("DEBUG REPORT\n")
+            f.write("=" * 80 + "\n\n")
+            f.write(f"Source: {qa['source_file']}\n")
+            f.write(f"Question Number: {qa['question_num']}\n\n")
+            f.write(f"QUESTION:\n{qa['question']}\n\n")
+            f.write(f"EXPECTED ANSWER:\n{qa['expected_answer']}\n\n")
+
+            # Initial retrieval
+            if 'retrieved_chunks' in debug_info:
+                chunks = debug_info['retrieved_chunks']
+                f.write("=" * 80 + "\n")
+                f.write(f"📥 INITIAL RETRIEVAL (top-{len(chunks)})\n")
+                f.write("=" * 80 + "\n\n")
+                for i, chunk in enumerate(chunks):
+                    doc = chunk.get('doc', 'unknown')
+                    page = chunk.get('page', '?')
+                    score = chunk.get('score', 0)
+                    text = chunk.get('text', '')
+                    f.write(f"[{i}] {doc}, Page {page} (score: {score:.3f})\n")
+                    f.write("-" * 80 + "\n")
+                    f.write(f"Text ({len(text)} chars):\n{text}\n")
+                    f.write("-" * 80 + "\n\n")
+
+            # Reranker scores
+            if 'reranker_scores' in debug_info:
+                scores = debug_info['reranker_scores']
+                f.write("=" * 80 + "\n")
+                f.write("🎯 RERANKER SCORES\n")
+                f.write("=" * 80 + "\n\n")
+                for key, value in sorted(scores.items()):
+                    f.write(f"{key}: {value}\n")
+                f.write("\n")
+
+            # Final chunks
+            if 'final_chunks' in debug_info:
+                chunks = debug_info['final_chunks']
+                f.write("=" * 80 + "\n")
+                f.write(f"✅ FINAL CHUNKS (top-{len(chunks)} after reranking)\n")
+                f.write("=" * 80 + "\n\n")
+                for i, chunk in enumerate(chunks):
+                    doc = chunk.get('doc', 'unknown')
+                    page = chunk.get('page', '?')
+                    text = chunk.get('text', '')
+                    f.write(f"[{i}] {doc}, Page {page}\n")
+                    f.write("-" * 80 + "\n")
+                    f.write(f"Text ({len(text)} chars):\n{text[:500]}...\n")
+                    f.write("-" * 80 + "\n\n")
+
+        return str(debug_path)
+
+    def _print_debug_info(self, debug_info: dict, qa: dict):
         """Print detailed debug information about retrieval and reranking"""
+        # Save full debug to file
+        debug_path = self._save_debug_info(debug_info, qa)
+
         print("\n" + "=" * 80)
         print("🔍 DEBUG INFO")
         print("=" * 80)
+        print(f"✓ Full debug saved to: {debug_path}\n")
 
-        # Initial retrieval
+        # Initial retrieval (abbreviated)
         if 'retrieved_chunks' in debug_info:
             chunks = debug_info['retrieved_chunks']
-            print(f"\n📥 INITIAL RETRIEVAL (top-{len(chunks)}):")
+            print(f"📥 INITIAL RETRIEVAL (top-{len(chunks)}):")
             for i, chunk in enumerate(chunks):
                 doc = chunk.get('doc', 'unknown')
                 page = chunk.get('page', '?')
