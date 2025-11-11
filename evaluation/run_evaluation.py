@@ -3,11 +3,12 @@
 LLM-as-a-Judge Evaluation System for Texas Childcare Chatbot
 
 Usage:
-    python -m evaluation.run_evaluation                         # Evaluate all Q&A pairs
+    python -m evaluation.run_evaluation                         # Evaluate all Q&A pairs (keeps checkpoint)
     python -m evaluation.run_evaluation --test --limit 5        # Test with 5 questions
     python -m evaluation.run_evaluation --file <filename>       # Evaluate specific file
     python -m evaluation.run_evaluation --resume                # Resume from checkpoint
     python -m evaluation.run_evaluation --resume --resume-limit 1   # Resume and test first question only
+    python -m evaluation.run_evaluation --clear-checkpoint      # Delete checkpoint after successful completion
 """
 import argparse
 from .batch_evaluator import BatchEvaluator
@@ -24,6 +25,7 @@ def main():
     parser.add_argument('--resume-limit', type=int, help='After resuming, process only first N remaining questions')
     parser.add_argument('--debug', action='store_true', help='Enable debug mode (show retrieval and reranking details)')
     parser.add_argument('--retrieval-top-k', type=int, help='Override number of chunks to retrieve (default: from config)')
+    parser.add_argument('--clear-checkpoint', action='store_true', help='Delete checkpoint after successful completion (default: keep)')
     args = parser.parse_args()
 
     print("=" * 80)
@@ -41,7 +43,8 @@ def main():
         resume=args.resume,
         resume_limit=args.resume_limit,
         debug=args.debug,
-        retrieval_top_k=args.retrieval_top_k
+        retrieval_top_k=args.retrieval_top_k,
+        clear_checkpoint=args.clear_checkpoint
     )
     reporter = Reporter()
 

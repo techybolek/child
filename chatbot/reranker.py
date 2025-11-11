@@ -37,7 +37,7 @@ class LLMJudgeReranker:
                 part += f"[Context] {chunk['chunk_context']}\n"
             
             # Include the actual chunk text
-            part += f"{chunk['text'][:300]}..."
+            part += f"{chunk['text'][:600]}..."
             
             chunks_text_parts.append(part)
 

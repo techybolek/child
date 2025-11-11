@@ -28,10 +28,10 @@
 ### Q9: What is the T.E.A.C.H. program and what outcomes has it achieved?
 **A9:** TWC awarded $1 million to the Texas Association for the Education of Young Children (TXAEYC) for the T.E.A.C.H. program, which provides scholarships for Child Development Associate (CDA) certificates, Certified Childcare Professional (CCP) credentials, and associate's degrees in early childhood education. As of November 2018, this resulted in 409 CDA Assessment Fee Scholarships, 106 Associate Degree Scholarships, 349 earned CDA credentials, 10 earned associate's degrees, and an average wage increase of 7-10% for recipients.
 
-### Q10: How does TWC leverage local funds to expand child care services?
+### Q10: In FY'18, how did TWC leverage local funds to expand child care services?
 **A10:** Boards leverage local public expenditures to draw down federal CCDF matching funds by working with public institutions of higher education, independent school districts, and local governments. In FY'18, Boards entered into 142 agreements with colleges and universities that certified approximately $32 million in child care and early education professional development expenses, drawing down $91 million in federal CCDF matching funds. Additionally, 71 local agreements with ISDs contributed approximately $12.8 million in local funds, drawing down $24.6 million in federal CCDF funds.
 
-### Q11: What percentage of parents who left child care returned to TANF within one year?
+### Q11: What percentage of parents who left child care in 2016 returned to TANF within one year?
 **A11:** In 2016, 9.56% of parents whose children left TWC-subsidized child care received TANF within 12 months of leaving the program. This represents a declining trend from 2012 when 12.00% returned to TANF, indicating that the child care program is increasingly effective at helping parents maintain self-sufficiency after leaving the program.
 
 ### Q12: What initiatives did TWC approve with the additional $229.9 million in federal CCDF funds?

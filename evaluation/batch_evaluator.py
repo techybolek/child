@@ -8,13 +8,14 @@ from . import config
 
 
 class BatchEvaluator:
-    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, retrieval_top_k=None):
+    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, retrieval_top_k=None, clear_checkpoint=False):
         self.evaluator = ChatbotEvaluator(collection_name=collection_name, retrieval_top_k=retrieval_top_k)
         self.judge = LLMJudge()
         self.resume = resume
         self.resume_limit = resume_limit
         self.debug = debug
         self.retrieval_top_k = retrieval_top_k
+        self.clear_checkpoint = clear_checkpoint
 
     def evaluate_all(self, limit: int = None):
         """Evaluate all Q&A pairs"""
@@ -166,9 +167,12 @@ class BatchEvaluator:
                 self._save_checkpoint(results, stats)
                 print(f"✓ Checkpoint updated (partial resume - use --resume to continue)")
             else:
-                # Full completion - delete checkpoint
-                checkpoint_file.unlink()
-                print(f"✓ Checkpoint deleted: {checkpoint_file}")
+                # Full completion - delete checkpoint only if flag is set
+                if self.clear_checkpoint:
+                    checkpoint_file.unlink()
+                    print(f"✓ Checkpoint deleted: {checkpoint_file}")
+                else:
+                    print(f"✓ Checkpoint preserved: {checkpoint_file} (use --clear-checkpoint to delete)")
 
         return {
             'results': results,
