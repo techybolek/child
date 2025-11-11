@@ -127,9 +127,9 @@ class LLMJudgeReranker:
         for i, chunk in enumerate(chunks):
             chunk['final_score'] = scores.get(f"chunk_{i}", 0) / 10.0
 
-        # Sort and return top_k
-        chunks.sort(key=lambda c: c['final_score'], reverse=True)
+        # Sort and return top_k (use sorted() to avoid mutating original list)
+        sorted_chunks = sorted(chunks, key=lambda c: c['final_score'], reverse=True)
 
         if debug:
-            return chunks[:top_k], debug_info
-        return chunks[:top_k]
+            return sorted_chunks[:top_k], debug_info
+        return sorted_chunks[:top_k]

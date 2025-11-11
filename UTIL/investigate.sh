@@ -1,1 +1,2 @@
-source .venv/bin/activate && python -m evaluation.run_evaluation --resume --resume-limit 1 --debug
+rm -f results/debug_eval.txt
+source .venv/bin/activate && python -m evaluation.run_evaluation --investigate

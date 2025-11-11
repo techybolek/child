@@ -1,6 +1,7 @@
 {
   "files.exclude": {
     "**/.gitignore": false
-  }
+  },
+  "search.useIgnoreFiles": false
 }
 

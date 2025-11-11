@@ -20,11 +20,8 @@ python -m evaluation.run_evaluation --collection tro-child-3-contextual
 # Resume from checkpoint
 python -m evaluation.run_evaluation --resume
 
-# Resume and test first question only
-python -m evaluation.run_evaluation --resume --resume-limit 1
-
 # Debug failed question (after stop-on-fail)
-python -m evaluation.run_evaluation --resume --resume-limit 1 --debug
+python -m evaluation.run_evaluation --investigate
 ```
 
 ## System Overview

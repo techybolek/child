@@ -24,9 +24,16 @@ def main():
     parser.add_argument('--resume', action='store_true', help='Resume from checkpoint')
     parser.add_argument('--resume-limit', type=int, help='After resuming, process only first N remaining questions')
     parser.add_argument('--debug', action='store_true', help='Enable debug mode (show retrieval and reranking details)')
+    parser.add_argument('--investigate', action='store_true', help='Investigation mode: re-evaluate same question repeatedly (implies --resume --resume-limit 1 --debug, never updates checkpoint)')
     parser.add_argument('--retrieval-top-k', type=int, help='Override number of chunks to retrieve (default: from config)')
     parser.add_argument('--clear-checkpoint', action='store_true', help='Delete checkpoint after successful completion (default: keep)')
     args = parser.parse_args()
+
+    # Handle investigate mode - automatically set resume, resume_limit, and debug
+    if args.investigate:
+        args.resume = True
+        args.resume_limit = 1
+        args.debug = True
 
     print("=" * 80)
     print("CHATBOT EVALUATION SYSTEM - LLM as a Judge")
@@ -43,6 +50,7 @@ def main():
         resume=args.resume,
         resume_limit=args.resume_limit,
         debug=args.debug,
+        investigate_mode=args.investigate,
         retrieval_top_k=args.retrieval_top_k,
         clear_checkpoint=args.clear_checkpoint
     )

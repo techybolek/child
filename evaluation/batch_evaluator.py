@@ -8,12 +8,13 @@ from . import config
 
 
 class BatchEvaluator:
-    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, retrieval_top_k=None, clear_checkpoint=False):
+    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, investigate_mode=False, retrieval_top_k=None, clear_checkpoint=False):
         self.evaluator = ChatbotEvaluator(collection_name=collection_name, retrieval_top_k=retrieval_top_k)
         self.judge = LLMJudge()
         self.resume = resume
         self.resume_limit = resume_limit
         self.debug = debug
+        self.investigate_mode = investigate_mode
         self.retrieval_top_k = retrieval_top_k
         self.clear_checkpoint = clear_checkpoint
 
@@ -164,9 +165,13 @@ class BatchEvaluator:
         checkpoint_file = Path(config.RESULTS_DIR) / "checkpoint.json"
         if checkpoint_file.exists():
             if partial_resume:
-                # Save updated checkpoint for next resume
-                self._save_checkpoint(results, stats)
-                print(f"✓ Checkpoint updated (partial resume - use --resume to continue)")
+                # Skip checkpoint update in investigate mode (allows repeated re-evaluation of same question)
+                if self.investigate_mode:
+                    print(f"🔍 Investigation mode: checkpoint NOT updated (question will be re-evaluated on next run)")
+                else:
+                    # Save updated checkpoint for next resume
+                    self._save_checkpoint(results, stats)
+                    print(f"✓ Checkpoint updated (partial resume - use --resume to continue)")
             else:
                 # Full completion - delete checkpoint only if flag is set
                 if self.clear_checkpoint:
