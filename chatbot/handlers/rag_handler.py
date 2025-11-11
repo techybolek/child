@@ -72,16 +72,35 @@ class RAGHandler(BaseHandler):
                     'doc': c.get('filename', ''),
                     'page': c.get('page', ''),
                     'score': c.get('score', 0),
-                    'text': c.get('text', '')
+                    'text': c.get('text', ''),
+                    'source_url': c.get('source_url', ''),
+                    'master_context': c.get('master_context', ''),
+                    'document_context': c.get('document_context', ''),
+                    'chunk_context': c.get('chunk_context', '')
                 }
                 for c in retrieved_chunks
             ]
+
+            # Collect unique document contexts for display
+            doc_contexts = {}
+            for c in retrieved_chunks:
+                filename = c.get('filename', '')
+                doc_context = c.get('document_context', '')
+                if filename and doc_context and filename not in doc_contexts:
+                    doc_contexts[filename] = doc_context
+            debug_data['document_contexts'] = doc_contexts
+
+            # Store master context (same for all chunks, just grab from first)
+            if retrieved_chunks:
+                debug_data['master_context'] = retrieved_chunks[0].get('master_context', '')
 
         # Step 2: Rerank
         if self.reranker:
             if debug:
                 reranked_chunks, reranker_debug = self.reranker.rerank(query, retrieved_chunks, top_k=config.RERANK_TOP_K, debug=True)
                 debug_data['reranker_scores'] = reranker_debug.get('raw_scores', {})
+                debug_data['reranker_prompt'] = reranker_debug.get('reranker_prompt', '')
+                debug_data['reranker_reasoning'] = reranker_debug.get('reranker_reasoning', 'No reasoning captured')
             else:
                 reranked_chunks = self.reranker.rerank(query, retrieved_chunks, top_k=config.RERANK_TOP_K)
         else:
@@ -93,10 +112,31 @@ class RAGHandler(BaseHandler):
                 {
                     'doc': c.get('filename', ''),
                     'page': c.get('page', ''),
-                    'text': c.get('text', '')
+                    'text': c.get('text', ''),
+                    'source_url': c.get('source_url', ''),
+                    'chunk_context': c.get('chunk_context', ''),
+                    'final_score': c.get('final_score', 0)
                 }
                 for c in reranked_chunks
             ]
+
+            # Track which chunks passed/failed reranking
+            # Reranked chunks have the top_k highest scores
+            final_chunk_indices = set()
+            for c in reranked_chunks:
+                # Find the index of this chunk in the original retrieved_chunks
+                for i, orig in enumerate(retrieved_chunks):
+                    if orig.get('text') == c.get('text'):
+                        final_chunk_indices.add(i)
+                        break
+
+            debug_data['reranker_threshold'] = {
+                'total_retrieved': len(retrieved_chunks),
+                'passed_count': len(reranked_chunks),
+                'failed_count': len(retrieved_chunks) - len(reranked_chunks),
+                'passed_indices': sorted(list(final_chunk_indices)),
+                'cutoff_score': reranked_chunks[-1].get('final_score', 0) if reranked_chunks else 0
+            }
 
         # Step 3: Generate
         result = self.generator.generate(query, reranked_chunks)

@@ -35,7 +35,7 @@ class LLMJudge:
         self.client = Groq(api_key=config.JUDGE_API_KEY)
         self.model = config.JUDGE_MODEL
 
-    def evaluate(self, question: str, expected_answer: str, chatbot_answer: str, sources: list) -> dict:
+    def evaluate(self, question: str, expected_answer: str, chatbot_answer: str, sources: list, debug: bool = False) -> dict:
         """Evaluate chatbot response using LLM judge"""
 
         # Format sources
@@ -63,6 +63,16 @@ class LLMJudge:
         except Exception as e:
             print(f"  [Judge] API call failed: {type(e).__name__}: {str(e)}")
             raise
+
+        # Capture raw reasoning for debug (available for reasoning models like gpt-oss)
+        raw_reasoning = None
+        if debug:
+            # Check message level first (OpenAI/GROQ structure)
+            if hasattr(response.choices[0].message, 'reasoning'):
+                raw_reasoning = response.choices[0].message.reasoning
+            # If not found, check top level (alternative structure)
+            if not raw_reasoning and hasattr(response, 'reasoning'):
+                raw_reasoning = response.reasoning
 
         # Parse JSON response
         content = response.choices[0].message.content
@@ -147,5 +157,9 @@ class LLMJudge:
                      3 * config.WEIGHTS['coherence'])
 
         scores['composite_score'] = (composite / max_score) * 100
+
+        # Add raw reasoning if debug mode and reasoning available
+        if debug and raw_reasoning:
+            scores['raw_reasoning'] = raw_reasoning
 
         return scores

@@ -55,9 +55,6 @@ class ResponseGenerator:
         try:
             response = self.client.chat.completions.create(**params)
 
-            # Log full response for debugging
-            print(f"[Generator] API Response: {response}")
-
             # Extract content with null check
             content = response.choices[0].message.content
             if content is None or content.strip() == '':

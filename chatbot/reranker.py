@@ -31,19 +31,23 @@ class LLMJudgeReranker:
         chunks_text_parts = []
         for i, chunk in enumerate(chunks):
             part = f"CHUNK {i}:\n"
-            
+
             # Include chunk context if available (generated during indexing)
             if chunk.get('chunk_context'):
                 part += f"[Context] {chunk['chunk_context']}\n"
-            
+
             # Include the actual chunk text
             part += f"{chunk['text'][:600]}..."
-            
+
             chunks_text_parts.append(part)
 
         chunks_text = "\n\n".join(chunks_text_parts)
 
         prompt = RERANKING_PROMPT.format(query=query, chunks_text=chunks_text)
+
+        # Capture prompt for debug
+        if debug:
+            debug_info['reranker_prompt'] = prompt
 
         # Use the configured model or the one passed in constructor
         model = self.model or ("openai/gpt-oss-20b" if self.provider == 'groq' else "gpt-4o-mini")
@@ -70,8 +74,21 @@ class LLMJudgeReranker:
         try:
             response = self.client.chat.completions.create(**params)
 
-            # Log full response for debugging
-            print(f"[Reranker] API Response: {response}")
+            # Capture reasoning for debug (available for reasoning models like gpt-oss)
+            if debug:
+                # Try to extract reasoning from the response
+                reasoning = None
+
+                # Check message level first (OpenAI/GROQ structure)
+                if hasattr(response.choices[0].message, 'reasoning'):
+                    reasoning = response.choices[0].message.reasoning
+
+                # If not found, check top level (alternative structure)
+                if not reasoning and hasattr(response, 'reasoning'):
+                    reasoning = response.reasoning
+
+                # Store reasoning or fallback message
+                debug_info['reranker_reasoning'] = reasoning if reasoning else "No reasoning available (non-reasoning model)"
 
             # Extract content with null check
             content = response.choices[0].message.content

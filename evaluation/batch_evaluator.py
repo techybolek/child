@@ -109,7 +109,8 @@ class BatchEvaluator:
                     question=qa['question'],
                     expected_answer=qa['expected_answer'],
                     chatbot_answer=chatbot_response['answer'],
-                    sources=chatbot_response['sources']
+                    sources=chatbot_response['sources'],
+                    debug=self.debug
                 )
                 print(f"  ✓ Score: {scores['composite_score']:.1f}/100")
             except Exception as e:
@@ -233,115 +234,177 @@ class BatchEvaluator:
 
         print("=" * 80)
 
+        # Re-save debug file with complete information (chatbot answer + judge scores)
+        if self.debug and 'debug_info' in chatbot_response:
+            debug_path = self._save_debug_info(
+                chatbot_response['debug_info'],
+                qa,
+                chatbot_response['answer'],
+                scores
+            )
+            print(f"\n💾 Complete debug info saved to: {debug_path}")
+
         # Save checkpoint before stopping (failed question NOT included - will be re-evaluated on resume)
         self._save_checkpoint(results, stats)
 
-        print("\n📌 HOW TO RESUME:")
-        print(f"   Checkpoint saved with progress up to (but not including) this failed question.")
-        print(f"   The failed question will be re-evaluated when you resume.\n")
-        print(f"   To re-evaluate just this question:")
-        print(f"     python -m evaluation.run_evaluation --resume --resume-limit 1\n")
-        print(f"   To continue from this question onwards:")
-        print(f"     python -m evaluation.run_evaluation --resume\n")
-
         raise SystemExit(f"Evaluation stopped due to low score ({scores['composite_score']:.1f} < {config.STOP_ON_FAIL_THRESHOLD})")
 
-    def _save_debug_info(self, debug_info: dict, qa: dict) -> str:
+    def _save_debug_info(self, debug_info: dict, qa: dict, chatbot_answer: str = None, scores: dict = None) -> str:
         """Save detailed debug information to a file"""
-        # Create debug filename
-        source_clean = qa['source_file'].replace('.md', '').replace('/', '_')
-        debug_filename = f"debug_{source_clean}_Q{qa['question_num']}.txt"
+        # Create simple debug filename (overwrites previous debug file)
+        debug_filename = "debug_eval.txt"
         debug_path = Path(config.RESULTS_DIR) / debug_filename
 
         with open(debug_path, 'w') as f:
             f.write("=" * 80 + "\n")
-            f.write("DEBUG REPORT\n")
+            f.write("DEBUG REPORT - Failed Question Investigation\n")
             f.write("=" * 80 + "\n\n")
-            f.write(f"Source: {qa['source_file']}\n")
-            f.write(f"Question Number: {qa['question_num']}\n\n")
-            f.write(f"QUESTION:\n{qa['question']}\n\n")
-            f.write(f"EXPECTED ANSWER:\n{qa['expected_answer']}\n\n")
+            f.write(f"Source File: {qa['source_file']}\n")
+            f.write(f"Question Number: {qa['question_num']}\n")
+            f.write(f"Timestamp: {datetime.now().isoformat()}\n\n")
+
+            f.write("-" * 80 + "\n")
+            f.write("QUESTION\n")
+            f.write("-" * 80 + "\n")
+            f.write(f"{qa['question']}\n\n")
+
+            f.write("-" * 80 + "\n")
+            f.write("EXPECTED ANSWER\n")
+            f.write("-" * 80 + "\n")
+            f.write(f"{qa['expected_answer']}\n\n")
+
+            # Chatbot answer (if provided)
+            if chatbot_answer is not None:
+                f.write("-" * 80 + "\n")
+                f.write("CHATBOT ANSWER\n")
+                f.write("-" * 80 + "\n")
+                f.write(f"{chatbot_answer}\n\n")
+
+            # Master Context (Tier 1)
+            if 'master_context' in debug_info and debug_info['master_context']:
+                f.write("-" * 80 + "\n")
+                f.write("MASTER CONTEXT (Applied to all chunks)\n")
+                f.write("-" * 80 + "\n")
+                f.write(f"{debug_info['master_context']}\n\n")
+
+            # Document Contexts (Tier 2)
+            if 'document_contexts' in debug_info and debug_info['document_contexts']:
+                f.write("-" * 80 + "\n")
+                f.write("DOCUMENT CONTEXTS (Per-document summaries)\n")
+                f.write("-" * 80 + "\n")
+                for doc_name, doc_context in debug_info['document_contexts'].items():
+                    f.write(f"\n[{doc_name}]\n")
+                    f.write(f"{doc_context}\n")
+                f.write("\n")
 
             # Initial retrieval
             if 'retrieved_chunks' in debug_info:
                 chunks = debug_info['retrieved_chunks']
-                f.write("=" * 80 + "\n")
-                f.write(f"📥 INITIAL RETRIEVAL (top-{len(chunks)})\n")
-                f.write("=" * 80 + "\n\n")
+                f.write("-" * 80 + "\n")
+                f.write(f"INITIAL RETRIEVAL ({len(chunks)} chunks retrieved)\n")
+                f.write("-" * 80 + "\n\n")
                 for i, chunk in enumerate(chunks):
                     doc = chunk.get('doc', 'unknown')
                     page = chunk.get('page', '?')
                     score = chunk.get('score', 0)
                     text = chunk.get('text', '')
-                    f.write(f"[{i}] {doc}, Page {page} (score: {score:.3f})\n")
-                    f.write("-" * 80 + "\n")
-                    f.write(f"Text ({len(text)} chars):\n{text}\n")
+                    chunk_context = chunk.get('chunk_context', '')
+
+                    f.write(f"[Chunk {i}] {doc}, page {page} (retrieval score: {score:.3f})\n\n")
+                    if chunk_context:
+                        f.write(f"Chunk Context:\n{chunk_context}\n\n")
+                    f.write(f"Text:\n{text}\n")
                     f.write("-" * 80 + "\n\n")
 
-            # Reranker scores
-            if 'reranker_scores' in debug_info:
-                scores = debug_info['reranker_scores']
-                f.write("=" * 80 + "\n")
-                f.write("🎯 RERANKER SCORES\n")
-                f.write("=" * 80 + "\n\n")
-                for key, value in sorted(scores.items()):
-                    f.write(f"{key}: {value}\n")
-                f.write("\n")
+            # Reranker prompt and reasoning
+            if 'reranker_prompt' in debug_info or 'reranker_reasoning' in debug_info:
+                f.write("-" * 80 + "\n")
+                f.write("RERANKER PROMPT & REASONING\n")
+                f.write("-" * 80 + "\n\n")
 
-            # Final chunks
-            if 'final_chunks' in debug_info:
-                chunks = debug_info['final_chunks']
-                f.write("=" * 80 + "\n")
-                f.write(f"✅ FINAL CHUNKS (top-{len(chunks)} after reranking)\n")
-                f.write("=" * 80 + "\n\n")
-                for i, chunk in enumerate(chunks):
-                    doc = chunk.get('doc', 'unknown')
-                    page = chunk.get('page', '?')
-                    text = chunk.get('text', '')
-                    f.write(f"[{i}] {doc}, Page {page}\n")
-                    f.write("-" * 80 + "\n")
-                    f.write(f"Text ({len(text)} chars):\n{text[:500]}...\n")
-                    f.write("-" * 80 + "\n\n")
+                if 'reranker_prompt' in debug_info and debug_info['reranker_prompt'] is not None and debug_info['reranker_prompt'] != '':
+                    f.write("Prompt Sent to Reranker:\n")
+                    f.write("-" * 40 + "\n")
+
+                    # Truncate prompt to show first 700 and last 700 characters
+                    prompt = debug_info['reranker_prompt']
+                    if len(prompt) > 1400:
+                        first_part = prompt[:700]
+                        last_part = prompt[-700:]
+                        truncated_chars = len(prompt) - 1400
+                        f.write(f"{first_part}\n\n... [truncated {truncated_chars} characters] ...\n\n{last_part}\n")
+                    else:
+                        f.write(f"{prompt}\n")
+
+                    f.write("-" * 40 + "\n\n")
+
+                if 'reranker_reasoning' in debug_info and debug_info['reranker_reasoning'] is not None and debug_info['reranker_reasoning'] != '':
+                    f.write("LLM Reasoning:\n")
+                    f.write("-" * 40 + "\n")
+                    f.write(f"{debug_info['reranker_reasoning']}\n")
+                    f.write("-" * 40 + "\n\n")
+
+            # Reranker results
+            if 'reranker_scores' in debug_info and 'reranker_threshold' in debug_info:
+                reranker_scores_dict = debug_info['reranker_scores']
+                threshold_info = debug_info['reranker_threshold']
+
+                f.write("-" * 80 + "\n")
+                f.write("RERANKER RESULTS\n")
+                f.write("-" * 80 + "\n\n")
+                f.write(f"Total retrieved: {threshold_info['total_retrieved']}\n")
+                f.write(f"Passed reranking: {threshold_info['passed_count']}\n")
+                f.write(f"Failed reranking: {threshold_info['failed_count']}\n")
+                f.write(f"Cutoff score: {threshold_info['cutoff_score']:.2f}\n\n")
+
+                # Separate passed and failed chunks
+                passed_indices = set(threshold_info['passed_indices'])
+                passed_scores = []
+                failed_scores = []
+
+                for key, value in reranker_scores_dict.items():
+                    chunk_idx = int(key.split('_')[1])
+                    if chunk_idx in passed_indices:
+                        passed_scores.append((key, value))
+                    else:
+                        failed_scores.append((key, value))
+
+                if passed_scores:
+                    f.write(f"Passed ({len(passed_scores)} chunks):\n")
+                    for key, value in sorted(passed_scores, key=lambda x: x[1], reverse=True):
+                        f.write(f"  {key}: {value} ✓\n")
+                    f.write("\n")
+
+                if failed_scores:
+                    f.write(f"Failed ({len(failed_scores)} chunks):\n")
+                    for key, value in sorted(failed_scores, key=lambda x: x[1], reverse=True):
+                        f.write(f"  {key}: {value} ✗\n")
+                    f.write("\n")
+
+            # Judge evaluation (if provided)
+            if scores is not None:
+                f.write("-" * 80 + "\n")
+                f.write("JUDGE EVALUATION\n")
+                f.write("-" * 80 + "\n\n")
+                f.write(f"Composite Score: {scores.get('composite_score', 0):.1f}/100\n\n")
+                f.write("Individual Scores:\n")
+                f.write(f"  Factual Accuracy:    {scores.get('accuracy', 0):.1f}/5\n")
+                f.write(f"  Completeness:        {scores.get('completeness', 0):.1f}/5\n")
+                f.write(f"  Citation Quality:    {scores.get('citation_quality', 0):.1f}/5\n")
+                f.write(f"  Coherence:           {scores.get('coherence', 0):.1f}/3\n\n")
+                f.write("Judge Reasoning:\n")
+                f.write(f"{scores.get('reasoning', 'N/A')}\n\n")
+
+                # Add raw reasoning if available (from debug mode)
+                if 'raw_reasoning' in scores and scores['raw_reasoning']:
+                    f.write("Judge Raw Reasoning (LLM Internal Thought Process):\n")
+                    f.write("-" * 40 + "\n")
+                    f.write(f"{scores['raw_reasoning']}\n")
+                    f.write("-" * 40 + "\n\n")
 
         return str(debug_path)
 
     def _print_debug_info(self, debug_info: dict, qa: dict):
-        """Print detailed debug information about retrieval and reranking"""
-        # Save full debug to file
+        """Save debug information to file and print confirmation"""
         debug_path = self._save_debug_info(debug_info, qa)
-
-        print("\n" + "=" * 80)
-        print("🔍 DEBUG INFO")
-        print("=" * 80)
-        print(f"✓ Full debug saved to: {debug_path}\n")
-
-        # Initial retrieval (abbreviated)
-        if 'retrieved_chunks' in debug_info:
-            chunks = debug_info['retrieved_chunks']
-            print(f"📥 INITIAL RETRIEVAL (top-{len(chunks)}):")
-            for i, chunk in enumerate(chunks):
-                doc = chunk.get('doc', 'unknown')
-                page = chunk.get('page', '?')
-                score = chunk.get('score', 0)
-                text = chunk.get('text', '')[:150]
-                print(f"  [{i}] {doc}, Page {page} (score: {score:.3f})")
-                print(f"      {text}...")
-
-        # Reranker scores
-        if 'reranker_scores' in debug_info:
-            scores = debug_info['reranker_scores']
-            print(f"\n🎯 RERANKER SCORES:")
-            print(f"  {scores}")
-
-        # Final chunks
-        if 'final_chunks' in debug_info:
-            chunks = debug_info['final_chunks']
-            print(f"\n✅ FINAL CHUNKS (top-{len(chunks)} after reranking):")
-            for i, chunk in enumerate(chunks):
-                doc = chunk.get('doc', 'unknown')
-                page = chunk.get('page', '?')
-                text = chunk.get('text', '')[:150]
-                print(f"  [{i}] {doc}, Page {page}")
-                print(f"      {text}...")
-
-        print("=" * 80)
+        print(f"\n💾 Debug info saved to: {debug_path}")
