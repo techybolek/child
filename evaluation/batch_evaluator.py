@@ -92,10 +92,6 @@ class BatchEvaluator:
                 print("  → Querying chatbot...")
                 chatbot_response = self.evaluator.query(qa['question'], debug=self.debug)
                 print(f"  ✓ Response received ({chatbot_response['response_time']:.2f}s)")
-
-                # Print debug info if enabled
-                if self.debug and 'debug_info' in chatbot_response:
-                    self._print_debug_info(chatbot_response['debug_info'], qa)
             except Exception as e:
                 print(f"\n❌ ERROR: Failed to query chatbot")
                 print(f"Question: {qa['question']}")
@@ -114,6 +110,10 @@ class BatchEvaluator:
                     debug=self.debug
                 )
                 print(f"  ✓ Score: {scores['composite_score']:.1f}/100")
+
+                # Save debug info if enabled (includes chatbot answer and judge scores)
+                if self.debug and 'debug_info' in chatbot_response:
+                    self._print_debug_info(chatbot_response['debug_info'], qa, chatbot_response['answer'], scores)
             except Exception as e:
                 print(f"\n❌ ERROR: Failed to judge response")
                 print(f"Question: {qa['question']}")
@@ -409,7 +409,7 @@ class BatchEvaluator:
 
         return str(debug_path)
 
-    def _print_debug_info(self, debug_info: dict, qa: dict):
+    def _print_debug_info(self, debug_info: dict, qa: dict, chatbot_answer: str = None, scores: dict = None):
         """Save debug information to file and print confirmation"""
-        debug_path = self._save_debug_info(debug_info, qa)
+        debug_path = self._save_debug_info(debug_info, qa, chatbot_answer, scores)
         print(f"\n💾 Debug info saved to: {debug_path}")

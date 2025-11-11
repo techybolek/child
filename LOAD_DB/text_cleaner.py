@@ -212,6 +212,19 @@ def is_likely_toc(text: str, min_length: int = 200) -> bool:
             if 0.7 * avg_length <= length <= 1.3 * avg_length
         )
         if consistent_lines / len(line_lengths) > 0.8:  # >80% similar length
+            # EXCEPTION: Preserve policy/financial data lists
+            # Check if this is a bulleted list with dollar amounts and policy keywords
+            has_financial_data = '$' in text
+            policy_keywords = ['million', 'initiative', 'grant', 'partnership', 'program', 'funding', 'billion']
+            has_policy_content = sum(
+                1 for line in lines
+                if any(kw in line.lower() for kw in policy_keywords)
+            ) >= 3
+
+            # If it's a financial/policy list, DON'T filter it
+            if has_financial_data and has_policy_content:
+                return False
+
             return True
 
     # Signal 5: Check capitalization pattern (all caps lines suggest structural text)

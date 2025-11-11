@@ -7,15 +7,16 @@ Question: {query}
 {chunks_text}
 
 Scoring criteria (0-10):
-- 10: Contains specific data directly answering the question (numbers, dollar amounts, counts, dates)
+- 10: Directly answers the question with specific relevant data
 - 7-9: Highly relevant explanation or partial answer
 - 4-6: Related topic but missing key details
-- 1-3: Tangentially related or different time period
+- 1-3: Tangentially related or different context
 - 0: Unrelated
 
 IMPORTANT:
-- Prioritize chunks matching temporal markers (FY'XX, BCY XX, specific years in the question)
-- Value specific data over general explanations
-- Recognize that tables/data often continue across adjacent chunks
+- Score based on whether the chunk helps answer the question, not exact wording match
+- Component data (e.g., "$100M + $50M") can answer questions about total amounts
+- Temporal markers matter (FY'XX, BCY XX, specific years)
+- Tables/data often span multiple chunks - score each chunk's contribution
 
 Return compact JSON: {{"chunk_0": <score>, "chunk_1": <score>, ...}}"""

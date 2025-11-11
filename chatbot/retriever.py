@@ -30,11 +30,11 @@ class QdrantRetriever:
         )
 
         # Return as simple dicts
-        return [
+        chunks = [
             {
                 'text': hit.payload['text'],
                 'score': hit.score,
-                'filename': hit.payload.get('filename', ''),
+                'filename': hit.payload.get('filename', ''),  # New loader uses 'filename'
                 'page': hit.payload.get('page', 'N/A'),
                 'source_url': hit.payload.get('source_url', ''),
                 # Include context metadata for generation-time injection
@@ -44,3 +44,17 @@ class QdrantRetriever:
             }
             for hit in results
         ]
+
+        # CRITICAL: Detect duplicate chunks (should never happen)
+        seen_texts = set()
+        for i, chunk in enumerate(chunks):
+            text = chunk['text']
+            if text in seen_texts:
+                raise ValueError(
+                    f"DUPLICATE CHUNK DETECTED at index {i}!\n"
+                    f"Text preview: {text[:200]}...\n"
+                    f"This indicates a data loading bug. Check vector database for duplicates."
+                )
+            seen_texts.add(text)
+
+        return chunks

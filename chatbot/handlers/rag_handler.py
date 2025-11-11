@@ -123,17 +123,23 @@ class RAGHandler(BaseHandler):
             # Track which chunks passed/failed reranking
             # Reranked chunks have the top_k highest scores
             final_chunk_indices = set()
-            for c in reranked_chunks:
+            for idx, c in enumerate(reranked_chunks):
                 # Find the index of this chunk in the original retrieved_chunks
+                matched = False
                 for i, orig in enumerate(retrieved_chunks):
                     if orig.get('text') == c.get('text'):
                         final_chunk_indices.add(i)
+                        matched = True
                         break
+                if not matched:
+                    print(f"[DEBUG] Reranked chunk {idx} (score={c.get('final_score')}) did not match any retrieved chunk")
+                    print(f"[DEBUG] Text preview: {c.get('text', '')[:100]}...")
+                    print(f"[DEBUG] Has text key: {'text' in c}, text is None: {c.get('text') is None}")
 
             debug_data['reranker_threshold'] = {
                 'total_retrieved': len(retrieved_chunks),
-                'passed_count': len(reranked_chunks),
-                'failed_count': len(retrieved_chunks) - len(reranked_chunks),
+                'passed_count': len(final_chunk_indices),  # Use actual matched count, not requested count
+                'failed_count': len(retrieved_chunks) - len(final_chunk_indices),
                 'passed_indices': sorted(list(final_chunk_indices)),
                 'cutoff_score': reranked_chunks[-1].get('final_score', 0) if reranked_chunks else 0
             }

@@ -27,7 +27,7 @@ MAX_TOKENS = 1000
 
 # Reranker settings
 RERANKER_PROVIDER = os.getenv('RERANKER_PROVIDER', 'groq')  # 'groq' or 'openai'
-RERANKER_MODEL = 'openai/gpt-oss-20b' if RERANKER_PROVIDER == 'groq' else 'gpt-4o-mini'
+RERANKER_MODEL = 'openai/gpt-oss-120b' if RERANKER_PROVIDER == 'groq' else 'gpt-4o-mini'
 
 # Intent classification settings
 INTENT_CLASSIFIER_PROVIDER = os.getenv('INTENT_CLASSIFIER_PROVIDER', 'groq')  # 'groq' or 'openai'

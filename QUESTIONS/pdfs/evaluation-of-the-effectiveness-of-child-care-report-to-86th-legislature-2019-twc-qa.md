@@ -34,7 +34,7 @@
 ### Q11: What percentage of parents who left child care in 2016 returned to TANF within one year?
 **A11:** In 2016, 9.56% of parents whose children left TWC-subsidized child care received TANF within 12 months of leaving the program. This represents a declining trend from 2012 when 12.00% returned to TANF, indicating that the child care program is increasingly effective at helping parents maintain self-sufficiency after leaving the program.
 
-### Q12: What initiatives did TWC approve with the additional $229.9 million in federal CCDF funds?
+### Q12: How much of the additional federal CCDF funding did TWC allocate to direct child care services versus quality improvement initiatives in FY 2019?
 **A12:** TWC allocated $189 million for Direct Child Care Services with rate increases focused on TRS quality care, serving an estimated 28,000 additional children per day in FY 2019. An additional $44.5 million was designated for quality improvement initiatives including: Pre-K/Child Care Partnerships ($10 million), Board TRS Assessor and Mentor Funding ($10 million), Board Quality Initiatives ($7 million), Collaborative Matching Grants ($6 million), Hurricane Harvey Child Care Response ($5.5 million), Child Care Business Forums ($3 million), Infant and Toddler Collaborative Matching Grants ($2 million), and Cost of Quality Study ($1 million).
 
 ### Q13: How does TWC collaborate with other state agencies on child care and early education?
