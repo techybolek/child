@@ -105,6 +105,9 @@ def is_likely_data_table(text: str) -> bool:
     Looks for indicators like:
     - Currency symbols ($, ¢)
     - Key data table terms (income, family, annual, monthly, weekly, eligibility, limit, etc.)
+    - Employment/workforce metrics (employment, TANF, retention, board, workforce)
+    - Percentage patterns (52.69%, 75.00%)
+    - Year columns (2012, 2013, 2014, 2015, 2016)
     - Structured number patterns (multiple lines with numbers and text)
 
     Args:
@@ -122,7 +125,10 @@ def is_likely_data_table(text: str) -> bool:
     data_keywords = [
         'income', 'family', 'annual', 'monthly', 'weekly', 'bi-weekly', 'bi-monthly',
         'eligibility', 'limit', 'maximum', 'share', 'cost', 'rate', 'payment',
-        'age', 'size', 'provider', 'parent', 'child', 'cost sharing'
+        'age', 'size', 'provider', 'parent', 'child', 'cost sharing',
+        # Employment/workforce table keywords
+        'employment', 'tanf', 'board', 'workforce', 'retention', 'maintaining',
+        'receiving', 'one year', 'wage gain', 'find employment', 'non-tanf'
     ]
 
     # Check for currency or financial indicators
@@ -134,6 +140,29 @@ def is_likely_data_table(text: str) -> bool:
 
     # If contains 2+ data keywords AND at least 1 financial indicator, preserve it
     if has_keywords >= 2 and has_financial >= 1:
+        return True
+
+    # Check for percentage patterns (employment/retention tables use percentages)
+    percentage_pattern = re.findall(r'\d+\.\d+%', text)
+    if len(percentage_pattern) >= 5:  # Multiple percentages suggest data table
+        return True
+
+    # Check for year columns (2012-2016 pattern in employment tables)
+    year_pattern = re.findall(r'\b201[2-9]\b', text)
+    if len(year_pattern) >= 3:  # Multiple years suggest temporal data table
+        # If has years AND employment keywords, definitely a data table
+        employment_keywords = ['employment', 'tanf', 'maintaining', 'board', 'workforce', 'receiving']
+        if any(kw in text_lower for kw in employment_keywords):
+            return True
+
+    # Check for Texas workforce board names (strong indicator of employment tables)
+    board_names = [
+        'cameron', 'concho valley', 'heart of texas', 'central texas', 'rural capital',
+        'panhandle', 'south plains', 'north texas', 'tarrant', 'dallas', 'capital area',
+        'brazos valley', 'borderplex', 'permian basin', 'alamo', 'gulf coast'
+    ]
+    board_matches = sum(1 for board in board_names if board in text_lower)
+    if board_matches >= 3:  # Multiple board names = employment table
         return True
 
     # Check for structured table patterns (lines with consistent column-like alignment)

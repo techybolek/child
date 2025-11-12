@@ -4,3 +4,6 @@
 ## Read
 SPECS/loading_pipeline.md
 SPECS/evaluation_system.md
+
+## Remember
+Use skills to search Qdrant DB

@@ -12,7 +12,7 @@ COLLECTION_NAME = 'tro-child-3-contextual'  # Enhanced with improved family size
 EMBEDDING_MODEL = 'text-embedding-3-small'
 
 # Retrieval settings
-RETRIEVAL_TOP_K = 20
+RETRIEVAL_TOP_K = 30
 RERANK_TOP_K = 7
 MIN_SCORE_THRESHOLD = 0.3
 
