@@ -222,6 +222,11 @@ class SinglePDFReloader:
 
             logger.info(f"Loaded {len(pages)} pages")
 
+            # Enrich metadata to match bulk loader format
+            for page in pages:
+                page.metadata['filename'] = self.pdf_filename
+                page.metadata['content_type'] = 'pdf'
+
             # Clean each page's content with FIXED text cleaner
             for page in pages:
                 page.page_content = clean_text(page.page_content)
@@ -245,6 +250,11 @@ class SinglePDFReloader:
                 logger.info(f"Filtered out {filtered_count} TOC chunks ({filtered_count/original_count*100:.1f}%)")
 
             logger.info(f"Created {len(chunks)} chunks after filtering")
+
+            # Add chunk index to metadata (re-index after filtering)
+            for i, chunk in enumerate(chunks):
+                chunk.metadata['chunk_index'] = i
+                chunk.metadata['total_chunks'] = len(chunks)
 
             # Add contextual metadata if enabled
             if self.contextual_mode and self.contextual_processor:
@@ -309,11 +319,51 @@ class SinglePDFReloader:
         logger.info(f"Uploading {len(chunks)} chunks to Qdrant...")
 
         try:
-            # Generate embeddings
-            texts = [chunk.page_content for chunk in chunks]
-            embeddings = self.embeddings.embed_documents(texts)
+            # Store original content before any modifications
+            original_contents = [chunk.page_content for chunk in chunks]
 
-            # Prepare points
+            # Prepare content for embedding (may include context)
+            texts_for_embedding = []
+
+            # Generate embeddings from enriched text if in contextual mode
+            if self.contextual_mode and chunks:
+                logger.info("Building enriched text for embeddings (contextual mode)...")
+
+                for i, chunk in enumerate(chunks):
+                    # Build enriched text for embedding ONLY (matches full pipeline logic)
+                    # This improves embedding relevance but isn't stored in page_content
+                    enriched_for_embedding = ""
+
+                    if chunk.metadata.get('master_context'):
+                        enriched_for_embedding = chunk.metadata['master_context']
+
+                    if chunk.metadata.get('document_context'):
+                        if enriched_for_embedding:
+                            enriched_for_embedding += "\n\n"
+                        enriched_for_embedding += chunk.metadata['document_context']
+
+                    if chunk.metadata.get('chunk_context'):
+                        if enriched_for_embedding:
+                            enriched_for_embedding += "\n\n"
+                        enriched_for_embedding += chunk.metadata['chunk_context']
+
+                    # Add original content at the end
+                    if enriched_for_embedding:
+                        enriched_for_embedding += "\n\n"
+                    enriched_for_embedding += original_contents[i]
+
+                    texts_for_embedding.append(enriched_for_embedding)
+
+                logger.info("Using enriched context for embeddings, but storing only original content")
+            else:
+                # Non-contextual mode: use original content as-is
+                texts_for_embedding = original_contents.copy()
+
+            # Generate embeddings from potentially enriched text
+            embeddings = self.embeddings.embed_documents(texts_for_embedding)
+
+            # Prepare points (always use original content in payload, not enriched)
+            from qdrant_client.models import PointStruct
             points = []
             for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
                 point_id = hash(f"{self.pdf_filename}_{i}_{chunk.metadata.get('page', 0)}")
@@ -321,21 +371,15 @@ class SinglePDFReloader:
                 if point_id < 0:
                     point_id = abs(point_id)
 
+                # Ensure page_content is original (not enriched with contexts)
+                chunk.page_content = original_contents[i]
+
+                # Use metadata spread to include all fields (matches full pipeline)
                 payload = {
                     'text': chunk.page_content,
-                    'doc': chunk.metadata.get('source', self.pdf_filename).split('/')[-1],
-                    'filename': self.pdf_filename,
-                    'page': chunk.metadata.get('page', 0),
-                    'source_url': chunk.metadata.get('source_url', ''),
+                    **chunk.metadata
                 }
 
-                # Add contextual metadata if present
-                if 'chunk_context' in chunk.metadata:
-                    payload['chunk_context'] = chunk.metadata['chunk_context']
-                if 'document_context' in chunk.metadata:
-                    payload['document_context'] = chunk.metadata['document_context']
-
-                from qdrant_client.models import PointStruct
                 points.append(PointStruct(
                     id=point_id,
                     vector=embedding,
