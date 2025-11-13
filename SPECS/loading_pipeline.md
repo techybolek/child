@@ -6,17 +6,16 @@ Loads PDF documents into Qdrant vector database with optional contextual embeddi
 
 ```bash
 # Standard loading (basic embeddings)
-cd LOAD_DB
-python load_pdf_qdrant.py
+python LOAD_DB/load_pdf_qdrant.py
 
 # Contextual loading (3-tier context enhancement) - RECOMMENDED
-python load_pdf_qdrant.py --contextual
+python LOAD_DB/load_pdf_qdrant.py --contextual
 
 # Test mode (3 PDFs only)
-python load_pdf_qdrant.py --contextual --test
+python LOAD_DB/load_pdf_qdrant.py --contextual --test
 
 # Surgical reload (single PDF)
-python reload_single_pdf.py bcy-26-income-eligibility-and-maximum-psoc-twc.pdf
+python UTIL/reload_single_pdf.py bcy-26-income-eligibility-and-maximum-psoc-twc.pdf
 ```
 
 ## Architecture Overview

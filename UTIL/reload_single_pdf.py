@@ -103,37 +103,65 @@ class SinglePDFReloader:
     def extract_pdf_with_docling(self, pdf_path: str) -> List[Document]:
         """
         Extract PDF content using Docling (slow but table-aware).
+        Returns one Document per page to preserve table integrity.
 
         Args:
             pdf_path: Path to PDF file
 
         Returns:
-            List of LangChain Document objects with markdown content
+            List of LangChain Document objects (one per page)
         """
         try:
             # Convert PDF using Docling
             converter = DocumentConverter()
             result = converter.convert(pdf_path)
+            doc = result.document
 
-            # Export entire document to markdown
-            markdown_content = result.document.export_to_markdown()
+            # Get total pages
+            num_pages = doc.num_pages()
+            logger.info(f"  Docling extracted {num_pages} pages")
 
-            if not markdown_content.strip():
-                logger.warning(f"Empty markdown content for {pdf_path}")
-                return []
+            # Group all text items by page
+            page_texts = {i: [] for i in range(1, num_pages + 1)}
 
-            # Create a single document with full markdown
-            # The chunker will split it at natural boundaries (\n\n, \n, etc.)
-            doc = Document(
-                page_content=markdown_content,
-                metadata={
-                    'source': pdf_path,
-                    'format': 'markdown',
-                    'extractor': 'docling'
-                }
-            )
+            # Collect texts by page
+            for text_item in doc.texts:
+                if hasattr(text_item, 'prov') and text_item.prov:
+                    page_no = text_item.prov[0].page_no
+                    if page_no in page_texts:
+                        page_texts[page_no].append(text_item.text)
 
-            return [doc]
+            # Collect tables by page (important for preserving table structure)
+            for table_item in doc.tables:
+                if hasattr(table_item, 'prov') and table_item.prov:
+                    page_no = table_item.prov[0].page_no
+                    if page_no in page_texts:
+                        # Export table to markdown
+                        table_md = table_item.export_to_markdown()
+                        page_texts[page_no].append(table_md)
+
+            # Create one Document per page
+            documents = []
+            for page_no in range(1, num_pages + 1):
+                if not page_texts[page_no]:
+                    logger.debug(f"  Page {page_no} has no content, skipping")
+                    continue
+
+                page_content = '\n\n'.join(page_texts[page_no])
+
+                page_doc = Document(
+                    page_content=page_content,
+                    metadata={
+                        'source': pdf_path,
+                        'page': page_no - 1,  # 0-indexed for compatibility
+                        'format': 'markdown',
+                        'extractor': 'docling'
+                    }
+                )
+                documents.append(page_doc)
+
+            logger.info(f"  Created {len(documents)} page documents")
+            return documents
 
         except Exception as e:
             logger.error(f"Docling extraction failed for {pdf_path}: {e}")
@@ -232,8 +260,17 @@ class SinglePDFReloader:
                 page.page_content = clean_text(page.page_content)
 
             # Split into chunks
-            # Special case: Single-page PDFs are loaded as a single chunk to preserve table structure
-            if len(pages) == 1:
+            # Special cases for chunk splitting:
+            # 1. Docling PDFs: Already split by page, keep each page as one chunk (preserves tables)
+            # 2. Single-page PDFs: Keep as single chunk to preserve table structure
+            is_docling = pages and pages[0].metadata.get('extractor') == 'docling'
+
+            if is_docling:
+                chunks = pages  # Keep Docling pages as-is (one chunk per page)
+                total_chars = sum(len(doc.page_content) for doc in pages)
+                avg_chars = total_chars // len(pages) if pages else 0
+                logger.info(f"Docling PDF: {len(pages)} pages kept as {len(chunks)} chunks (~{avg_chars} chars/page)")
+            elif len(pages) == 1:
                 chunks = pages  # Don't split, use entire page as one chunk
                 page_chars = len(pages[0].page_content)
                 logger.info(f"Single-page PDF: loading as 1 chunk ({page_chars} characters)")

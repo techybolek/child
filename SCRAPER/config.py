@@ -72,7 +72,9 @@ EXCLUDED_PDF_FILENAMES = [
     'acf-218-qpr-ffy-2023-for-texas.pdf',
     'child-care-teacher-desk-aid-march-2023-twc.pdf',
     'texas-pcqc-user-guide-2023.pdf',
-    'child-care-provider-desk-aid-twc.pdf'
+    'child-care-provider-desk-aid-twc.pdf',
+    'trs-parent-brochure-vie.pdf',
+    'trs-parent-brochure-spa.pdf',
 ]
 
 # ===== CONTENT PROCESSING =====

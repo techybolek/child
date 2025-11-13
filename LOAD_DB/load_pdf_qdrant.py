@@ -241,37 +241,67 @@ class PDFToQdrantLoader:
     def extract_pdf_with_docling(self, pdf_path: str) -> List[Document]:
         """
         Extract PDF content using Docling (slow but table-aware).
+        Returns one Document per page to preserve table integrity.
 
         Args:
             pdf_path: Path to PDF file
 
         Returns:
-            List of LangChain Document objects with markdown content
+            List of LangChain Document objects (one per page) with markdown content
         """
         try:
             # Convert PDF using Docling
             converter = DocumentConverter()
             result = converter.convert(pdf_path)
+            doc = result.document
 
-            # Export entire document to markdown
-            markdown_content = result.document.export_to_markdown()
+            # Get total pages
+            num_pages = doc.num_pages()
+            logger.info(f"  Docling extracted {num_pages} pages")
 
-            if not markdown_content.strip():
-                logger.warning(f"Empty markdown content for {pdf_path}")
-                return []
+            # Use simpler approach: Access text items directly and group by page
+            documents = []
 
-            # Create a single document with full markdown
-            # The chunker will split it at natural boundaries (\n\n, \n, etc.)
-            doc = Document(
-                page_content=markdown_content,
-                metadata={
-                    'source': pdf_path,
-                    'format': 'markdown',
-                    'extractor': 'docling'
-                }
-            )
+            # Group all text items by page
+            page_texts = {i: [] for i in range(1, num_pages + 1)}
 
-            return [doc]
+            # Collect texts by page
+            for text_item in doc.texts:
+                if hasattr(text_item, 'prov') and text_item.prov:
+                    page_no = text_item.prov[0].page_no
+                    if page_no in page_texts:
+                        page_texts[page_no].append(text_item.text)
+
+            # Collect tables by page (important for preserving table structure)
+            for table_item in doc.tables:
+                if hasattr(table_item, 'prov') and table_item.prov:
+                    page_no = table_item.prov[0].page_no
+                    if page_no in page_texts:
+                        # Export table to markdown
+                        table_md = table_item.export_to_markdown()
+                        page_texts[page_no].append(table_md)
+
+            # Create one Document per page
+            for page_no in range(1, num_pages + 1):
+                if not page_texts[page_no]:
+                    logger.debug(f"  Page {page_no} has no content, skipping")
+                    continue
+
+                page_content = '\n\n'.join(page_texts[page_no])
+
+                page_doc = Document(
+                    page_content=page_content,
+                    metadata={
+                        'source': pdf_path,
+                        'page': page_no - 1,  # 0-indexed for compatibility
+                        'format': 'markdown',
+                        'extractor': 'docling'
+                    }
+                )
+                documents.append(page_doc)
+
+            logger.info(f"  Created {len(documents)} page documents")
+            return documents
 
         except Exception as e:
             logger.error(f"Docling extraction failed for {pdf_path}: {e}")
@@ -335,8 +365,17 @@ class PDFToQdrantLoader:
                 })
 
         # Split documents into chunks
-        # Special case: Single-page PDFs are loaded as a single chunk to preserve table structure
-        if len(documents) == 1:
+        # Special cases for chunk splitting:
+        # 1. Docling PDFs: Already split by page, keep each page as one chunk (preserves tables)
+        # 2. Single-page PDFs: Keep as single chunk to preserve table structure
+        is_docling = documents and documents[0].metadata.get('extractor') == 'docling'
+
+        if is_docling:
+            chunked_docs = documents  # Keep Docling pages as-is (one chunk per page)
+            total_chars = sum(len(doc.page_content) for doc in documents)
+            avg_chars = total_chars // len(documents) if documents else 0
+            logger.info(f"  Docling PDF: {len(documents)} pages kept as {len(chunked_docs)} chunks (~{avg_chars} chars/page)")
+        elif len(documents) == 1:
             chunked_docs = documents  # Don't split, use entire page as one chunk
             page_chars = len(documents[0].page_content)
             logger.info(f"  Single-page PDF: loading as 1 chunk ({page_chars} characters)")

@@ -2,6 +2,11 @@
 """
 Create payload indexes on Qdrant collections for efficient filtering.
 
+Creates indexes on three fields:
+- filename (KEYWORD): Filter by PDF filename
+- chunk_index (INTEGER): Filter by chunk position within document
+- page (INTEGER): Filter by page number
+
 Usage:
     python create_payload_index.py              # Index contextual collection (default)
     python create_payload_index.py --collection tro-child-1  # Index original collection
@@ -35,13 +40,18 @@ logger = logging.getLogger(__name__)
 
 def create_payload_index(collection_name: str) -> bool:
     """
-    Create a payload index on the 'filename' field for efficient filtering.
+    Create payload indexes on multiple fields for efficient filtering.
+
+    Creates indexes on:
+    - filename (KEYWORD): Filter by PDF filename
+    - chunk_index (INTEGER): Filter by chunk position within document
+    - page (INTEGER): Filter by page number
 
     Args:
         collection_name: Name of the Qdrant collection
 
     Returns:
-        True if successful, False otherwise
+        True if all indexes created successfully, False otherwise
     """
     try:
         # Initialize Qdrant client
@@ -66,22 +76,49 @@ def create_payload_index(collection_name: str) -> bool:
 
         logger.info(f"Found collection '{collection_name}'")
 
-        # Get collection info before creating index
+        # Get collection info before creating indexes
         collection_info = client.get_collection(collection_name)
         logger.info(f"Collection has {collection_info.points_count} points")
 
-        # Create payload index on filename field
-        logger.info("Creating payload index on 'filename' field...")
-        client.create_payload_index(
-            collection_name=collection_name,
-            field_name='filename',
-            field_schema=PayloadSchemaType.KEYWORD
-        )
-        logger.info(f"✓ Payload index created successfully on '{collection_name}' collection")
-        return True
+        # Define indexes to create
+        indexes_to_create = [
+            ('filename', PayloadSchemaType.KEYWORD),
+            ('chunk_index', PayloadSchemaType.INTEGER),
+            ('page', PayloadSchemaType.INTEGER),
+        ]
+
+        # Create each index with individual error handling
+        success_count = 0
+        failed_indexes = []
+
+        for field_name, field_type in indexes_to_create:
+            try:
+                logger.info(f"Creating index on '{field_name}' ({field_type.value})...")
+                client.create_payload_index(
+                    collection_name=collection_name,
+                    field_name=field_name,
+                    field_schema=field_type
+                )
+                logger.info(f"✓ Index created: {field_name}")
+                success_count += 1
+            except Exception as e:
+                logger.warning(f"✗ Failed to create index on '{field_name}': {e}")
+                failed_indexes.append(field_name)
+
+        # Report results
+        if success_count == len(indexes_to_create):
+            logger.info(f"✓ All {success_count} payload indexes created successfully")
+            return True
+        elif success_count > 0:
+            logger.warning(f"Partial success: {success_count}/{len(indexes_to_create)} indexes created")
+            logger.warning(f"Failed indexes: {failed_indexes}")
+            return False
+        else:
+            logger.error("Failed to create any indexes")
+            return False
 
     except Exception as e:
-        logger.error(f"Error creating payload index: {e}")
+        logger.error(f"Error creating payload indexes: {e}")
         return False
 
 
@@ -99,8 +136,8 @@ def main():
 
     args = parser.parse_args()
 
-    logger.info(f"Creating payload index on collection: {args.collection}")
-    logger.info(f"Index field: 'filename' (type: KEYWORD)")
+    logger.info(f"Creating payload indexes on collection: {args.collection}")
+    logger.info(f"Index fields: filename (KEYWORD), chunk_index (INTEGER), page (INTEGER)")
 
     success = create_payload_index(args.collection)
 

@@ -42,6 +42,7 @@ UPLOAD_BATCH_SIZE = 100        # Vectors to upload per batch
 TABLE_PDFS = [
     'bcy-26-income-eligibility-and-maximum-psoc-twc.pdf',
     'bcy-26-psoc-chart-twc.pdf',
+    'evaluation-of-the-effectiveness-of-child-care-report-to-86th-legislature-2019-twc.pdf',
 ]
 
 # ===== CONTEXTUAL RETRIEVAL SETTINGS =====

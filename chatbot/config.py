@@ -23,7 +23,7 @@ LLM_PROVIDER = os.getenv('LLM_PROVIDER', 'groq')  # 'groq' or 'openai'
 LLM_MODEL = 'openai/gpt-oss-20b' if LLM_PROVIDER == 'groq' else 'gpt-4o-mini'
 TEMPERATURE = 0
 SEED = 42
-MAX_TOKENS = 1000
+MAX_TOKENS = 2000
 
 # Reranker settings
 RERANKER_PROVIDER = os.getenv('RERANKER_PROVIDER', 'groq')  # 'groq' or 'openai'
