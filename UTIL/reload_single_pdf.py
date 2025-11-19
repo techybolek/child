@@ -105,6 +105,10 @@ class SinglePDFReloader:
         """
         Detect and fix rotated table columns.
 
+        Handles two patterns:
+        1. All rows rotated (Year col has %, last col has years)
+        2. Last row only scrambled (e.g., "58.81% | 2022 | 88.45%")
+
         Args:
             df: pandas DataFrame
 
@@ -114,14 +118,15 @@ class SinglePDFReloader:
         import pandas as pd
         import re
 
-        if len(df.columns) < 2:
+        if len(df.columns) < 2 or len(df) == 0:
             return df, False
 
+        was_fixed = False
         last_col = df.iloc[:, -1].astype(str)
         first_col = df.iloc[:, 0].astype(str)
         first_col_name = df.columns[0]
 
-        # Pattern: years in last column (2012-2020)
+        # Pattern 1: Global rotation - years in last column, percentages in first
         year_pattern = r'\b(19|20)\d{2}\b'
         has_years_in_last = last_col.str.contains(year_pattern, na=False, regex=True).sum() >= 2
         has_percentages_in_first = first_col.str.contains('%', na=False, regex=False).sum() >= 2
@@ -131,9 +136,66 @@ class SinglePDFReloader:
             cols = df.columns.tolist()
             df = df[[cols[-1]] + cols[:-1]]
             df.columns = cols
-            return df, True
+            was_fixed = True
 
-        return df, False
+            # Refresh column references after rotation
+            first_col = df.iloc[:, 0].astype(str)
+
+        # Pattern 2: Fix last row if it has percentage in Year column
+        if len(df) > 1 and 'year' in first_col_name.lower():
+            last_row_first_val = str(df.iloc[-1, 0])
+
+            # Check if last row Year column starts with percentage
+            if '%' in last_row_first_val and not re.match(year_pattern, last_row_first_val):
+                # Extract year and values from the row
+                row_vals = df.iloc[-1].tolist()
+
+                # Look for a year value somewhere in the row
+                year_val = None
+                year_idx = None
+                for idx, val in enumerate(row_vals):
+                    val_str = str(val)
+                    year_match = re.search(year_pattern, val_str)
+                    if year_match:
+                        year_val = year_match.group(0)
+                        year_idx = idx
+                        break
+
+                if year_val and year_idx is not None:
+                    # Rotate the last row values
+                    new_row_vals = row_vals.copy()
+
+                    if year_idx == len(row_vals) - 1:
+                        # Year is in last column - rotate all columns right by 1
+                        new_row_vals = [row_vals[-1]] + row_vals[:-1]
+                    elif year_idx == 1:
+                        # Year is in middle column - check if it's a left rotation issue
+                        # Pattern: "58.81% | 2022 | 88.45%" should be "2022 | 88.45% | 58.81%"
+                        new_row_vals = [year_val] + row_vals[2:] + [row_vals[0]]
+
+                    # Apply the fix
+                    df.iloc[-1] = new_row_vals
+                    was_fixed = True
+
+        # Pattern 3: Fix combined values (like "2016 84.55%") in Year column
+        if 'year' in first_col_name.lower():
+            for idx, val in enumerate(df.iloc[:, 0]):
+                val_str = str(val)
+                # Check for pattern: year followed by percentage
+                combined_match = re.match(r'(\d{4})\s+([\d.]+%)', val_str)
+                if combined_match:
+                    year = combined_match.group(1)
+                    pct = combined_match.group(2)
+
+                    # Extract the year, shift other columns
+                    row_vals = df.iloc[idx].tolist()
+
+                    # Shift values: Year gets just the year, other cols shift right
+                    new_row_vals = [year, pct] + row_vals[1:-1]
+                    df.iloc[idx] = new_row_vals[:len(row_vals)]
+                    was_fixed = True
+
+        return df, was_fixed
 
     def create_chunks_from_items(self, items: List[dict], page_no: int, pdf_path: str) -> List[Document]:
         """
