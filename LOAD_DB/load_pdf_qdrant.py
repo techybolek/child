@@ -731,7 +731,7 @@ class PDFToQdrantLoader:
 
                     # Build enriched text for embedding ONLY
                     # This improves embedding relevance but isn't stored in page_content
-                    enriched_for_embedding = f"{MASTER_CONTEXT}\n\n{document_context}"
+                    enriched_for_embedding = f"{document_context}"
                     if doc.metadata.get('chunk_context'):
                         enriched_for_embedding += f"\n\n{doc.metadata['chunk_context']}"
                     enriched_for_embedding += f"\n\n{original_contents[i]}"

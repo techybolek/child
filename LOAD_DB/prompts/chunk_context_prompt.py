@@ -48,6 +48,6 @@ PREVIOUS CHUNK TEXT (last 200 chars):
 
 ---
 
-Give a short succinct context to situate this chunk within the overall document for the purposes of improving search retrieval. Answer only with the succinct context and nothing else."""
+Give a short succinct context to situate this chunk within the overall document for the purposes of improving search retrieval. Explicitly identify the primary actor/agency (e.g., TWC, HHSC, Board, provider, contractor) performing any actions described. Answer only with the succinct context and nothing else."""
 
     return prompt
