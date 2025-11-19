@@ -175,8 +175,60 @@ Scraper-specific settings:
 Vector database-specific settings:
 - **Qdrant settings:** Collection name, API URL/key
 - **Embeddings:** OpenAI embedding model and dimensions
-- **Chunking:** Character-based chunk size and overlap (for vector DB)
+- **Chunking:** Two strategies based on PDF type (see Item-Level Chunking below)
 - **Batch processing:** Upload batch sizes
+
+### Item-Level Chunking for Table PDFs
+
+**Two-Strategy Chunking System**:
+
+**PyMuPDF PDFs** (standard documents):
+- Uses `RecursiveCharacterTextSplitter` from LangChain
+- Chunk size: 1000 characters with 200-char overlap (20%)
+- Arbitrary character boundaries
+- Overlap preserves context across splits
+
+**Docling PDFs** (documents with tables, configured in `config.TABLE_PDFS`):
+- Uses item-level chunking (semantic units)
+- **No overlap** - relies on semantic boundaries
+- Tables: One chunk per table (markdown format)
+- Narrative: Accumulates until ~1000 chars, chunks at natural breaks
+- Reading order preserved via y-position sorting
+- Small chunks (<300 chars) merged with previous chunk
+
+**Key Differences**:
+| Aspect | PyMuPDF | Docling |
+|--------|---------|---------|
+| **Boundaries** | Character count (arbitrary) | Semantic units (natural) |
+| **Overlap** | 200 chars | None |
+| **Tables** | Mixed with text | Separated, markdown format |
+| **Reading Order** | Sequential pages | Inline tables preserved |
+
+**Configuration** (`LOAD_DB/config.py`):
+```python
+# PDFs requiring Docling extraction (tables + structure)
+TABLE_PDFS = [
+    'bcy-26-income-eligibility-and-maximum-psoc-twc.pdf',
+    'evaluation-effectiveness-child-care-program-84-legislature-twc.pdf',
+    # ... 9 more PDFs with complex tables
+]
+
+# Standard chunking settings (for PyMuPDF)
+CHUNK_SIZE = 1000       # Characters per chunk
+CHUNK_OVERLAP = 200     # Overlap between chunks
+
+# Item-level chunking (for Docling) - hardcoded in create_chunks_from_items()
+NARRATIVE_THRESHOLD = 1000  # Target chars for narrative chunks
+NARRATIVE_MIN = 300         # Minimum chunk size before merging
+```
+
+**Results** (tested on 17-page evaluation PDF):
+- 43 chunks (9 tables, 34 narrative)
+- Tables inline with narrative (reading order preserved)
+- 95.3% of chunks ≥300 chars
+- Average chunk size: 1133 chars
+
+See `SPECS/item_level_chunking_results.md` for full details.
 
 ### Chatbot Configuration (chatbot/config.py)
 

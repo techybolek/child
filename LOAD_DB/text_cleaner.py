@@ -76,6 +76,45 @@ def compress_whitespace(text: str) -> str:
     return text
 
 
+
+def remove_common_footers(text: str) -> str:
+    """
+    Remove common footer patterns from Texas childcare documents.
+    
+    Removes footers like:
+    - "Evaluation of the Effectiveness of Subsidized Child Care Report - 86 th Texas Legislature"
+    - "Report to 87th Texas Legislature"
+    - Agency names (TWC, HHSC, DFPS) at end of lines
+    
+    Args:
+        text: Text potentially containing footer lines
+        
+    Returns:
+        Text with footer patterns removed
+    """
+    # Pattern 1: "Report - Nth Legislature" footers
+    # Matches variations like "86 th", "87th", "88th" etc.
+    text = re.sub(
+        r'.*Report\s*-\s*\d+\s*(st|nd|rd|th)?\s*Texas Legislature\s*',
+        '',
+        text,
+        flags=re.IGNORECASE
+    )
+    
+    # Pattern 2: Full evaluation report footer
+    text = re.sub(
+        r'Evaluation of the Effectiveness of Subsidized Child Care Report.*Legislature\s*',
+        '',
+        text,
+        flags=re.IGNORECASE
+    )
+    
+    # Pattern 3: Standalone agency abbreviations at end of lines
+    # Only remove if they appear at the end of a line (not in content)
+    text = re.sub(r'\n\s*(TWC|HHSC|DFPS)\s*$', '', text, flags=re.MULTILINE)
+    
+    return text
+
 def clean_text(text: str) -> str:
     """
     Apply all cleaning transformations.
@@ -88,6 +127,9 @@ def clean_text(text: str) -> str:
     """
     # Remove page numbers first
     text = clean_page_numbers(text)
+    
+    # Remove footers
+    text = remove_common_footers(text)
 
     # Compress whitespace
     text = compress_whitespace(text)
@@ -177,6 +219,39 @@ def is_likely_data_table(text: str) -> bool:
             return True
 
     return False
+
+
+def is_markdown_table(text: str) -> bool:
+    """
+    Detect if page contains markdown tables from Docling extraction.
+
+    Docling converts PDF tables to markdown format with pipes and separators.
+    Example:
+        | Column 1 | Column 2 |
+        |----------|----------|
+        | Data 1   | Data 2   |
+
+    Args:
+        text: Page content to evaluate
+
+    Returns:
+        True if contains markdown table structure, False otherwise
+    """
+    if not text or not text.strip():
+        return False
+
+    lines = text.split('\n')
+
+    # Pattern 1: Markdown table separator (|---|---|)
+    separator_pattern = r'\|\s*[-:]+\s*\|'
+    separators = sum(1 for line in lines if re.match(separator_pattern, line.strip()))
+
+    # Pattern 2: Table rows (| data | data |)
+    row_pattern = r'\|[^|]+\|[^|]+\|'
+    rows = sum(1 for line in lines if re.match(row_pattern, line.strip()))
+
+    # Must have at least 1 separator and 3+ data rows to be considered a table
+    return separators >= 1 and rows >= 3
 
 
 def is_likely_toc(text: str, min_length: int = 200) -> bool:

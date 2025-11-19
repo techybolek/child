@@ -1,7 +1,9 @@
+import re
 from openai import OpenAI
 from groq import Groq
 from . import config
 from .prompts import RESPONSE_GENERATION_PROMPT
+from .prompts.abbreviations import ABBREVIATIONS
 
 
 class ResponseGenerator:
@@ -82,13 +84,22 @@ class ResponseGenerator:
         """Format chunks with citation markers and injected contexts"""
         parts = []
         master_context_injected = False
+        abbreviations_injected = False
         last_filename = None
+
+        # Detect abbreviations once
+        abbreviations_glossary = self._detect_abbreviations(chunks)
 
         for i, chunk in enumerate(chunks, 1):
             # Inject master context once at the beginning
             if not master_context_injected and chunk.get('master_context'):
                 parts.append(f"[System Context]\n{chunk['master_context']}\n")
                 master_context_injected = True
+
+            # Inject abbreviations after master context
+            if master_context_injected and not abbreviations_injected and abbreviations_glossary:
+                parts.append(f"[Abbreviations]\n{abbreviations_glossary}\n")
+                abbreviations_injected = True
 
             # Inject document context when switching to a new document
             if chunk['filename'] != last_filename and chunk.get('document_context'):
@@ -104,3 +115,28 @@ class ResponseGenerator:
             parts.append(chunk_entry)
 
         return "\n".join(parts)
+
+    def _detect_abbreviations(self, chunks: list):
+        """Detect abbreviations in chunks and return glossary"""
+        detected = set()
+
+        # Combine all text from chunks
+        combined_text = " ".join([
+            chunk.get('text', '') + " " +
+            chunk.get('chunk_context', '') + " " +
+            chunk.get('document_context', '')
+            for chunk in chunks
+        ])
+
+        # Find abbreviations that appear in the text
+        for abbr in ABBREVIATIONS.keys():
+            # Match whole word abbreviations (word boundaries)
+            if re.search(r'\b' + re.escape(abbr) + r'\b', combined_text):
+                detected.add(abbr)
+
+        # Build glossary if abbreviations detected
+        if detected:
+            glossary_lines = [f"- {abbr}: {ABBREVIATIONS[abbr]}" for abbr in sorted(detected)]
+            return "\n".join(glossary_lines)
+
+        return None
