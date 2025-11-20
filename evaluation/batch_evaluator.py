@@ -8,7 +8,7 @@ from . import config
 
 
 class BatchEvaluator:
-    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, investigate_mode=False, retrieval_top_k=None, clear_checkpoint=False):
+    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, investigate_mode=False, retrieval_top_k=None, clear_checkpoint=False, capture_on_error=False):
         self.evaluator = ChatbotEvaluator(collection_name=collection_name, retrieval_top_k=retrieval_top_k)
         self.judge = LLMJudge()
         self.resume = resume
@@ -17,6 +17,7 @@ class BatchEvaluator:
         self.investigate_mode = investigate_mode
         self.retrieval_top_k = retrieval_top_k
         self.clear_checkpoint = clear_checkpoint
+        self.capture_on_error = capture_on_error
 
     def evaluate_all(self, limit: int = None):
         """Evaluate all Q&A pairs"""
@@ -59,7 +60,7 @@ class BatchEvaluator:
                 results = checkpoint_data['results']
                 stats = checkpoint_data['stats']
 
-                # Build set of processed questions to skip
+                # Build set of processed questions to skip (including failed/skipped ones)
                 processed = {(r['source_file'], r['question_num']) for r in results}
                 qa_pairs = [qa for qa in qa_pairs if (qa['source_file'], qa['question_num']) not in processed]
 
@@ -249,7 +250,31 @@ class BatchEvaluator:
             )
             print(f"\n💾 Complete debug info saved to: {debug_path}")
 
-        # Save checkpoint before stopping (failed question NOT included - will be re-evaluated on resume)
+        # If capture_on_error is enabled, add failed question to checkpoint with special markers
+        if self.capture_on_error:
+            failed_result = {
+                'source_file': qa['source_file'],
+                'question_num': qa['question_num'],
+                'question': qa['question'],
+                'expected_answer': qa['expected_answer'],
+                'chatbot_answer': chatbot_response['answer'],
+                'sources': chatbot_response['sources'],
+                'response_type': chatbot_response['response_type'],
+                'response_time': chatbot_response['response_time'],
+                'scores': scores,
+                'status': 'failed',
+                'skipped': True
+            }
+            results.append(failed_result)
+            stats['processed'] += 1
+            stats['failed'] += 1
+            stats['total_response_time'] += chatbot_response['response_time']
+            print(f"\n⚠️  Failed question captured in checkpoint with status='failed' and skipped=True")
+            print(f"   Use --resume to skip this question and continue evaluation")
+
+        # Save checkpoint before stopping
+        # If capture_on_error: includes failed question (will be skipped on resume)
+        # If not: excludes failed question (will be re-evaluated on resume)
         self._save_checkpoint(results, stats)
 
         raise SystemExit(f"Evaluation stopped due to low score ({scores['composite_score']:.1f} < {config.STOP_ON_FAIL_THRESHOLD})")

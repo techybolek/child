@@ -96,13 +96,29 @@ class RAGHandler(BaseHandler):
 
         # Step 2: Rerank
         if self.reranker:
+            # Use adaptive mode from config
+            adaptive_mode = getattr(config, 'RERANK_ADAPTIVE_MODE', False)
+
             if debug:
-                reranked_chunks, reranker_debug = self.reranker.rerank(query, retrieved_chunks, top_k=config.RERANK_TOP_K, debug=True)
+                reranked_chunks, reranker_debug = self.reranker.rerank(
+                    query, retrieved_chunks,
+                    top_k=config.RERANK_TOP_K,
+                    adaptive=adaptive_mode,
+                    debug=True
+                )
                 debug_data['reranker_scores'] = reranker_debug.get('raw_scores', {})
                 debug_data['reranker_prompt'] = reranker_debug.get('reranker_prompt', '')
                 debug_data['reranker_reasoning'] = reranker_debug.get('reranker_reasoning', 'No reasoning captured')
+
+                # Add adaptive selection info if available
+                if 'adaptive_selection' in reranker_debug:
+                    debug_data['adaptive_selection'] = reranker_debug['adaptive_selection']
             else:
-                reranked_chunks = self.reranker.rerank(query, retrieved_chunks, top_k=config.RERANK_TOP_K)
+                reranked_chunks = self.reranker.rerank(
+                    query, retrieved_chunks,
+                    top_k=config.RERANK_TOP_K,
+                    adaptive=adaptive_mode
+                )
         else:
             reranked_chunks = retrieved_chunks[:config.RERANK_TOP_K]
 

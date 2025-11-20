@@ -27,6 +27,7 @@ def main():
     parser.add_argument('--investigate', action='store_true', help='Investigation mode: re-evaluate same question repeatedly (implies --resume --resume-limit 1 --debug, never updates checkpoint)')
     parser.add_argument('--retrieval-top-k', type=int, help='Override number of chunks to retrieve (default: from config)')
     parser.add_argument('--clear-checkpoint', action='store_true', help='Delete checkpoint after successful completion (default: keep)')
+    parser.add_argument('--capture-on-error', action='store_true', help='Save failed questions to checkpoint with "failed" status (allows --resume to skip them)')
     args = parser.parse_args()
 
     # Handle investigate mode - automatically set resume, resume_limit, and debug
@@ -52,7 +53,8 @@ def main():
         debug=args.debug,
         investigate_mode=args.investigate,
         retrieval_top_k=args.retrieval_top_k,
-        clear_checkpoint=args.clear_checkpoint
+        clear_checkpoint=args.clear_checkpoint,
+        capture_on_error=args.capture_on_error
     )
     reporter = Reporter()
 

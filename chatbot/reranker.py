@@ -3,6 +3,7 @@ from groq import Groq
 import json
 from . import config
 from .prompts import RERANKING_PROMPT
+from .reranker_adaptive import AdaptiveReranker
 
 
 class LLMJudgeReranker:
@@ -23,9 +24,25 @@ class LLMJudgeReranker:
         else:
             self.client = OpenAI(api_key=api_key)
 
-    def rerank(self, query: str, chunks: list, top_k: int = 7, debug: bool = False):
-        """Rerank using LLM relevance scoring"""
+    def rerank(self, query: str, chunks: list, top_k: int = 7, adaptive: bool = None, debug: bool = False):
+        """
+        Rerank using LLM relevance scoring
+
+        Args:
+            query: User query
+            chunks: List of retrieved chunks
+            top_k: Maximum number of chunks to return (used when adaptive=False)
+            adaptive: Whether to use adaptive selection (defaults to config.RERANK_ADAPTIVE_MODE)
+            debug: Whether to include debug information
+
+        Returns:
+            Reranked chunks (and debug_info if debug=True)
+        """
         debug_info = {}
+
+        # Use config default if adaptive not specified
+        if adaptive is None:
+            adaptive = getattr(config, 'RERANK_ADAPTIVE_MODE', False)
 
         # Build prompt with full context information
         chunks_text_parts = []
@@ -127,9 +144,41 @@ class LLMJudgeReranker:
         for i, chunk in enumerate(chunks):
             chunk['final_score'] = scores.get(f"chunk_{i}", 0) / 10.0
 
-        # Sort and return top_k (use sorted() to avoid mutating original list)
-        sorted_chunks = sorted(chunks, key=lambda c: c['final_score'], reverse=True)
+        # Apply adaptive selection or traditional top-k
+        if adaptive:
+            print(f"[Reranker] Using adaptive selection (enabled)")
+
+            # Initialize adaptive reranker with config
+            adaptive_config = {
+                'min_score': getattr(config, 'RERANK_MIN_SCORE', 0.60),
+                'min_top_k': getattr(config, 'RERANK_MIN_TOP_K', 5),
+                'max_top_k': getattr(config, 'RERANK_MAX_TOP_K', 12),
+                'preferred_top_k': getattr(config, 'RERANK_PREFERRED_TOP_K', 7),
+                'enumeration_patterns': getattr(config, 'ENUMERATION_PATTERNS', []),
+                'single_fact_patterns': getattr(config, 'SINGLE_FACT_PATTERNS', [])
+            }
+
+            adaptive_reranker = AdaptiveReranker(adaptive_config)
+            result_chunks = adaptive_reranker.adaptive_select(chunks, query)
+
+            if debug:
+                debug_info['adaptive_selection'] = {
+                    'chunks_selected': len(result_chunks),
+                    'score_range': f"{result_chunks[0]['final_score']:.2f} - {result_chunks[-1]['final_score']:.2f}" if result_chunks else "N/A"
+                }
+        else:
+            print(f"[Reranker] Using traditional top-k selection (k={top_k})")
+
+            # Sort and return top_k (use sorted() to avoid mutating original list)
+            sorted_chunks = sorted(chunks, key=lambda c: c['final_score'], reverse=True)
+            result_chunks = sorted_chunks[:top_k]
+
+            if debug:
+                debug_info['traditional_selection'] = {
+                    'chunks_selected': len(result_chunks),
+                    'top_k': top_k
+                }
 
         if debug:
-            return sorted_chunks[:top_k], debug_info
-        return sorted_chunks[:top_k]
+            return result_chunks, debug_info
+        return result_chunks
