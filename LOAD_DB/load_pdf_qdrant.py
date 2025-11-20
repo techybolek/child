@@ -28,6 +28,14 @@ import config
 from contextual_processor import ContextualChunkProcessor
 from prompts import MASTER_CONTEXT
 from text_cleaner import clean_text, is_likely_toc, is_markdown_table
+from extractors import get_extractor
+from shared import (
+    clean_documents,
+    filter_toc_chunks,
+    add_chunk_metadata,
+    enrich_metadata,
+    upload_with_embeddings
+)
 
 
 def ensure_directories():
@@ -225,363 +233,6 @@ class PDFToQdrantLoader:
 
         return None
 
-    def extract_pdf_with_pymupdf(self, pdf_path: str) -> List[Document]:
-        """
-        Extract PDF content using PyMuPDF (fast, standard text extraction).
-
-        Args:
-            pdf_path: Path to PDF file
-
-        Returns:
-            List of LangChain Document objects (one per page)
-        """
-        loader = PyMuPDFLoader(pdf_path)
-        documents = loader.load()
-        return documents
-
-    def fix_rotated_columns(self, df) -> tuple:
-        """
-        Detect and fix rotated table columns.
-
-        Handles two patterns:
-        1. All rows rotated (Year col has %, last col has years)
-        2. Last row only scrambled (e.g., "58.81% | 2022 | 88.45%")
-
-        Args:
-            df: pandas DataFrame
-
-        Returns:
-            Tuple of (fixed_df, was_fixed_bool)
-        """
-        import pandas as pd
-        import re
-
-        if len(df.columns) < 2 or len(df) == 0:
-            return df, False
-
-        was_fixed = False
-        last_col = df.iloc[:, -1].astype(str)
-        first_col = df.iloc[:, 0].astype(str)
-        first_col_name = df.columns[0]
-
-        # Pattern 1: Global rotation - years in last column, percentages in first
-        year_pattern = r'\b(19|20)\d{2}\b'
-        has_years_in_last = last_col.str.contains(year_pattern, na=False, regex=True).sum() >= 2
-        has_percentages_in_first = first_col.str.contains('%', na=False, regex=False).sum() >= 2
-
-        if has_years_in_last and has_percentages_in_first and 'year' in first_col_name.lower():
-            # Rotate columns: move last column to first
-            cols = df.columns.tolist()
-            df = df[[cols[-1]] + cols[:-1]]
-            df.columns = cols
-            was_fixed = True
-
-            # Refresh column references after rotation
-            first_col = df.iloc[:, 0].astype(str)
-
-        # Pattern 2: Fix last row if it has percentage in Year column
-        if len(df) > 1 and 'year' in first_col_name.lower():
-            last_row_first_val = str(df.iloc[-1, 0])
-
-            # Check if last row Year column starts with percentage
-            if '%' in last_row_first_val and not re.match(year_pattern, last_row_first_val):
-                # Extract year and values from the row
-                row_vals = df.iloc[-1].tolist()
-
-                # Look for a year value somewhere in the row
-                year_val = None
-                year_idx = None
-                for idx, val in enumerate(row_vals):
-                    val_str = str(val)
-                    year_match = re.search(year_pattern, val_str)
-                    if year_match:
-                        year_val = year_match.group(0)
-                        year_idx = idx
-                        break
-
-                if year_val and year_idx is not None:
-                    # Rotate the last row values
-                    new_row_vals = row_vals.copy()
-
-                    if year_idx == len(row_vals) - 1:
-                        # Year is in last column - rotate all columns right by 1
-                        new_row_vals = [row_vals[-1]] + row_vals[:-1]
-                    elif year_idx == 1:
-                        # Year is in middle column - check if it's a left rotation issue
-                        # Pattern: "58.81% | 2022 | 88.45%" should be "2022 | 88.45% | 58.81%"
-                        new_row_vals = [year_val] + row_vals[2:] + [row_vals[0]]
-
-                    # Apply the fix
-                    df.iloc[-1] = new_row_vals
-                    was_fixed = True
-
-        # Pattern 3: Fix combined values (like "2016 84.55%") in Year column
-        if 'year' in first_col_name.lower():
-            for idx, val in enumerate(df.iloc[:, 0]):
-                val_str = str(val)
-                # Check for pattern: year followed by percentage
-                combined_match = re.match(r'(\d{4})\s+([\d.]+%)', val_str)
-                if combined_match:
-                    year = combined_match.group(1)
-                    pct = combined_match.group(2)
-
-                    # Extract the year, shift other columns
-                    row_vals = df.iloc[idx].tolist()
-
-                    # Shift values: Year gets just the year, other cols shift right
-                    new_row_vals = [year, pct] + row_vals[1:-1]
-                    df.iloc[idx] = new_row_vals[:len(row_vals)]
-                    was_fixed = True
-
-        return df, was_fixed
-
-    def create_chunks_from_items(self, items: List[Dict], page_no: int, pdf_path: str) -> List[Document]:
-        """
-        Create chunks from items, grouping narrative and separating tables.
-
-        Strategy:
-        - Tables: One chunk per table
-        - Narrative: Accumulate until ~1000 chars, then chunk
-        - Preserve reading order
-
-        Args:
-            items: List of item dictionaries with 'type' and 'content' keys
-            page_no: Page number (1-indexed)
-            pdf_path: Path to PDF file
-
-        Returns:
-            List of Document chunks
-        """
-        chunks = []
-        narrative_buffer = []
-        narrative_chars = 0
-
-        NARRATIVE_THRESHOLD = 1000
-        NARRATIVE_MIN = 300  # Don't create tiny chunks
-
-        for item in items:
-            if item['type'] == 'table':
-                # Flush narrative buffer first
-                if narrative_buffer and narrative_chars >= NARRATIVE_MIN:
-                    chunk_text = '\n\n'.join(narrative_buffer)
-                    chunks.append(Document(
-                        page_content=chunk_text,
-                        metadata={
-                            'source': pdf_path,
-                            'page': page_no - 1,  # 0-indexed for compatibility
-                            'format': 'markdown',
-                            'extractor': 'docling',
-                            'chunk_type': 'narrative'
-                        }
-                    ))
-                    narrative_buffer = []
-                    narrative_chars = 0
-
-                # Create table chunk
-                chunks.append(Document(
-                    page_content=item['content'],
-                    metadata={
-                        'source': pdf_path,
-                        'page': page_no - 1,  # 0-indexed for compatibility
-                        'format': 'markdown',
-                        'extractor': 'docling',
-                        'chunk_type': 'table'
-                    }
-                ))
-
-            elif item['type'] == 'text':
-                text = item['content']
-                item_size = len(text)
-
-                # Case 1: Single item exceeds threshold - split it
-                if item_size > NARRATIVE_THRESHOLD:
-                    # Flush current buffer first
-                    if narrative_buffer and narrative_chars >= NARRATIVE_MIN:
-                        chunk_text = '\n\n'.join(narrative_buffer)
-                        chunks.append(Document(
-                            page_content=chunk_text,
-                            metadata={
-                                'source': pdf_path,
-                                'page': page_no - 1,
-                                'format': 'markdown',
-                                'extractor': 'docling',
-                                'chunk_type': 'narrative'
-                            }
-                        ))
-                        narrative_buffer = []
-                        narrative_chars = 0
-
-                    # Split large narrative item using RecursiveCharacterTextSplitter
-                    sub_chunks = self.text_splitter.split_text(text)
-                    for sub_chunk in sub_chunks:
-                        chunks.append(Document(
-                            page_content=sub_chunk,
-                            metadata={
-                                'source': pdf_path,
-                                'page': page_no - 1,
-                                'format': 'markdown',
-                                'extractor': 'docling',
-                                'chunk_type': 'narrative'
-                            }
-                        ))
-
-                # Case 2: Adding would exceed threshold - flush first
-                elif narrative_chars + item_size >= NARRATIVE_THRESHOLD and narrative_buffer:
-                    chunk_text = '\n\n'.join(narrative_buffer)
-                    chunks.append(Document(
-                        page_content=chunk_text,
-                        metadata={
-                            'source': pdf_path,
-                            'page': page_no - 1,
-                            'format': 'markdown',
-                            'extractor': 'docling',
-                            'chunk_type': 'narrative'
-                        }
-                    ))
-                    narrative_buffer = [text]
-                    narrative_chars = item_size
-
-                # Case 3: Normal accumulation
-                else:
-                    narrative_buffer.append(text)
-                    narrative_chars += item_size
-
-        # Flush remaining narrative (even if below MIN to avoid losing content)
-        if narrative_buffer:
-            chunk_text = '\n\n'.join(narrative_buffer)
-            chunks.append(Document(
-                page_content=chunk_text,
-                metadata={
-                    'source': pdf_path,
-                    'page': page_no - 1,  # 0-indexed for compatibility
-                    'format': 'markdown',
-                    'extractor': 'docling',
-                    'chunk_type': 'narrative'
-                }
-            ))
-
-        # Post-process: merge small chunks with previous chunk
-        if len(chunks) >= 2:
-            last_chunk = chunks[-1]
-            if len(last_chunk.page_content) < NARRATIVE_MIN:
-                # Merge with previous chunk
-                prev_chunk = chunks[-2]
-                merged_content = prev_chunk.page_content + '\n\n' + last_chunk.page_content
-                chunks[-2] = Document(
-                    page_content=merged_content,
-                    metadata=prev_chunk.metadata
-                )
-                chunks.pop()  # Remove last chunk
-
-        return chunks
-
-    def extract_pdf_with_docling(self, pdf_path: str) -> List[Document]:
-        """
-        Extract PDF content using Docling with item-level chunking.
-        Returns chunks in reading order with one chunk per semantic unit.
-
-        Args:
-            pdf_path: Path to PDF file
-
-        Returns:
-            List of LangChain Document chunks with markdown content
-        """
-        try:
-            # Convert PDF using Docling
-            converter = DocumentConverter()
-            result = converter.convert(pdf_path)
-            doc = result.document
-
-            # Get total pages
-            num_pages = doc.num_pages()
-            logger.info(f"  Docling extracted {num_pages} pages")
-
-            # Group items by page and collect with position info for sorting
-            page_items = {i: [] for i in range(1, num_pages + 1)}
-
-            # Collect text items (doc.texts is already in reading order)
-            for text_index, text_item in enumerate(doc.texts):
-                if hasattr(text_item, 'prov') and text_item.prov:
-                    page_no = text_item.prov[0].page_no
-                    if page_no in page_items:
-                        # Get bbox for position (PDF coords: origin at bottom-left, y decreases down page)
-                        bbox = text_item.prov[0].bbox if hasattr(text_item.prov[0], 'bbox') else None
-                        y_pos = bbox.t if bbox else 0
-
-                        page_items[page_no].append({
-                            'type': 'text',
-                            'content': text_item.text,
-                            'prov': text_item.prov,
-                            'y_pos': y_pos,
-                            'order': text_index  # Keep original order from doc.texts
-                        })
-
-            # Collect table items (doc.tables is already in reading order)
-            for table_index, table_item in enumerate(doc.tables):
-                if hasattr(table_item, 'prov') and table_item.prov:
-                    page_no = table_item.prov[0].page_no
-                    if page_no in page_items:
-                        # Process table with column rotation fix
-                        try:
-                            import pandas as pd
-
-                            df = table_item.export_to_dataframe(doc)
-                            df_fixed, was_fixed = self.fix_rotated_columns(df)
-
-                            if was_fixed:
-                                logger.info(f"  🔧 Fixing rotated columns in table on page {page_no}")
-
-                            table_md = df_fixed.to_markdown(index=False)
-
-                        except Exception as e:
-                            # Fallback to direct markdown export if DataFrame conversion fails
-                            logger.warning(f"  DataFrame conversion failed on page {page_no}: {e}")
-                            table_md = table_item.export_to_markdown(doc)
-
-                        # Get bbox for position (PDF coords: origin at bottom-left, y decreases down page)
-                        bbox = table_item.prov[0].bbox if hasattr(table_item.prov[0], 'bbox') else None
-                        y_pos = bbox.t if bbox else 0
-
-                        page_items[page_no].append({
-                            'type': 'table',
-                            'content': table_md,
-                            'prov': table_item.prov,
-                            'y_pos': y_pos,
-                            'order': table_index + 10000  # Offset to keep tables after texts if same y_pos
-                        })
-
-            # Sort items by y-position DESCENDING (PDF coords: higher y = higher on page)
-            # This preserves reading order (top to bottom)
-            for page_no in page_items:
-                page_items[page_no].sort(key=lambda item: (-item['y_pos'], item['order']))
-
-            # Convert items to chunks (item-level chunking)
-            documents = []
-            for page_no in range(1, num_pages + 1):
-                if not page_items[page_no]:
-                    logger.debug(f"  Page {page_no} has no content, skipping")
-                    continue
-
-                page_docs = self.create_chunks_from_items(
-                    page_items[page_no],
-                    page_no,
-                    pdf_path
-                )
-                documents.extend(page_docs)
-
-                # Log chunk breakdown for this page
-                table_chunks = sum(1 for d in page_docs if d.metadata.get('chunk_type') == 'table')
-                narrative_chunks = sum(1 for d in page_docs if d.metadata.get('chunk_type') == 'narrative')
-                logger.info(f"  📄 Page {page_no}: {len(page_docs)} chunks ({table_chunks} tables, {narrative_chunks} narrative)")
-
-            logger.info(f"  ✅ Created {len(documents)} chunks from {num_pages} pages")
-            return documents
-
-        except Exception as e:
-            logger.error(f"Docling extraction failed for {pdf_path}: {e}")
-            logger.warning(f"Falling back to PyMuPDF for {pdf_path}")
-            return self.extract_pdf_with_pymupdf(pdf_path)
-
     def process_pdf(self, pdf_path: str) -> List[Document]:
         """
         Process a single PDF: check config for table PDFs, route to appropriate extraction method, chunk, and prepare documents.
@@ -594,27 +245,27 @@ class PDFToQdrantLoader:
         """
         logger.info(f"Processing PDF: {os.path.basename(pdf_path)}")
 
-        # Check if PDF is in table whitelist (config.TABLE_PDFS)
+        # Get appropriate extractor and extract PDF content
         pdf_filename = os.path.basename(pdf_path)
-        has_table = pdf_filename in config.TABLE_PDFS
+        extractor = get_extractor(pdf_filename, self.text_splitter)
 
-        if has_table:
+        # Log extractor type and update stats
+        if pdf_filename in config.TABLE_PDFS:
             logger.info(f"  ✓ PDF in table whitelist, using Docling")
             self.stats['tables_detected'] += 1
             self.stats['docling_used'] += 1
-            documents = self.extract_pdf_with_docling(pdf_path)
         else:
             logger.info(f"  → Standard PDF, using PyMuPDF")
             self.stats['pymupdf_used'] += 1
-            documents = self.extract_pdf_with_pymupdf(pdf_path)
+
+        documents = extractor.extract(pdf_path)
 
         if not documents:
             logger.warning(f"No content extracted from {pdf_path}")
             return []
 
         # Clean page numbers and artifacts from extracted text
-        for doc in documents:
-            doc.page_content = clean_text(doc.page_content)
+        documents = clean_documents(documents)
 
         # Load metadata from JSON file if available
         metadata_json = self.load_pdf_metadata(pdf_path)
@@ -633,19 +284,7 @@ class PDFToQdrantLoader:
         logger.info(f"Loaded {total_pages} pages from {os.path.basename(pdf_path)}")
 
         # Enrich metadata for all documents
-        for doc in documents:
-            # Add filename and content type
-            doc.metadata['filename'] = os.path.basename(pdf_path)
-            doc.metadata['content_type'] = 'pdf'
-
-            # Add metadata from JSON if available
-            if metadata_json:
-                doc.metadata.update({
-                    'source_url': metadata_json.get('source_url', ''),
-                    'pdf_id': metadata_json.get('pdf_id', ''),
-                    'file_size_mb': metadata_json.get('file_size_mb', 0),
-                    'total_pages': metadata_json.get('page_count', total_pages)
-                })
+        documents = enrich_metadata(documents, pdf_filename, metadata_json, total_pages)
 
         # Split documents into chunks
         # Docling PDFs are already chunked at item level
@@ -667,31 +306,18 @@ class PDFToQdrantLoader:
         original_chunk_count = len(chunked_docs)
 
         # Filter out table of contents and structural metadata chunks
-        filtered_chunks = []
-        toc_chunks_filtered = 0
-        for doc in chunked_docs:
-            if not is_likely_toc(doc.page_content):
-                filtered_chunks.append(doc)
-            else:
-                toc_chunks_filtered += 1
-                logger.debug(f"Filtered out TOC chunk: {doc.page_content[:100]}...")
-                # Track filtered chunk for reporting
-                self.filtered_chunks.append({
-                    'pdf_name': os.path.basename(pdf_path),
-                    'chunk_preview': doc.page_content[:200],
-                    'chunk_length': len(doc.page_content)
-                })
+        chunked_docs, toc_chunks_filtered = filter_toc_chunks(chunked_docs)
 
-        chunked_docs = filtered_chunks
+        # Track filtered chunks for reporting
         if toc_chunks_filtered > 0:
             logger.info(f"Filtered out {toc_chunks_filtered} TOC/metadata chunks ({original_chunk_count} → {len(chunked_docs)})")
+            # Note: Detailed tracking of filtered chunks removed for simplicity
+            # Could be re-added to filter_toc_chunks if needed
 
         self.stats['total_filtered_chunks'] += toc_chunks_filtered
 
         # Add chunk index to metadata (re-index after filtering)
-        for i, doc in enumerate(chunked_docs):
-            doc.metadata['chunk_index'] = i
-            doc.metadata['total_chunks'] = len(chunked_docs)
+        chunked_docs = add_chunk_metadata(chunked_docs)
 
         logger.info(f"Created {len(chunked_docs)} chunks from {os.path.basename(pdf_path)}")
         self.stats['total_chunks'] += len(chunked_docs)
@@ -728,7 +354,7 @@ class PDFToQdrantLoader:
     def upload_documents_to_qdrant(self, documents: List[Document]):
         """
         Upload documents to Qdrant with embeddings.
-        
+
         For contextual mode:
         - Embedding is computed from [Master + Document + Chunk contexts + Original content]
         - Storage keeps only original content in page_content
@@ -740,118 +366,24 @@ class PDFToQdrantLoader:
         if not documents:
             return
 
-        logger.info(f"Generating embeddings for {len(documents)} chunks...")
-
-        # Store original content before any modifications
-        original_contents = [doc.page_content for doc in documents]
-        
-        # Prepare content for embedding (may include context)
-        texts_for_embedding = []
-
-        # Generate contextual metadata if in contextual mode
-        if self.contextual_mode and self.contextual_processor and documents:
-            logger.info("Generating contextual metadata for chunks...")
-
-            # Get pdf_id from first document metadata
+        # Get document context from cache if in contextual mode
+        document_context = None
+        if self.contextual_mode and documents:
             pdf_id = documents[0].metadata.get('pdf_id', documents[0].metadata.get('filename', ''))
             if pdf_id.endswith('.pdf'):
                 pdf_id = os.path.splitext(pdf_id)[0]
-
-            # Get document context from cache
             document_context = self.document_context_cache.get(pdf_id)
 
-            if document_context:
-                # Prepare chunk data for context generation
-                chunks_for_context = []
-                for doc in documents:
-                    chunks_for_context.append({
-                        'page_num': doc.metadata.get('page', 1),
-                        'total_pages': doc.metadata.get('total_pages', 1),
-                        'chunk_index': doc.metadata.get('chunk_index', 0),
-                        'total_chunks': doc.metadata.get('total_chunks', 1),
-                        'chunk_text': doc.page_content,
-                    })
-
-                # Generate chunk contexts in batches
-                chunk_contexts = self.contextual_processor.generate_all_chunk_contexts(
-                    chunks_for_context,
-                    document_context
-                )
-
-                # Prepare enriched text for embedding and store contexts in metadata
-                for i, doc in enumerate(documents):
-                    # Store all contexts in metadata (for retrieval visibility and future use)
-                    doc.metadata['master_context'] = MASTER_CONTEXT
-                    doc.metadata['document_context'] = document_context
-                    doc.metadata['has_context'] = True
-
-                    if chunk_contexts and i in chunk_contexts:
-                        chunk_context = chunk_contexts[i]
-                        doc.metadata['chunk_context'] = chunk_context
-                    else:
-                        doc.metadata['chunk_context'] = None
-
-                    # Build enriched text for embedding ONLY
-                    # This improves embedding relevance but isn't stored in page_content
-                    enriched_for_embedding = f"{document_context}"
-                    if doc.metadata.get('chunk_context'):
-                        enriched_for_embedding += f"\n\n{doc.metadata['chunk_context']}"
-                    enriched_for_embedding += f"\n\n{original_contents[i]}"
-                    
-                    texts_for_embedding.append(enriched_for_embedding)
-
-                logger.info(f"Generated contexts for {len(documents)} chunks")
-                logger.info("Using enriched context for embeddings, but storing only original content")
-            else:
-                logger.warning(f"No document context available for {pdf_id}, using original content only")
-                for doc in documents:
-                    doc.metadata['has_context'] = False
-                texts_for_embedding = original_contents.copy()
-        else:
-            # Non-contextual mode: use original content as-is
-            for doc in documents:
-                doc.metadata['has_context'] = False
-            texts_for_embedding = original_contents.copy()
-
-        # Generate embeddings from potentially enriched text
-        embeddings = self.embeddings.embed_documents(texts_for_embedding)
-
-        # Get current max ID to avoid conflicts
-        try:
-            collection_info = self.client.get_collection(self.collection_name)
-            current_count = collection_info.points_count
-        except:
-            current_count = 0
-
-        # Create points (always use original content in page_content, not enriched)
-        points = []
-        for i, (doc, embedding) in enumerate(zip(documents, embeddings)):
-            point_id = current_count + i + 1
-
-            # Ensure page_content is original (not enriched with contexts)
-            doc.page_content = original_contents[i]
-
-            point = PointStruct(
-                id=point_id,
-                vector=embedding,
-                payload={
-                    'text': doc.page_content,
-                    **doc.metadata
-                }
-            )
-            points.append(point)
-
-        # Upload in batches
-        batch_size = config.UPLOAD_BATCH_SIZE
-        for i in range(0, len(points), batch_size):
-            batch = points[i:i + batch_size]
-            self.client.upsert(
-                collection_name=self.collection_name,
-                points=batch
-            )
-            logger.info(f"Uploaded batch {i//batch_size + 1} ({len(batch)} points)")
-
-        logger.info(f"Successfully uploaded {len(documents)} chunks to Qdrant")
+        # Use shared upload function
+        upload_with_embeddings(
+            client=self.client,
+            collection_name=self.collection_name,
+            documents=documents,
+            embeddings_model=self.embeddings,
+            contextual_mode=self.contextual_mode,
+            contextual_processor=self.contextual_processor,
+            document_context=document_context
+        )
 
     def get_pdf_files(self) -> List[str]:
         """Get list of PDF files to process."""

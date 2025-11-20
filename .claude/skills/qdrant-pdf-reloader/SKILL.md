@@ -5,7 +5,7 @@ description: Surgically reloads a single PDF to Qdrant by deleting old chunks an
 
 # Qdrant PDF Reloader
 
-This skill helps users surgically reload a single PDF document to Qdrant without reloading the entire collection, using the `UTIL/reload_single_pdf.py` script.
+This skill helps users surgically reload a single PDF document to Qdrant without reloading the entire collection, using the `LOAD_DB/reload_single_pdf.py` script.
 
 ## When to Use This Skill
 
@@ -52,7 +52,7 @@ If not found, inform the user and ask them to verify the filename.
 Execute the surgical reload:
 
 ```bash
-cd UTIL
+cd LOAD_DB
 python reload_single_pdf.py document-name.pdf
 ```
 
@@ -93,14 +93,18 @@ These contexts are included in embeddings to improve retrieval accuracy.
 
 ### Special Handling
 
-**Single-page PDFs:**
-- Loaded as one chunk (no splitting) to preserve table structure
-- Common for payment rate tables and charts
+**Table-heavy PDFs** (configured in `config.TABLE_PDFS`):
+- Extracted using Docling (table-aware extraction)
+- Tables extracted as markdown and kept as separate chunks
+- Narrative text grouped into ~1000 char chunks
+- Item-level chunking (no overlap, semantic boundaries)
+- Examples: income eligibility tables, evaluation reports
 
-**Multi-page PDFs:**
-- Split into chunks using `RecursiveCharacterTextSplitter`
-- Chunk size: 1000 characters
-- Overlap: 200 characters
+**Standard PDFs** (PyMuPDF extraction):
+- Single-page: Loaded as one chunk to preserve structure
+- Multi-page: Split using `RecursiveCharacterTextSplitter`
+  - Chunk size: 1000 characters
+  - Overlap: 200 characters
 
 ### Collection Target
 
@@ -116,7 +120,7 @@ User: "The income eligibility PDF has garbled text. Can you reload it with the f
 Claude: I'll surgically reload that PDF with the updated text cleaner.
 
 [Runs command]
-cd UTIL
+cd LOAD_DB
 python reload_single_pdf.py bcy-26-income-eligibility-and-maximum-psoc-twc.pdf
 
 [Script output shows progress]
@@ -143,7 +147,7 @@ User: "I replaced the payment rates PDF with a corrected version. Please reload 
 Claude: I'll reload the payment rates PDF with the new version.
 
 [Runs command]
-cd UTIL
+cd LOAD_DB
 python reload_single_pdf.py bcy25-child-care-provider-payment-rates-twc.pdf
 
 ✓ Surgical reload complete!
@@ -160,7 +164,7 @@ User: "Can you regenerate the contextual embeddings for the state plan document?
 
 Claude: I'll reload the state plan to regenerate contextual metadata.
 
-cd UTIL
+cd LOAD_DB
 python reload_single_pdf.py tx-ccdf-state-plan-ffy2025-2027-approved.pdf
 
 This will:
@@ -182,7 +186,7 @@ User: "The PSOC chart isn't being retrieved correctly. It's a single-page table 
 
 Claude: Single-page PDFs are loaded as one chunk to preserve table structure. Let me reload it.
 
-cd UTIL
+cd LOAD_DB
 python reload_single_pdf.py bcy2025-psoc-chart-twc.pdf
 
 ✓ Single-page PDF: loading as 1 chunk (3,245 characters)
@@ -210,9 +214,16 @@ The table is now loaded as a single coherent chunk, which should improve retriev
 ## Technical Details
 
 ### File Location
-- **Script:** `UTIL/reload_single_pdf.py`
+- **Script:** `LOAD_DB/reload_single_pdf.py`
 - **PDF Directory:** `scraped_content/raw/pdfs/`
 - **Collection:** `QDRANT_COLLECTION_NAME_CONTEXTUAL` from config
+
+### Architecture
+The reload script uses a modular architecture:
+- **Extractors** (`LOAD_DB/extractors/`): Factory pattern for PyMuPDF vs. Docling selection
+- **Shared Utilities** (`LOAD_DB/shared/`): Common processing and upload logic
+- **PyMuPDFExtractor**: Fast text extraction for standard PDFs
+- **DoclingExtractor**: Table-aware extraction with item-level chunking for table-heavy PDFs
 
 ### Dependencies
 The script requires:
@@ -220,30 +231,48 @@ The script requires:
 - OpenAI embeddings (`text-embedding-3-small`)
 - Qdrant client
 - GROQ API (for contextual metadata generation)
-- Local modules: `contextual_processor`, `text_cleaner`, `prompts`
+- Docling (for table-aware PDFs in `config.TABLE_PDFS`)
+- Local modules:
+  - `extractors` - Factory pattern and extractor classes
+  - `shared` - Processing utilities and upload logic
+  - `contextual_processor` - Context generation
+  - `text_cleaner` - Text cleaning and TOC detection
+  - `prompts` - Master context template
 
 ### Process Flow
 
 ```
 1. DELETE PHASE
    └─ Scroll through collection
-   └─ Find chunks where doc == pdf_filename
+   └─ Find chunks where filename == pdf_filename
    └─ Delete all matching chunks
 
-2. PROCESS PHASE
-   └─ Load PDF with PyMuPDFLoader
-   └─ Clean text on each page
-   └─ Split into chunks (or keep as single chunk if 1 page)
-   └─ Filter out TOC chunks
+2. EXTRACTION PHASE (via Factory Pattern)
+   ├─ Check if PDF in config.TABLE_PDFS
+   ├─ If YES: Use DoclingExtractor
+   │   ├─ Convert PDF with Docling
+   │   ├─ Extract tables as markdown
+   │   ├─ Group items by page and sort by y-position
+   │   └─ Create item-level chunks (tables + narrative)
+   └─ If NO: Use PyMuPDFExtractor
+       └─ Load PDF with PyMuPDFLoader (standard extraction)
 
-3. CONTEXT PHASE (Contextual Mode)
+3. PROCESS PHASE (via shared utilities)
+   └─ Clean text on each page (clean_documents)
+   └─ Enrich metadata (enrich_metadata)
+   └─ Split into chunks if multi-page (text_splitter)
+   └─ Filter out TOC chunks (filter_toc_chunks)
+   └─ Add chunk metadata (add_chunk_metadata)
+
+4. CONTEXT PHASE (Contextual Mode)
    └─ Generate document context from first 2000 chars
    └─ Generate chunk context for each chunk (uses previous chunk)
    └─ Add master context, document context, chunk context to metadata
 
-4. UPLOAD PHASE
-   └─ Generate OpenAI embeddings for chunk text
+5. UPLOAD PHASE (via shared uploader)
+   └─ Generate OpenAI embeddings from enriched text
    └─ Create Qdrant points with embeddings + metadata
+   └─ Store only original content in page_content
    └─ Upload in batches (100 per batch)
 ```
 
@@ -253,12 +282,19 @@ Each uploaded chunk includes:
 ```python
 {
     'text': chunk.page_content,
-    'doc': pdf_filename,
+    'filename': pdf_filename,
+    'content_type': 'pdf',
     'page': page_number,
-    'source_url': url (if available),
-    'chunk_context': previous_chunk_summary,
+    'total_pages': total_page_count,
+    'chunk_index': chunk_number,
+    'total_chunks': total_chunk_count,
+    'chunk_type': 'table' | 'narrative',  # Docling only
+    'extractor': 'docling' | 'pymupdf',
+    'has_context': True,
+    'master_context': master_context_text,
     'document_context': document_summary,
-    # Also in payload but not shown: master_context
+    'chunk_context': previous_chunk_summary,
+    'source_url': url (if available from metadata.json)
 }
 ```
 
@@ -292,48 +328,27 @@ If upload fails:
 
 ### Verify Before Reloading
 
-Check existing chunks before reloading:
-```bash
-cd UTIL
-python retrieve_chunks_by_filename.py --filename document.pdf
-```
-
-This shows:
-- How many chunks currently exist
-- Current chunk content
-- Whether issues are present
+Use the `qdrant-chunk-retriever` skill to check existing chunks before reloading.
 
 ### Verify After Reloading
 
-Confirm successful reload:
-```bash
-cd UTIL
-python retrieve_chunks_by_filename.py --filename document.pdf --text-length -1
-```
-
-Check:
+After reloading, use the `qdrant-chunk-retriever` skill to confirm:
 - Chunk count matches expectations
 - Text is cleaned properly
 - Context fields are populated
+- Extractor type is correct (docling vs pymupdf)
+- Chunk types are set (for Docling PDFs)
 
 ### Compare Before/After
 
-1. Export chunks before reload:
-```bash
-python retrieve_chunks_by_filename.py --filename doc.pdf --output before.json
-```
-
+1. Use `qdrant-file-exporter` skill to export chunks before reload
 2. Reload the PDF:
 ```bash
+cd LOAD_DB
 python reload_single_pdf.py doc.pdf
 ```
-
-3. Export chunks after reload:
-```bash
-python retrieve_chunks_by_filename.py --filename doc.pdf --output after.json
-```
-
-4. Compare the JSON files to see what changed.
+3. Use `qdrant-file-exporter` skill again to export chunks after reload
+4. Compare the exported files to see what changed
 
 ## Notes
 
@@ -345,7 +360,13 @@ python retrieve_chunks_by_filename.py --filename doc.pdf --output after.json
 
 ## Related Tools
 
-- `UTIL/retrieve_chunks_by_filename.py`: Verify chunks before/after reload
-- `UTIL/delete_documents.py`: Delete without reloading (if you just want to remove)
-- `LOAD_DB/load_pdf_qdrant.py`: Full collection reload (all PDFs)
-- `LOAD_DB/verify_qdrant.py`: Verify collection statistics
+- Skills:
+  - `qdrant-chunk-retriever`: Verify chunks before/after reload
+  - `qdrant-doc-deleter`: Delete without reloading (if you just want to remove)
+  - `qdrant-file-exporter`: Export all chunks from a PDF to text file
+- Scripts:
+  - `LOAD_DB/load_pdf_qdrant.py`: Full collection reload (all PDFs)
+  - `LOAD_DB/verify_qdrant.py`: Verify collection statistics
+- Shared Modules:
+  - `LOAD_DB/extractors/`: PDF extraction with factory pattern
+  - `LOAD_DB/shared/`: Common processing and upload utilities
