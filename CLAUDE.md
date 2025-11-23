@@ -268,6 +268,7 @@ RERANKER_PROVIDER = 'groq'     # default
 RERANKER_MODEL = 'openai/gpt-oss-20b' if using GROQ
 INTENT_CLASSIFIER_PROVIDER = 'groq'  # default
 INTENT_CLASSIFIER_MODEL = 'openai/gpt-oss-20b' if using GROQ
+RETRIEVAL_MODE = 'hybrid'      # 'hybrid' or 'dense'
 RETRIEVAL_TOP_K = 20
 RERANK_TOP_K = 7
 ```
@@ -435,6 +436,57 @@ python load_pdf_qdrant.py --test
 # Test chatbot quickly
 python test_chatbot.py
 ```
+
+## Evaluation System
+
+### Parallel Evaluation Modes
+
+The evaluation system supports three retrieval modes that can run simultaneously without conflicts:
+
+```bash
+# Run in separate terminals for parallel evaluation
+python -m evaluation.run_evaluation --mode hybrid   # Dense + sparse RRF fusion
+python -m evaluation.run_evaluation --mode dense    # Dense-only semantic search
+python -m evaluation.run_evaluation --mode openai   # OpenAI agent (gpt-5 + FileSearch)
+```
+
+### Mode-Specific Output Directories
+
+Each mode writes to isolated subdirectories:
+```
+results/
+├── hybrid/
+│   ├── checkpoint.json
+│   ├── debug_eval.txt
+│   ├── detailed_results_*.jsonl
+│   ├── evaluation_summary_*.json
+│   └── evaluation_report_*.txt
+├── dense/
+│   └── ... (same structure)
+└── openai/
+    └── ... (same structure)
+```
+
+### Common Evaluation Commands
+
+```bash
+# Single mode evaluation
+python -m evaluation.run_evaluation --mode hybrid --limit 5
+
+# Resume from mode-specific checkpoint
+python -m evaluation.run_evaluation --mode hybrid --resume
+
+# Resume and test just the failed question
+python -m evaluation.run_evaluation --mode hybrid --resume --resume-limit 1
+
+# Debug mode with retrieval details
+python -m evaluation.run_evaluation --mode dense --debug --limit 1
+```
+
+### Default Mode
+
+When `--mode` is not specified, defaults to `chatbot.config.RETRIEVAL_MODE` (currently `hybrid`).
+Override via environment variable: `export RETRIEVAL_MODE=dense`
 
 ## Known Issues
 

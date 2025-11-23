@@ -5,9 +5,14 @@ from . import config
 
 
 class Reporter:
-    def __init__(self):
-        self.results_dir = Path(config.RESULTS_DIR)
-        self.results_dir.mkdir(exist_ok=True)
+    def __init__(self, mode=None):
+        """Initialize reporter with optional mode for isolated output directories.
+
+        Args:
+            mode: Evaluation mode ('hybrid', 'dense', 'openai'). Creates mode-specific subdirectory.
+        """
+        self.mode = mode
+        self.results_dir = config.get_results_dir(mode)
 
     def generate_reports(self, evaluation_data: dict):
         """Generate all reports"""

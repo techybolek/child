@@ -8,7 +8,7 @@ from . import config
 
 
 class BatchEvaluator:
-    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, investigate_mode=False, retrieval_top_k=None, clear_checkpoint=False, capture_on_error=False, stop_on_fail=True, evaluator=None):
+    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, investigate_mode=False, retrieval_top_k=None, clear_checkpoint=False, capture_on_error=False, stop_on_fail=True, evaluator=None, mode=None):
         # Use injected evaluator if provided, otherwise default to ChatbotEvaluator
         if evaluator is not None:
             self.evaluator = evaluator
@@ -23,6 +23,8 @@ class BatchEvaluator:
         self.clear_checkpoint = clear_checkpoint
         self.capture_on_error = capture_on_error
         self.stop_on_fail = stop_on_fail
+        self.mode = mode
+        self.results_dir = config.get_results_dir(mode)
 
     def evaluate_all(self, limit: int = None):
         """Evaluate all Q&A pairs"""
@@ -57,7 +59,7 @@ class BatchEvaluator:
         partial_resume = False
 
         # Check for existing checkpoint
-        checkpoint_file = Path(config.RESULTS_DIR) / "checkpoint.json"
+        checkpoint_file = self.results_dir / "checkpoint.json"
         if checkpoint_file.exists():
             if self.resume:
                 print(f"\n📂 Loading checkpoint from {checkpoint_file}...")
@@ -168,7 +170,7 @@ class BatchEvaluator:
         print(f"Evaluation complete! Processed {stats['processed']}/{stats['total']} pairs")
 
         # Clean up checkpoint on successful completion (unless partial resume)
-        checkpoint_file = Path(config.RESULTS_DIR) / "checkpoint.json"
+        checkpoint_file = self.results_dir / "checkpoint.json"
         if checkpoint_file.exists():
             if partial_resume:
                 # Skip checkpoint update in investigate mode (allows repeated re-evaluation of same question)
@@ -194,7 +196,7 @@ class BatchEvaluator:
 
     def _save_checkpoint(self, results: list, stats: dict):
         """Save checkpoint"""
-        checkpoint_file = Path(config.RESULTS_DIR) / "checkpoint.json"
+        checkpoint_file = self.results_dir / "checkpoint.json"
         checkpoint_data = {
             'results': results,
             'stats': stats,
@@ -288,7 +290,7 @@ class BatchEvaluator:
         """Save detailed debug information to a file"""
         # Create simple debug filename (overwrites previous debug file)
         debug_filename = "debug_eval.txt"
-        debug_path = Path(config.RESULTS_DIR) / debug_filename
+        debug_path = self.results_dir / debug_filename
 
         with open(debug_path, 'w') as f:
             f.write("=" * 80 + "\n")

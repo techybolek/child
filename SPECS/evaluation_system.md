@@ -5,23 +5,25 @@ LLM-as-a-Judge evaluation framework for the Texas Childcare Chatbot. Automatical
 ## Quick Start
 
 ```bash
-# Run full evaluation on all Q&A files
-python -m evaluation.run_evaluation
+# Run evaluation with specific retrieval mode
+python -m evaluation.run_evaluation --mode hybrid    # Dense + sparse RRF fusion
+python -m evaluation.run_evaluation --mode dense     # Dense-only semantic search
+python -m evaluation.run_evaluation --mode openai    # OpenAI agent (gpt-5 + FileSearch)
 
 # Test mode - evaluate first 5 questions
-python -m evaluation.run_evaluation --test --limit 5
+python -m evaluation.run_evaluation --mode hybrid --test --limit 5
 
 # Evaluate specific Q&A file
-python -m evaluation.run_evaluation --file bcy-26-psoc-chart-twc-qa.md
+python -m evaluation.run_evaluation --mode hybrid --file bcy-26-psoc-chart-twc-qa.md
 
 # Use specific Qdrant collection
-python -m evaluation.run_evaluation --collection tro-child-3-contextual
+python -m evaluation.run_evaluation --mode hybrid --collection tro-child-3-contextual
 
-# Resume from checkpoint
-python -m evaluation.run_evaluation --resume
+# Resume from mode-specific checkpoint
+python -m evaluation.run_evaluation --mode hybrid --resume
 
 # Debug failed question (after stop-on-fail)
-python -m evaluation.run_evaluation --investigate
+python -m evaluation.run_evaluation --mode hybrid --investigate
 ```
 
 ## System Overview
@@ -41,10 +43,59 @@ BatchEvaluator (evaluation/batch_evaluator.py)
 ### Pipeline Flow
 
 1. **Load Q&A Pairs**: Parse markdown files from `QUESTIONS/pdfs/`
-2. **Query Chatbot**: Send question to RAGHandler
+2. **Query Chatbot**: Send question to RAGHandler (or OpenAI agent)
 3. **Judge Response**: Score answer on 4 criteria using LLM judge
 4. **Check Threshold**: Stop if score < 70 (stop-on-fail)
-5. **Generate Reports**: Create JSONL, JSON, and TXT reports in `results/`
+5. **Generate Reports**: Create JSONL, JSON, and TXT reports in `results/<mode>/`
+
+## Parallel Evaluation Modes
+
+### Available Modes
+
+| Mode | Retriever | Description |
+|------|-----------|-------------|
+| `hybrid` | QdrantHybridRetriever | Dense + sparse vectors with RRF fusion |
+| `dense` | QdrantRetriever | Dense-only semantic search |
+| `openai` | OpenAIAgentEvaluator | GPT-5 with FileSearch tool |
+
+### Running Parallel Evaluations
+
+Each mode writes to isolated subdirectories, allowing simultaneous execution:
+
+```bash
+# Terminal 1
+python -m evaluation.run_evaluation --mode hybrid
+
+# Terminal 2
+python -m evaluation.run_evaluation --mode dense
+
+# Terminal 3
+python -m evaluation.run_evaluation --mode openai
+```
+
+### Mode-Specific Output Structure
+
+```
+results/
+├── hybrid/
+│   ├── checkpoint.json              # Mode-specific checkpoint
+│   ├── debug_eval.txt               # Debug output for failed questions
+│   ├── detailed_results_*.jsonl     # Per-question results
+│   ├── evaluation_summary_*.json    # Aggregate statistics
+│   ├── evaluation_report_*.txt      # Human-readable report
+│   └── failure_analysis_*.txt       # Failed question details (if any)
+├── dense/
+│   └── ... (same structure)
+└── openai/
+    └── ... (same structure)
+```
+
+### Default Mode
+
+When `--mode` is not specified:
+1. Reads from `chatbot.config.RETRIEVAL_MODE`
+2. Defaults to `hybrid` if not set
+3. Can be overridden via environment: `export RETRIEVAL_MODE=dense`
 
 ### Stop-on-Fail Behavior
 
@@ -68,18 +119,20 @@ When evaluation stops on failure:
 ### Resume Commands
 
 ```bash
-# Re-evaluate just the failed question
-python -m evaluation.run_evaluation --resume --resume-limit 1
+# Re-evaluate just the failed question (mode-specific checkpoint)
+python -m evaluation.run_evaluation --mode hybrid --resume --resume-limit 1
 
 # Continue from the failed question onwards
-python -m evaluation.run_evaluation --resume
+python -m evaluation.run_evaluation --mode hybrid --resume
 
 # Resume with debug output for the failed question
-python -m evaluation.run_evaluation --resume --resume-limit 1 --debug
+python -m evaluation.run_evaluation --mode dense --resume --resume-limit 1 --debug
 
 # Resume with different collection to test changes
-python -m evaluation.run_evaluation --resume --collection tro-child-3-contextual
+python -m evaluation.run_evaluation --mode hybrid --resume --collection tro-child-3-contextual
 ```
+
+**Note**: Each mode has its own checkpoint in `results/<mode>/checkpoint.json`. You must specify the same `--mode` when resuming.
 
 ### Typical Fix-and-Resume Workflow
 
@@ -246,44 +299,65 @@ Result: 0-100 scale
 
 ## Command Reference
 
+### Mode Selection
+
+```bash
+# Specify retrieval mode (required for parallel runs)
+python -m evaluation.run_evaluation --mode hybrid    # Dense + sparse RRF
+python -m evaluation.run_evaluation --mode dense     # Dense-only
+python -m evaluation.run_evaluation --mode openai    # OpenAI agent
+```
+
 ### Basic Usage
 
 ```bash
-# Evaluate all Q&A pairs
+# Evaluate all Q&A pairs with default mode
 python -m evaluation.run_evaluation
 
 # Limit to first N questions
-python -m evaluation.run_evaluation --limit 10
+python -m evaluation.run_evaluation --mode hybrid --limit 10
 
 # Test mode (quick check)
-python -m evaluation.run_evaluation --test --limit 5
+python -m evaluation.run_evaluation --mode hybrid --test --limit 5
 ```
 
 ### Single File Evaluation
 
 ```bash
 # Evaluate specific Q&A file
-python -m evaluation.run_evaluation --file bcy-26-psoc-chart-twc-qa.md
+python -m evaluation.run_evaluation --mode hybrid --file bcy-26-psoc-chart-twc-qa.md
 ```
 
 ### Collection Override
 
 ```bash
 # Use non-default Qdrant collection
-python -m evaluation.run_evaluation --collection tro-child-3-contextual
+python -m evaluation.run_evaluation --mode hybrid --collection tro-child-3-contextual
 ```
 
 ### Resume After Failure
 
 ```bash
-# Resume from checkpoint (re-evaluate failed question)
-python -m evaluation.run_evaluation --resume
+# Resume from mode-specific checkpoint
+python -m evaluation.run_evaluation --mode hybrid --resume
 
 # Resume and re-evaluate just the failed question
-python -m evaluation.run_evaluation --resume --resume-limit 1
+python -m evaluation.run_evaluation --mode hybrid --resume --resume-limit 1
 
 # Resume with debug output
-python -m evaluation.run_evaluation --resume --resume-limit 1 --debug
+python -m evaluation.run_evaluation --mode dense --resume --resume-limit 1 --debug
+```
+
+### Parallel Evaluation (Compare Modes)
+
+```bash
+# Run all three modes simultaneously in separate terminals
+./test_parallel_eval.sh
+
+# Or manually:
+python -m evaluation.run_evaluation --mode hybrid &
+python -m evaluation.run_evaluation --mode dense &
+python -m evaluation.run_evaluation --mode openai &
 ```
 
 ## Configuration
@@ -310,7 +384,12 @@ CHECKPOINT_INTERVAL = 50             # Save checkpoint every N questions
 
 ```python
 QA_DIR = 'QUESTIONS/pdfs'            # Q&A markdown files
-RESULTS_DIR = 'results'              # Output location
+RESULTS_DIR = 'results'              # Base output location
+VALID_MODES = ['hybrid', 'dense', 'openai']  # Supported modes
+
+# Helper function for mode-specific directories
+def get_results_dir(mode: str = None) -> Path:
+    """Returns results/<mode>/ if mode specified, else results/"""
 ```
 
 ### Scoring

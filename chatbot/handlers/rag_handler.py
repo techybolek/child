@@ -11,7 +11,7 @@ from .. import config
 class RAGHandler(BaseHandler):
     """Handles information queries using RAG pipeline: Retrieval → Reranking → Generation"""
 
-    def __init__(self, llm_model=None, reranker_model=None, provider=None, collection_name=None, retrieval_top_k=None):
+    def __init__(self, llm_model=None, reranker_model=None, provider=None, collection_name=None, retrieval_top_k=None, retrieval_mode=None):
         """
         Initialize RAG handler with optional custom models and provider
 
@@ -21,9 +21,11 @@ class RAGHandler(BaseHandler):
             provider: Optional provider ('groq' or 'openai') for all components
             collection_name: Optional Qdrant collection name
             retrieval_top_k: Optional override for number of chunks to retrieve
+            retrieval_mode: Optional retrieval mode ('hybrid' or 'dense'), defaults to config.RETRIEVAL_MODE
         """
-        # Choose retriever based on config flag
-        if config.ENABLE_HYBRID_RETRIEVAL:
+        # Choose retriever based on mode (parameter overrides config)
+        mode = retrieval_mode or config.RETRIEVAL_MODE
+        if mode == 'hybrid':
             self.retriever = QdrantHybridRetriever(collection_name=collection_name)
         else:
             self.retriever = QdrantRetriever(collection_name=collection_name)

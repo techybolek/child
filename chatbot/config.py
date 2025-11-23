@@ -60,12 +60,12 @@ SINGLE_FACT_PATTERNS = [
     r'when\s+(is|was|did)'
 ]
 
-# ===== HYBRID SEARCH SETTINGS =====
-# ENABLE_HYBRID_RETRIEVAL controls which retriever is used (not which collection)
-# True = QdrantHybridRetriever (dense + sparse with RRF fusion)
-# False = QdrantRetriever (dense-only semantic search)
+# ===== RETRIEVAL MODE SETTINGS =====
+# RETRIEVAL_MODE controls which retriever is used (not which collection)
+# 'hybrid' = QdrantHybridRetriever (dense + sparse with RRF fusion)
+# 'dense' = QdrantRetriever (dense-only semantic search)
 # Both use the same unified hybrid collection
-ENABLE_HYBRID_RETRIEVAL = True
+RETRIEVAL_MODE = os.getenv('RETRIEVAL_MODE', 'hybrid')
 FUSION_METHOD = 'rrf'  # Reciprocal Rank Fusion
 RRF_K = 60  # Standard RRF parameter
 HYBRID_PREFETCH_LIMIT = 100  # Number of candidates to retrieve from each vector type before fusion

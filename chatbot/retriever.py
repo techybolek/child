@@ -57,6 +57,7 @@ class QdrantRetriever:
         # Search (with retry for transient errors)
         # Use named vector syntax for hybrid collection schema
         def _do_search():
+            print("[Retriever] Performing Qdrant Dense search...")
             return self.client.search(
                 collection_name=self.collection,
                 query_vector=("dense", query_vector),  # Named vector for hybrid schema

@@ -1,2 +1,3 @@
-python -m evaluation.run_evaluation --no-stop-on-fail
+python -m evaluation.run_evaluation --no-stop-on-fail --mode hybrid
 #python -m evaluation.run_evaluation --resume
+finished

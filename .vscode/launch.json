@@ -12,6 +12,86 @@
             "cwd": "${workspaceFolder}/LOAD_DB"
         },
         {
+            "name": "Python: Run Evaluation (Test Mode)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/evaluation/run_evaluation.py",
+            "console": "integratedTerminal",
+            "args": ["--test", "--limit", "5"],
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Run Evaluation (Hybrid)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/evaluation/run_evaluation.py",
+            "console": "integratedTerminal",
+            "args": ["--mode", "hybrid"],
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Run Evaluation (Dense)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/evaluation/run_evaluation.py",
+            "console": "integratedTerminal",
+            "args": ["--mode", "dense"],
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Run Evaluation (Resume + Debug)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/evaluation/run_evaluation.py",
+            "console": "integratedTerminal",
+            "args": ["--resume", "--debug", "--mode", "hybrid"],
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Run Evaluation (Investigate)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/evaluation/run_evaluation.py",
+            "console": "integratedTerminal",
+            "args": ["--investigate", "--mode", "hybrid"],
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Run Evaluation (Limit 1 Dense)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/evaluation/run_evaluation.py",
+            "console": "integratedTerminal",
+            "args": ["--limit", "1", "--mode", "dense"],
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Run Evaluation (Limit 1 Hybrid)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/evaluation/run_evaluation.py",
+            "console": "integratedTerminal",
+            "args": ["--limit", "1", "--mode", "hybrid"],
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Run Evaluation (Custom - Edit Args)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/evaluation/run_evaluation.py",
+            "console": "integratedTerminal",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true
+        },
+        {
             "name": "Python: Current File",
             "type": "debugpy",
             "request": "launch",

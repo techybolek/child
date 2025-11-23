@@ -3,16 +3,34 @@
 LLM-as-a-Judge Evaluation System for Texas Childcare Chatbot
 
 Usage:
-    python -m evaluation.run_evaluation                         # Evaluate all Q&A pairs (keeps checkpoint)
+    python -m evaluation.run_evaluation --mode hybrid           # Evaluate using hybrid retrieval
+    python -m evaluation.run_evaluation --mode dense            # Evaluate using dense-only retrieval
+    python -m evaluation.run_evaluation --mode openai           # Evaluate OpenAI agent
     python -m evaluation.run_evaluation --test --limit 5        # Test with 5 questions
     python -m evaluation.run_evaluation --file <filename>       # Evaluate specific file
-    python -m evaluation.run_evaluation --resume                # Resume from checkpoint
-    python -m evaluation.run_evaluation --resume --resume-limit 1   # Resume and test first question only
+    python -m evaluation.run_evaluation --resume --mode hybrid  # Resume from mode-specific checkpoint
     python -m evaluation.run_evaluation --clear-checkpoint      # Delete checkpoint after successful completion
+
+Parallel Mode Example (run in separate terminals):
+    python -m evaluation.run_evaluation --mode hybrid
+    python -m evaluation.run_evaluation --mode dense
+    python -m evaluation.run_evaluation --mode openai
 """
 import argparse
-from .batch_evaluator import BatchEvaluator
-from .reporter import Reporter
+import sys
+from pathlib import Path
+
+# Support both module execution and direct script execution
+try:
+    from .batch_evaluator import BatchEvaluator
+    from .reporter import Reporter
+    from . import config as eval_config
+except ImportError:
+    # Add parent directory to path for direct execution
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from evaluation.batch_evaluator import BatchEvaluator
+    from evaluation.reporter import Reporter
+    from evaluation import config as eval_config
 
 
 def main():
@@ -29,7 +47,7 @@ def main():
     parser.add_argument('--clear-checkpoint', action='store_true', help='Delete checkpoint after successful completion (default: keep)')
     parser.add_argument('--capture-on-error', action='store_true', help='Save failed questions to checkpoint with "failed" status (allows --resume to skip them)')
     parser.add_argument('--no-stop-on-fail', action='store_true', help='Continue evaluation even when a question scores below threshold')
-    parser.add_argument('--openai-agent', action='store_true', help='Evaluate OpenAI agent instead of default RAG chatbot')
+    parser.add_argument('--mode', type=str, choices=eval_config.VALID_MODES, help='Evaluation mode: hybrid, dense, or openai (default: from chatbot config)')
     args = parser.parse_args()
 
     # Handle investigate mode - automatically set resume, resume_limit, and debug
@@ -42,19 +60,39 @@ def main():
     print("CHATBOT EVALUATION SYSTEM - LLM as a Judge")
     print("=" * 80)
 
-    # Determine which evaluator to use
-    custom_evaluator = None
-    if args.openai_agent:
-        from .openai_evaluator import OpenAIAgentEvaluator
-        custom_evaluator = OpenAIAgentEvaluator()
-        print("\nEvaluating: OpenAI Agent (gpt-5 + FileSearch)")
-    elif args.collection:
-        print(f"\nUsing Qdrant collection: {args.collection}")
-    else:
-        from chatbot import config
-        print(f"\nUsing Qdrant collection: {config.COLLECTION_NAME} (default)")
+    # Determine mode - use arg, env var, or default to chatbot config
+    from chatbot import config as chatbot_config
+    mode = args.mode or chatbot_config.RETRIEVAL_MODE
+    print(f"\nEvaluation Mode: {mode}")
 
-    # Initialize
+    # Determine which evaluator to use based on mode
+    custom_evaluator = None
+    if mode == 'openai':
+        try:
+            from .openai_evaluator import OpenAIAgentEvaluator
+        except ImportError:
+            from evaluation.openai_evaluator import OpenAIAgentEvaluator
+        custom_evaluator = OpenAIAgentEvaluator()
+        print("Evaluator: OpenAI Agent (gpt-5 + FileSearch)")
+    else:
+        # hybrid or dense mode - use ChatbotEvaluator with retrieval_mode
+        try:
+            from .evaluator import ChatbotEvaluator
+        except ImportError:
+            from evaluation.evaluator import ChatbotEvaluator
+        custom_evaluator = ChatbotEvaluator(
+            collection_name=args.collection,
+            retrieval_top_k=args.retrieval_top_k,
+            retrieval_mode=mode
+        )
+        retriever_type = "Hybrid (dense + sparse)" if mode == 'hybrid' else "Dense-only"
+        print(f"Evaluator: RAG Chatbot ({retriever_type})")
+        if args.collection:
+            print(f"Collection: {args.collection}")
+        else:
+            print(f"Collection: {chatbot_config.COLLECTION_NAME} (default)")
+
+    # Initialize with mode-specific output directories
     evaluator = BatchEvaluator(
         collection_name=args.collection,
         resume=args.resume,
@@ -65,9 +103,11 @@ def main():
         clear_checkpoint=args.clear_checkpoint,
         capture_on_error=args.capture_on_error,
         stop_on_fail=not args.no_stop_on_fail,
-        evaluator=custom_evaluator
+        evaluator=custom_evaluator,
+        mode=mode
     )
-    reporter = Reporter()
+    reporter = Reporter(mode=mode)
+    print(f"Results Directory: {eval_config.get_results_dir(mode)}")
 
     # Run evaluation
     if args.file:

@@ -34,3 +34,25 @@ THRESHOLDS = {
 
 # Stop evaluation if score falls below this threshold
 STOP_ON_FAIL_THRESHOLD = 60
+
+# Valid evaluation modes
+VALID_MODES = ['hybrid', 'dense', 'openai']
+
+def get_results_dir(mode: str = None):
+    """Get mode-specific results directory, creating if needed.
+
+    Args:
+        mode: Evaluation mode ('hybrid', 'dense', 'openai'). If None, returns base RESULTS_DIR.
+
+    Returns:
+        Path to results directory (creates if needed)
+    """
+    from pathlib import Path
+
+    if mode:
+        results_dir = Path(RESULTS_DIR) / mode
+    else:
+        results_dir = Path(RESULTS_DIR)
+
+    results_dir.mkdir(parents=True, exist_ok=True)
+    return results_dir
