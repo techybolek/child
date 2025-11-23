@@ -8,19 +8,39 @@ def parse_qa_file(file_path: str) -> List[Dict]:
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Pattern to match Q/A pairs
-    # Matches: ### Q1: question text\n**A1:** answer text
-    pattern = r'###\s+Q(\d+):\s+(.*?)\n\*\*A\1:\*\*\s+(.*?)(?=\n###|\Z)'
-    matches = re.findall(pattern, content, re.DOTALL)
-
     qa_pairs = []
-    for num, question, answer in matches:
+
+    # Format 1: ### Q1: question text\n**A1:** answer text
+    pattern1 = r'###\s+Q(\d+):\s+(.*?)\n\*\*A\1:\*\*\s+(.*?)(?=\n###|\Z)'
+    matches1 = re.findall(pattern1, content, re.DOTALL)
+
+    # Format 2: **Q1: question text**\n\nA1: answer text
+    pattern2 = r'\*\*Q(\d+):\s+(.*?)\*\*\s*\n+A\1:\s+(.*?)(?=\n\*\*Q\d+:|\Z)'
+    matches2 = re.findall(pattern2, content, re.DOTALL)
+
+    # Format 3: Q1: question text\nA1: answer text (plain text, no markdown)
+    pattern3 = r'^Q(\d+):\s+(.*?)\nA\1:\s+(.*?)(?=\nQ\d+:|\Z)'
+    matches3 = re.findall(pattern3, content, re.DOTALL | re.MULTILINE)
+
+    # Format 4: ## Q1: question text\n**A1:** answer text
+    pattern4 = r'^##\s+Q(\d+):\s+(.*?)\n\*\*A\1:\*\*\s+(.*?)(?=\n##\s+Q\d+:|\Z)'
+    matches4 = re.findall(pattern4, content, re.DOTALL | re.MULTILINE)
+
+    # Format 5: **Q1: question**\n\n**A1:** answer (both bold, with --- separators)
+    pattern5 = r'\*\*Q(\d+):\s+(.*?)\*\*\s*\n+\*\*A\1:\*\*\s+(.*?)(?=\n---|\n\*\*Q\d+:|\Z)'
+    matches5 = re.findall(pattern5, content, re.DOTALL)
+
+    # Combine matches from all formats
+    for num, question, answer in matches1 + matches2 + matches3 + matches4 + matches5:
         qa_pairs.append({
             'question_num': int(num),
             'question': question.strip(),
             'expected_answer': answer.strip(),
             'source_file': Path(file_path).name
         })
+
+    # Sort by question number
+    qa_pairs.sort(key=lambda x: x['question_num'])
 
     return qa_pairs
 

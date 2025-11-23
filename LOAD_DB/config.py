@@ -17,7 +17,9 @@ PDFS_DIR = os.path.join(
 )
 
 # ===== QDRANT SETTINGS =====
-QDRANT_COLLECTION_NAME = 'tro-child-1'
+# Single unified collection with hybrid schema (dense + sparse vectors)
+# Dense-only or hybrid retrieval is a query-time decision, not schema decision
+QDRANT_COLLECTION_NAME = 'tro-child-hybrid-v1'
 QDRANT_API_URL = os.getenv('QDRANT_API_URL')
 QDRANT_API_KEY = os.getenv('QDRANT_API_KEY')
 
@@ -48,8 +50,11 @@ TABLE_PDFS = [
 # ===== CONTEXTUAL RETRIEVAL SETTINGS =====
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 GROQ_MODEL = 'openai/gpt-oss-20b'  # Same model as chatbot RAG
-QDRANT_COLLECTION_NAME_CONTEXTUAL = 'tro-child-3-contextual'  # Enhanced with improved family size identification prompt
 CONTEXT_BATCH_SIZE = 10        # Chunks per context generation batch
 CONTEXT_RATE_LIMIT_DELAY = 2   # Seconds between batches
-ENABLE_CONTEXTUAL_RETRIEVAL = True
+ENABLE_CONTEXTUAL_RETRIEVAL = True  # Affects dense embedding quality (context enrichment)
 USE_PREVIOUS_CHUNK_CONTEXT = True  # Include previous chunk's context and text when generating chunk context
+
+# ===== SPARSE VECTOR SETTINGS =====
+# Sparse vectors always generated for hybrid schema
+BM25_VOCABULARY_SIZE = 30000

@@ -2,6 +2,7 @@
 
 from .base import BaseHandler
 from ..retriever import QdrantRetriever
+from ..hybrid_retriever import QdrantHybridRetriever
 from ..reranker import LLMJudgeReranker
 from ..generator import ResponseGenerator
 from .. import config
@@ -21,7 +22,11 @@ class RAGHandler(BaseHandler):
             collection_name: Optional Qdrant collection name
             retrieval_top_k: Optional override for number of chunks to retrieve
         """
-        self.retriever = QdrantRetriever(collection_name=collection_name)
+        # Choose retriever based on config flag
+        if config.ENABLE_HYBRID_RETRIEVAL:
+            self.retriever = QdrantHybridRetriever(collection_name=collection_name)
+        else:
+            self.retriever = QdrantRetriever(collection_name=collection_name)
         self.retrieval_top_k = retrieval_top_k
 
         # Use provider override or config default

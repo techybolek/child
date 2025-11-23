@@ -1,5 +1,5 @@
 """
-Shared Qdrant upload utilities with contextual embeddings support.
+Shared Qdrant upload utilities with contextual embeddings and hybrid search support.
 """
 
 import logging
@@ -7,11 +7,17 @@ from typing import List, Optional
 from langchain.docstore.document import Document
 from langchain_openai import OpenAIEmbeddings
 from qdrant_client import QdrantClient
-from qdrant_client.models import PointStruct
+from qdrant_client.models import PointStruct, SparseVector
 from prompts import MASTER_CONTEXT
 import config
 
 logger = logging.getLogger(__name__)
+
+# Import sparse embedder for hybrid mode
+try:
+    from sparse_embedder import BM25Embedder
+except ImportError:
+    BM25Embedder = None
 
 
 def upload_with_embeddings(
@@ -21,7 +27,8 @@ def upload_with_embeddings(
     embeddings_model: OpenAIEmbeddings,
     contextual_mode: bool = False,
     contextual_processor = None,
-    document_context: Optional[str] = None
+    document_context: Optional[str] = None,
+    hybrid_mode: bool = False
 ):
     """
     Upload documents to Qdrant with embeddings.
@@ -31,6 +38,11 @@ def upload_with_embeddings(
     - Storage keeps only original content in page_content
     - Contexts stored separately in metadata for potential future use
 
+    For hybrid mode:
+    - Dense vectors use contextual embeddings (if contextual_mode=True)
+    - Sparse vectors use original content only (for exact keyword matching)
+    - Named vector storage: {"dense": [...], "sparse": {"indices": [...], "values": [...]}}
+
     Args:
         client: QdrantClient instance
         collection_name: Name of the Qdrant collection
@@ -39,6 +51,7 @@ def upload_with_embeddings(
         contextual_mode: Whether to use contextual embeddings
         contextual_processor: ContextualChunkProcessor instance (required if contextual_mode=True)
         document_context: Document-level context (required if contextual_mode=True)
+        hybrid_mode: Whether to generate sparse vectors for hybrid search
     """
     if not documents:
         logger.warning("No documents to upload")
@@ -106,6 +119,20 @@ def upload_with_embeddings(
     # Generate embeddings from potentially enriched text
     embeddings = embeddings_model.embed_documents(texts_for_embedding)
 
+    # Generate sparse vectors if hybrid mode
+    sparse_vectors = None
+    if hybrid_mode:
+        if BM25Embedder is None:
+            raise ImportError("BM25Embedder not available. Check sparse_embedder.py")
+
+        logger.info(f"Generating sparse vectors for {len(documents)} chunks...")
+        sparse_embedder = BM25Embedder(vocab_size=config.BM25_VOCABULARY_SIZE)
+
+        # Use ORIGINAL content for sparse (no context)
+        # This preserves exact keyword matching
+        sparse_vectors = sparse_embedder.embed(original_contents)
+        logger.info("Sparse vectors generated")
+
     # Get current max ID to avoid conflicts
     try:
         collection_info = client.get_collection(collection_name)
@@ -121,9 +148,23 @@ def upload_with_embeddings(
         # Ensure page_content is original (not enriched with contexts)
         doc.page_content = original_contents[i]
 
+        # Build vector structure for hybrid or single vector
+        if hybrid_mode and sparse_vectors:
+            # Named vectors for hybrid search
+            vector_data = {
+                "dense": embedding,
+                "sparse": SparseVector(
+                    indices=sparse_vectors[i].indices,
+                    values=sparse_vectors[i].values
+                )
+            }
+        else:
+            # Single unnamed vector for standard search
+            vector_data = embedding
+
         point = PointStruct(
             id=point_id,
-            vector=embedding,
+            vector=vector_data,
             payload={
                 'text': doc.page_content,
                 **doc.metadata

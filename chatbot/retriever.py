@@ -1,6 +1,38 @@
+import time
 from qdrant_client import QdrantClient
+from qdrant_client.http.exceptions import UnexpectedResponse, ResponseHandlingException
 from langchain_openai import OpenAIEmbeddings
 from . import config
+
+
+def _retry_with_backoff(func, max_retries=None, base_delay=None):
+    """
+    Retry Qdrant operations with exponential backoff for transient errors.
+    Handles HTTP errors (502/503/504) and timeouts.
+    """
+    max_retries = max_retries or config.QDRANT_MAX_RETRIES
+    base_delay = base_delay or config.QDRANT_RETRY_BASE_DELAY
+
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except (UnexpectedResponse, ResponseHandlingException) as e:
+            is_retryable = False
+            error_msg = str(e)
+
+            if isinstance(e, UnexpectedResponse) and e.status_code in (502, 503, 504):
+                is_retryable = True
+                error_msg = f"HTTP {e.status_code}"
+            elif isinstance(e, ResponseHandlingException):
+                is_retryable = True
+                error_msg = "timeout"
+
+            if is_retryable and attempt < max_retries - 1:
+                delay = base_delay * (2 ** attempt)
+                print(f"[Retry] Qdrant {error_msg}, attempt {attempt + 1}/{max_retries}, retrying in {delay:.1f}s...")
+                time.sleep(delay)
+            else:
+                raise
 
 
 class QdrantRetriever:
@@ -16,18 +48,23 @@ class QdrantRetriever:
         print(f"[Retriever] Using Qdrant collection: {self.collection}")
 
     def search(self, query: str, top_k: int = 20):
+        """Search Qdrant for relevant chunks (dense vectors only)"""
         print(f"[Retriever] Using Qdrant collection: {self.collection}")
-        """Search Qdrant for relevant chunks"""
+
         # Embed query
         query_vector = self.embeddings.embed_query(query)
 
-        # Search
-        results = self.client.search(
-            collection_name=self.collection,
-            query_vector=query_vector,
-            limit=top_k,
-            score_threshold=config.MIN_SCORE_THRESHOLD
-        )
+        # Search (with retry for transient errors)
+        # Use named vector syntax for hybrid collection schema
+        def _do_search():
+            return self.client.search(
+                collection_name=self.collection,
+                query_vector=("dense", query_vector),  # Named vector for hybrid schema
+                limit=top_k,
+                score_threshold=config.MIN_SCORE_THRESHOLD
+            )
+
+        results = _retry_with_backoff(_do_search)
 
         # Return as simple dicts
         chunks = [

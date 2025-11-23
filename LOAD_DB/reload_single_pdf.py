@@ -47,19 +47,26 @@ logger = logging.getLogger(__name__)
 class SinglePDFReloader:
     """Surgically reload a single PDF to Qdrant."""
 
-    def __init__(self, pdf_filename: str, contextual_mode: bool = True):
+    def __init__(self, pdf_filename: str, contextual_mode: bool = True, hybrid_mode: bool = False):
         """
         Initialize the single PDF reloader.
 
         Args:
             pdf_filename: Name of the PDF file (e.g., 'bcy-26-income-eligibility-and-maximum-psoc-twc.pdf')
-            contextual_mode: If True, uses contextual embeddings (default: True for tro-child-3-contextual)
+            contextual_mode: If True, uses contextual embeddings
+            hybrid_mode: If True, uses hybrid embeddings (dense + sparse)
         """
         self.pdf_filename = pdf_filename
         self.contextual_mode = contextual_mode
+        self.hybrid_mode = hybrid_mode
 
-        # Set collection name based on contextual mode
-        self.collection_name = config.QDRANT_COLLECTION_NAME_CONTEXTUAL if contextual_mode else config.QDRANT_COLLECTION_NAME
+        # Set collection name based on mode (precedence: hybrid > contextual > standard)
+        if hybrid_mode:
+            self.collection_name = config.HYBRID_COLLECTION_NAME
+        elif contextual_mode:
+            self.collection_name = config.QDRANT_COLLECTION_NAME_CONTEXTUAL
+        else:
+            self.collection_name = config.QDRANT_COLLECTION_NAME
         logger.info(f"Using collection: {self.collection_name}")
 
         # Initialize Qdrant client
@@ -264,7 +271,8 @@ class SinglePDFReloader:
             embeddings_model=self.embeddings,
             contextual_mode=self.contextual_mode,
             contextual_processor=self.contextual_processor,
-            document_context=self.document_context
+            document_context=self.document_context,
+            hybrid_mode=self.hybrid_mode
         )
 
     def reload(self, pdf_path: str):
@@ -296,16 +304,41 @@ class SinglePDFReloader:
 
 def main():
     """Main entry point."""
-    if len(sys.argv) < 2:
-        print("Usage: python reload_single_pdf.py <pdf_filename>")
-        print("Example: python reload_single_pdf.py bcy-26-income-eligibility-and-maximum-psoc-twc.pdf")
-        sys.exit(1)
+    import argparse
 
-    pdf_filename = sys.argv[1]
+    parser = argparse.ArgumentParser(description='Surgically reload a single PDF to Qdrant')
+    parser.add_argument('pdf_filename', help='PDF filename (e.g., bcy-26-income-eligibility-and-maximum-psoc-twc.pdf)')
+    parser.add_argument('--contextual', action='store_true', dest='contextual',
+                       help='Enable contextual retrieval mode (override config default)')
+    parser.add_argument('--no-contextual', action='store_true', dest='no_contextual',
+                       help='Disable contextual retrieval mode (override config default)')
+    parser.add_argument('--hybrid', action='store_true', dest='hybrid',
+                       help='Enable hybrid search mode (override config default)')
+    parser.add_argument('--no-hybrid', action='store_true', dest='no_hybrid',
+                       help='Disable hybrid search mode (override config default)')
+
+    args = parser.parse_args()
+
+    # Apply precedence: explicit disable > explicit enable > config default
+    # Contextual mode
+    if args.no_contextual:
+        contextual_mode = False
+    elif args.contextual:
+        contextual_mode = True
+    else:
+        contextual_mode = config.ENABLE_CONTEXTUAL_RETRIEVAL
+
+    # Hybrid mode
+    if args.no_hybrid:
+        hybrid_mode = False
+    elif args.hybrid:
+        hybrid_mode = True
+    else:
+        hybrid_mode = config.ENABLE_HYBRID_SEARCH
 
     # Find the PDF file
     pdf_dir = config.PDFS_DIR
-    pdf_path = os.path.join(pdf_dir, pdf_filename)
+    pdf_path = os.path.join(pdf_dir, args.pdf_filename)
 
     if not os.path.exists(pdf_path):
         logger.error(f"PDF not found: {pdf_path}")
@@ -314,7 +347,11 @@ def main():
     logger.info(f"Found PDF: {pdf_path}")
 
     # Create reloader and execute
-    reloader = SinglePDFReloader(pdf_filename=pdf_filename, contextual_mode=True)
+    reloader = SinglePDFReloader(
+        pdf_filename=args.pdf_filename,
+        contextual_mode=contextual_mode,
+        hybrid_mode=hybrid_mode
+    )
     reloader.reload(pdf_path)
 
     logger.info("✓ Surgical reload complete!")

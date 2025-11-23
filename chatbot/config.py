@@ -7,8 +7,8 @@ QDRANT_API_URL = os.getenv('QDRANT_API_URL')
 QDRANT_API_KEY = os.getenv('QDRANT_API_KEY')
 
 # Qdrant settings
-#COLLECTION_NAME = 'tro-child-1'
-COLLECTION_NAME = 'tro-child-3-contextual'  # Enhanced with improved family size identification prompt
+# Single unified collection with hybrid schema (dense + sparse vectors)
+COLLECTION_NAME = 'tro-child-hybrid-v1'
 EMBEDDING_MODEL = 'text-embedding-3-small'
 
 # Retrieval settings
@@ -59,3 +59,18 @@ SINGLE_FACT_PATTERNS = [
     r'what\s+is\s+the\s+\w+\s+(for|of)',
     r'when\s+(is|was|did)'
 ]
+
+# ===== HYBRID SEARCH SETTINGS =====
+# ENABLE_HYBRID_RETRIEVAL controls which retriever is used (not which collection)
+# True = QdrantHybridRetriever (dense + sparse with RRF fusion)
+# False = QdrantRetriever (dense-only semantic search)
+# Both use the same unified hybrid collection
+ENABLE_HYBRID_RETRIEVAL = True
+FUSION_METHOD = 'rrf'  # Reciprocal Rank Fusion
+RRF_K = 60  # Standard RRF parameter
+HYBRID_PREFETCH_LIMIT = 100  # Number of candidates to retrieve from each vector type before fusion
+BM25_VOCABULARY_SIZE = 30000  # BM25 sparse vector vocabulary size
+
+# ===== QDRANT RETRY SETTINGS =====
+QDRANT_MAX_RETRIES = 3  # Number of retry attempts for transient errors
+QDRANT_RETRY_BASE_DELAY = 1.0  # Base delay in seconds (exponential backoff)

@@ -44,7 +44,8 @@ Multi-provider conversational AI with **intent-based routing** and handler patte
 - `handlers/base.py` - BaseHandler interface
 - `handlers/rag_handler.py` - Information queries via RAG pipeline
 - `handlers/location_handler.py` - Location search template responses
-- `retriever.py` - Qdrant vector search
+- `retriever.py` - Qdrant vector search (dense-only)
+- `hybrid_retriever.py` - Hybrid search with RRF fusion (dense + sparse vectors)
 - `reranker.py` - LLM-based relevance scoring
 - `generator.py` - Answer generation with citations
 - `chatbot.py` - Main orchestration (delegates to IntentRouter)

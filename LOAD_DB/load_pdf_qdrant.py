@@ -18,7 +18,7 @@ try:
     from langchain_community.document_loaders import PyMuPDFLoader
     from langchain.docstore.document import Document
     from qdrant_client import QdrantClient
-    from qdrant_client.models import Distance, VectorParams, PointStruct, PayloadSchemaType
+    from qdrant_client.models import Distance, VectorParams, PointStruct, PayloadSchemaType, SparseVectorParams
     from docling.document_converter import DocumentConverter
     from docling_core.types.doc import DocItemLabel
 except ImportError as e:
@@ -75,15 +75,15 @@ class PDFToQdrantLoader:
             test_mode: If True, runs in test mode with limited PDFs
             max_pdfs: Maximum number of PDFs to process (for testing)
             clear_collection: If True, clears the collection before loading (default: True)
-            contextual_mode: If True, generates contextual metadata for chunks
+            contextual_mode: If True, generates contextual metadata for chunks (improves dense embeddings)
         """
         self.test_mode = test_mode
         self.max_pdfs = max_pdfs or (3 if test_mode else None)
         self.clear_collection = clear_collection
         self.contextual_mode = contextual_mode
 
-        # Set collection name based on contextual mode
-        self.collection_name = config.QDRANT_COLLECTION_NAME_CONTEXTUAL if contextual_mode else config.QDRANT_COLLECTION_NAME
+        # Single unified collection with hybrid schema (dense + sparse vectors)
+        self.collection_name = config.QDRANT_COLLECTION_NAME
 
         # Initialize Qdrant client
         if not config.QDRANT_API_URL or not config.QDRANT_API_KEY:
@@ -155,14 +155,20 @@ class PDFToQdrantLoader:
                 self.client.delete_collection(self.collection_name)
                 logger.info("Collection deleted successfully")
 
-            # Create fresh collection
+            # Create fresh collection with hybrid schema (always)
             logger.info(f"Creating fresh collection '{self.collection_name}'")
+            logger.info("Creating collection with dense + sparse vectors (hybrid schema)")
             self.client.create_collection(
                 collection_name=self.collection_name,
-                vectors_config=VectorParams(
-                    size=config.EMBEDDING_DIMENSION,
-                    distance=Distance.COSINE
-                )
+                vectors_config={
+                    "dense": VectorParams(
+                        size=config.EMBEDDING_DIMENSION,
+                        distance=Distance.COSINE
+                    )
+                },
+                sparse_vectors_config={
+                    "sparse": SparseVectorParams()
+                }
             )
             logger.info("Collection created successfully")
 
@@ -191,12 +197,18 @@ class PDFToQdrantLoader:
                 logger.info(f"Current vectors count: {collection_info.points_count}")
             else:
                 logger.info(f"Creating collection '{self.collection_name}'")
+                logger.info("Creating collection with dense + sparse vectors (hybrid schema)")
                 self.client.create_collection(
                     collection_name=self.collection_name,
-                    vectors_config=VectorParams(
-                        size=config.EMBEDDING_DIMENSION,
-                        distance=Distance.COSINE
-                    )
+                    vectors_config={
+                        "dense": VectorParams(
+                            size=config.EMBEDDING_DIMENSION,
+                            distance=Distance.COSINE
+                        )
+                    },
+                    sparse_vectors_config={
+                        "sparse": SparseVectorParams()
+                    }
                 )
                 logger.info("Collection created successfully")
 
@@ -374,7 +386,7 @@ class PDFToQdrantLoader:
                 pdf_id = os.path.splitext(pdf_id)[0]
             document_context = self.document_context_cache.get(pdf_id)
 
-        # Use shared upload function
+        # Use shared upload function (always hybrid schema)
         upload_with_embeddings(
             client=self.client,
             collection_name=self.collection_name,
@@ -382,7 +394,8 @@ class PDFToQdrantLoader:
             embeddings_model=self.embeddings,
             contextual_mode=self.contextual_mode,
             contextual_processor=self.contextual_processor,
-            document_context=document_context
+            document_context=document_context,
+            hybrid_mode=True  # Always generate sparse vectors for hybrid schema
         )
 
     def get_pdf_files(self) -> List[str]:
@@ -579,16 +592,29 @@ def main():
     parser.add_argument('--max-pdfs', type=int, help='Maximum number of PDFs to process')
     parser.add_argument('--no-clear', action='store_true',
                        help='Do NOT clear collection before loading (default: clears collection)')
-    parser.add_argument('--contextual', action='store_true',
-                       help='Enable contextual retrieval mode (generates 3-tier context hierarchy)')
+    parser.add_argument('--contextual', action='store_true', dest='contextual',
+                       help='Enable contextual retrieval mode (generates 3-tier context hierarchy for dense embeddings)')
+    parser.add_argument('--no-contextual', action='store_true', dest='no_contextual',
+                       help='Disable contextual retrieval mode (override config default)')
 
     args = parser.parse_args()
+
+    # Apply precedence: explicit disable > explicit enable > config default
+    if args.no_contextual:
+        contextual_mode = False
+    elif args.contextual:
+        contextual_mode = True
+    else:
+        contextual_mode = config.ENABLE_CONTEXTUAL_RETRIEVAL
+
+    # Note: Hybrid schema is always used (dense + sparse vectors)
+    # Contextual mode only affects dense embedding quality
 
     loader = PDFToQdrantLoader(
         test_mode=args.test,
         max_pdfs=args.max_pdfs,
         clear_collection=not args.no_clear,  # Clear by default, unless --no-clear is specified
-        contextual_mode=args.contextual
+        contextual_mode=contextual_mode
     )
 
     loader.run()

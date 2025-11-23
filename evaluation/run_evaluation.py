@@ -28,6 +28,8 @@ def main():
     parser.add_argument('--retrieval-top-k', type=int, help='Override number of chunks to retrieve (default: from config)')
     parser.add_argument('--clear-checkpoint', action='store_true', help='Delete checkpoint after successful completion (default: keep)')
     parser.add_argument('--capture-on-error', action='store_true', help='Save failed questions to checkpoint with "failed" status (allows --resume to skip them)')
+    parser.add_argument('--no-stop-on-fail', action='store_true', help='Continue evaluation even when a question scores below threshold')
+    parser.add_argument('--openai-agent', action='store_true', help='Evaluate OpenAI agent instead of default RAG chatbot')
     args = parser.parse_args()
 
     # Handle investigate mode - automatically set resume, resume_limit, and debug
@@ -39,7 +41,14 @@ def main():
     print("=" * 80)
     print("CHATBOT EVALUATION SYSTEM - LLM as a Judge")
     print("=" * 80)
-    if args.collection:
+
+    # Determine which evaluator to use
+    custom_evaluator = None
+    if args.openai_agent:
+        from .openai_evaluator import OpenAIAgentEvaluator
+        custom_evaluator = OpenAIAgentEvaluator()
+        print("\nEvaluating: OpenAI Agent (gpt-5 + FileSearch)")
+    elif args.collection:
         print(f"\nUsing Qdrant collection: {args.collection}")
     else:
         from chatbot import config
@@ -54,7 +63,9 @@ def main():
         investigate_mode=args.investigate,
         retrieval_top_k=args.retrieval_top_k,
         clear_checkpoint=args.clear_checkpoint,
-        capture_on_error=args.capture_on_error
+        capture_on_error=args.capture_on_error,
+        stop_on_fail=not args.no_stop_on_fail,
+        evaluator=custom_evaluator
     )
     reporter = Reporter()
 

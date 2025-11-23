@@ -8,8 +8,12 @@ from . import config
 
 
 class BatchEvaluator:
-    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, investigate_mode=False, retrieval_top_k=None, clear_checkpoint=False, capture_on_error=False):
-        self.evaluator = ChatbotEvaluator(collection_name=collection_name, retrieval_top_k=retrieval_top_k)
+    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, investigate_mode=False, retrieval_top_k=None, clear_checkpoint=False, capture_on_error=False, stop_on_fail=True, evaluator=None):
+        # Use injected evaluator if provided, otherwise default to ChatbotEvaluator
+        if evaluator is not None:
+            self.evaluator = evaluator
+        else:
+            self.evaluator = ChatbotEvaluator(collection_name=collection_name, retrieval_top_k=retrieval_top_k)
         self.judge = LLMJudge()
         self.resume = resume
         self.resume_limit = resume_limit
@@ -18,6 +22,7 @@ class BatchEvaluator:
         self.retrieval_top_k = retrieval_top_k
         self.clear_checkpoint = clear_checkpoint
         self.capture_on_error = capture_on_error
+        self.stop_on_fail = stop_on_fail
 
     def evaluate_all(self, limit: int = None):
         """Evaluate all Q&A pairs"""
@@ -133,8 +138,8 @@ class BatchEvaluator:
                 }
                 # Fall through to _print_failure_and_stop below
 
-            # Check if score is below threshold - stop immediately if so
-            if scores['composite_score'] < config.STOP_ON_FAIL_THRESHOLD:
+            # Check if score is below threshold - stop immediately if so (unless --no-stop-on-fail)
+            if self.stop_on_fail and scores['composite_score'] < config.STOP_ON_FAIL_THRESHOLD:
                 self._print_failure_and_stop(qa, chatbot_response, scores, results, stats)
 
             # Store result

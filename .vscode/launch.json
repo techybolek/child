@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: reload_single_pdf.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/LOAD_DB/reload_single_pdf.py",
+            "console": "integratedTerminal",
+            "args": ["${input:pdfFilename}"],
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/LOAD_DB"
+        },
+        {
+            "name": "Python: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ],
+    "inputs": [
+        {
+            "id": "pdfFilename",
+            "type": "promptString",
+            "description": "Enter the PDF filename:",
+            "default": "bcy-26-income-eligibility-and-maximum-psoc-twc.pdf"
+        }
+    ]
+}

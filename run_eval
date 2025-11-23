@@ -1,1 +1,2 @@
-python -m evaluation.run_evaluation --resume
+python -m evaluation.run_evaluation --no-stop-on-fail
+#python -m evaluation.run_evaluation --resume
