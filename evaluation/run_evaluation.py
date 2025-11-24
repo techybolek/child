@@ -74,6 +74,13 @@ def main():
             from evaluation.openai_evaluator import OpenAIAgentEvaluator
         custom_evaluator = OpenAIAgentEvaluator()
         print("Evaluator: OpenAI Agent (gpt-5 + FileSearch)")
+    elif mode == 'kendra':
+        try:
+            from .kendra_evaluator import KendraEvaluator
+        except ImportError:
+            from evaluation.kendra_evaluator import KendraEvaluator
+        custom_evaluator = KendraEvaluator()
+        print("Evaluator: Amazon Kendra + Bedrock Titan")
     else:
         # hybrid or dense mode - use ChatbotEvaluator with retrieval_mode
         try:

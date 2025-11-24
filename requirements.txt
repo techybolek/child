@@ -25,3 +25,6 @@ tiktoken>=0.5.0
 # Standard library dependencies (usually pre-installed)
 # typing-extensions is installed as a dependency of beautifulsoup4
 openai-agents
+
+# AWS integrations (Kendra, Bedrock)
+langchain-aws>=0.2.0

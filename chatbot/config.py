@@ -74,3 +74,9 @@ BM25_VOCABULARY_SIZE = 30000  # BM25 sparse vector vocabulary size
 # ===== QDRANT RETRY SETTINGS =====
 QDRANT_MAX_RETRIES = 3  # Number of retry attempts for transient errors
 QDRANT_RETRY_BASE_DELAY = 1.0  # Base delay in seconds (exponential backoff)
+
+# ===== AMAZON KENDRA SETTINGS =====
+KENDRA_INDEX_ID = "4aee3b7a-0217-4ce5-a0a2-b737cda375d9"
+KENDRA_REGION = "us-east-1"
+BEDROCK_MODEL = "openai.gpt-oss-20b-1:0"  # GPT-OSS 20B (fast, good at instructions)
+KENDRA_TOP_K = 5

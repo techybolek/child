@@ -36,7 +36,7 @@ THRESHOLDS = {
 STOP_ON_FAIL_THRESHOLD = 60
 
 # Valid evaluation modes
-VALID_MODES = ['hybrid', 'dense', 'openai']
+VALID_MODES = ['hybrid', 'dense', 'openai', 'kendra']
 
 def get_results_dir(mode: str = None):
     """Get mode-specific results directory, creating if needed.

@@ -1,29 +1,64 @@
 from chatbot.chatbot import TexasChildcareChatbot
+from chatbot import config
+import argparse
+import os
 import sys
 
 
+def get_handler(mode: str):
+    """Get appropriate handler based on mode"""
+    if mode == 'kendra':
+        from chatbot.handlers.kendra_handler import KendraHandler
+        return KendraHandler()
+    else:
+        # For hybrid/dense, use the standard chatbot which handles mode internally
+        return None
+
+
 def main():
+    parser = argparse.ArgumentParser(description='Texas Childcare Chatbot - Interactive Mode')
+    parser.add_argument('--mode', type=str, choices=['hybrid', 'dense', 'kendra'],
+                        help='Retrieval mode (default: from RETRIEVAL_MODE env or config)')
+    parser.add_argument('question', nargs='*', help='Question to ask (optional)')
+    args = parser.parse_args()
+
+    # Determine mode from args, env, or config
+    mode = args.mode or os.getenv('RETRIEVAL_MODE', config.RETRIEVAL_MODE)
+
     print("=" * 60)
     print("Texas Childcare Chatbot - Interactive Mode")
     print("=" * 60)
-    print("\nInitializing chatbot...")
+    print(f"\nMode: {mode}")
+    print("Initializing chatbot...")
 
     try:
-        chatbot = TexasChildcareChatbot()
+        if mode == 'kendra':
+            handler = get_handler('kendra')
+            chatbot = None
+        else:
+            chatbot = TexasChildcareChatbot()
+            handler = None
     except Exception as e:
         print(f"Error initializing chatbot: {e}")
         sys.exit(1)
 
+    # Helper function to ask question
+    def ask_question(question):
+        if handler:
+            return handler.handle(question)
+        else:
+            return chatbot.ask(question)
+
     # Check if question provided as command-line argument
-    if len(sys.argv) > 1:
-        question = ' '.join(sys.argv[1:])
-        response = chatbot.ask(question)
+    if args.question:
+        question = ' '.join(args.question)
+        response = ask_question(question)
         print("\nANSWER:")
         print(response['answer'])
         if response['sources']:
             print("\n\nSOURCES:")
             for i, source in enumerate(response['sources'], 1):
-                print(f"{i}. {source['doc']}, Page {source['page']}")
+                print(f"{i}. {source['doc']}, Page {source.get('page', 'N/A')}")
         return
 
     print("Ready! Ask me anything about Texas childcare assistance.")
@@ -46,7 +81,7 @@ def main():
 
             # Get answer
             print()
-            response = chatbot.ask(question)
+            response = ask_question(question)
 
             # Display answer
             print("\nANSWER:")
@@ -56,7 +91,7 @@ def main():
             if response['sources']:
                 print("\n\nSOURCES:")
                 for i, source in enumerate(response['sources'], 1):
-                    print(f"{i}. {source['doc']}, Page {source['page']}")
+                    print(f"{i}. {source['doc']}, Page {source.get('page', 'N/A')}")
 
         except KeyboardInterrupt:
             print("\n\nGoodbye!")
