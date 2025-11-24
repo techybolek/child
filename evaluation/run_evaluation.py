@@ -64,6 +64,14 @@ def main():
     from chatbot import config as chatbot_config
     mode = args.mode or chatbot_config.RETRIEVAL_MODE
     print(f"\nEvaluation Mode: {mode}")
+    
+    # Display citation scoring status
+    if eval_config.DISABLE_CITATION_SCORING:
+        print("Citation Scoring: DISABLED")
+        print("  Scoring Criteria: Accuracy (55.6%), Completeness (33.3%), Coherence (11.1%)")
+    else:
+        print("Citation Scoring: ENABLED")
+        print("  Scoring Criteria: Accuracy (50%), Completeness (30%), Citation Quality (10%), Coherence (10%)")
 
     # Determine which evaluator to use based on mode
     custom_evaluator = None

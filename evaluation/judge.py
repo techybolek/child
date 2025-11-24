@@ -29,6 +29,32 @@ Return ONLY this JSON (no repetition, no extra text):
 }}
 """
 
+JUDGE_PROMPT_NO_CITATIONS = """Evaluate this chatbot answer. Return ONLY one JSON object, nothing else.
+
+Question: {question}
+
+Expected: {expected_answer}
+
+Chatbot: {chatbot_answer}
+
+Sources: {sources}
+
+Score (0-5 for accuracy/completeness, 0-3 for coherence):
+- Factual Accuracy: same facts as expected?
+- Completeness: all key points covered?
+- Coherence: clear and structured?
+
+NOTE: Citation quality is NOT being evaluated. Sources are shown for reference only.
+
+Return ONLY this JSON (no repetition, no extra text):
+{{
+    "accuracy": <0-5>,
+    "completeness": <0-5>,
+    "coherence": <0-3>,
+    "reasoning": "<one sentence>"
+}}
+"""
+
 
 class LLMJudge:
     def __init__(self):
@@ -41,8 +67,14 @@ class LLMJudge:
         # Format sources
         sources_str = "\n".join([f"- {s['doc']}, Page {s['page']}" for s in sources]) if sources else "None"
 
+        # Choose prompt based on citation scoring setting
+        if config.DISABLE_CITATION_SCORING:
+            prompt_template = JUDGE_PROMPT_NO_CITATIONS
+        else:
+            prompt_template = JUDGE_PROMPT
+
         # Build prompt
-        prompt = JUDGE_PROMPT.format(
+        prompt = prompt_template.format(
             question=question,
             expected_answer=expected_answer,
             chatbot_answer=chatbot_answer,
@@ -142,19 +174,34 @@ class LLMJudge:
             print(f"Extracted JSON:\n{json_str}\n")
             raise
 
-        # Calculate composite score
-        composite = (
-            scores['accuracy'] * config.WEIGHTS['accuracy'] +
-            scores['completeness'] * config.WEIGHTS['completeness'] +
-            scores['citation_quality'] * config.WEIGHTS['citation_quality'] +
-            scores['coherence'] * config.WEIGHTS['coherence']
-        )
+        # Add null citation_quality if disabled
+        if config.DISABLE_CITATION_SCORING:
+            scores['citation_quality'] = None
 
-        # Normalize to 0-100 scale
-        max_score = (5 * config.WEIGHTS['accuracy'] +
-                     5 * config.WEIGHTS['completeness'] +
-                     5 * config.WEIGHTS['citation_quality'] +
-                     3 * config.WEIGHTS['coherence'])
+        # Calculate composite score
+        if config.DISABLE_CITATION_SCORING:
+            # Normalized weights when citations disabled (divide by 0.9)
+            composite = (
+                scores['accuracy'] * (config.WEIGHTS['accuracy'] / 0.9) +
+                scores['completeness'] * (config.WEIGHTS['completeness'] / 0.9) +
+                scores['coherence'] * (config.WEIGHTS['coherence'] / 0.9)
+            )
+            # Max score without citations: 5*0.556 + 5*0.333 + 3*0.111 = 4.778
+            max_score = (5 * (config.WEIGHTS['accuracy'] / 0.9) +
+                        5 * (config.WEIGHTS['completeness'] / 0.9) +
+                        3 * (config.WEIGHTS['coherence'] / 0.9))
+        else:
+            composite = (
+                scores['accuracy'] * config.WEIGHTS['accuracy'] +
+                scores['completeness'] * config.WEIGHTS['completeness'] +
+                scores['citation_quality'] * config.WEIGHTS['citation_quality'] +
+                scores['coherence'] * config.WEIGHTS['coherence']
+            )
+            # Normalize to 0-100 scale
+            max_score = (5 * config.WEIGHTS['accuracy'] +
+                        5 * config.WEIGHTS['completeness'] +
+                        5 * config.WEIGHTS['citation_quality'] +
+                        3 * config.WEIGHTS['coherence'])
 
         scores['composite_score'] = (composite / max_score) * 100
 

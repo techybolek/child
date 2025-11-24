@@ -64,6 +64,24 @@ class BatchEvaluator:
             if self.resume:
                 print(f"\n📂 Loading checkpoint from {checkpoint_file}...")
                 checkpoint_data = self._load_checkpoint(checkpoint_file)
+                
+                # Validate citation scoring mode compatibility
+                checkpoint_citation_mode = checkpoint_data.get('citation_scoring_enabled', True)  # Default to True for backward compatibility
+                current_citation_mode = not config.DISABLE_CITATION_SCORING
+                
+                if checkpoint_citation_mode != current_citation_mode:
+                    # Format error message
+                    checkpoint_mode_str = "enabled" if checkpoint_citation_mode else "disabled"
+                    current_mode_str = "enabled" if current_citation_mode else "disabled"
+                    
+                    print(f"\n❌ Error: Cannot resume - citation scoring mode mismatch")
+                    print(f"   Checkpoint mode: citation_scoring_enabled={checkpoint_citation_mode} ({checkpoint_mode_str})")
+                    print(f"   Current config:  DISABLE_CITATION_SCORING={config.DISABLE_CITATION_SCORING} ({current_mode_str})")
+                    print(f"\n   To fix:")
+                    print(f"   - Set DISABLE_CITATION_SCORING={not checkpoint_citation_mode} in evaluation/config.py")
+                    print(f"   - Or delete {checkpoint_file} to start fresh evaluation")
+                    raise SystemExit("Citation scoring mode mismatch - cannot resume")
+                
                 results = checkpoint_data['results']
                 stats = checkpoint_data['stats']
 
@@ -200,6 +218,7 @@ class BatchEvaluator:
         checkpoint_data = {
             'results': results,
             'stats': stats,
+            'citation_scoring_enabled': not config.DISABLE_CITATION_SCORING,
             'timestamp': datetime.now().isoformat()
         }
         with open(checkpoint_file, 'w') as f:

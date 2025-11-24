@@ -22,7 +22,10 @@ class Reporter:
         detailed_file = self.results_dir / f'detailed_results_{timestamp}.jsonl'
         with open(detailed_file, 'w') as f:
             for result in evaluation_data['results']:
-                f.write(json.dumps(result) + '\n')
+                # Add citation_scoring_enabled to each result
+                result_with_metadata = result.copy()
+                result_with_metadata['citation_scoring_enabled'] = not config.DISABLE_CITATION_SCORING
+                f.write(json.dumps(result_with_metadata) + '\n')
         print(f"✓ Detailed results: {detailed_file}")
 
         # Generate and save summary
@@ -55,7 +58,7 @@ class Reporter:
         # Score statistics
         accuracy_scores = [r['scores']['accuracy'] for r in results]
         completeness_scores = [r['scores']['completeness'] for r in results]
-        citation_scores = [r['scores']['citation_quality'] for r in results]
+        citation_scores = [r['scores']['citation_quality'] for r in results if r['scores']['citation_quality'] is not None]
         coherence_scores = [r['scores']['coherence'] for r in results]
         composite_scores = [r['scores']['composite_score'] for r in results]
 
@@ -68,16 +71,23 @@ class Reporter:
         needs_review = sum(1 for s in composite_scores if config.THRESHOLDS['needs_review'] <= s < config.THRESHOLDS['good'])
         failed = sum(1 for s in composite_scores if s < config.THRESHOLDS['needs_review'])
 
+        # Build average_scores dict
+        average_scores = {
+            'accuracy': sum(accuracy_scores) / len(accuracy_scores),
+            'completeness': sum(completeness_scores) / len(completeness_scores),
+            'coherence': sum(coherence_scores) / len(coherence_scores),
+            'composite': sum(composite_scores) / len(composite_scores)
+        }
+        
+        # Add citation_quality only if it was scored
+        if citation_scores:
+            average_scores['citation_quality'] = sum(citation_scores) / len(citation_scores)
+        
         return {
             'timestamp': evaluation_data['timestamp'],
             'total_evaluated': len(results),
-            'average_scores': {
-                'accuracy': sum(accuracy_scores) / len(accuracy_scores),
-                'completeness': sum(completeness_scores) / len(completeness_scores),
-                'citation_quality': sum(citation_scores) / len(citation_scores),
-                'coherence': sum(coherence_scores) / len(coherence_scores),
-                'composite': sum(composite_scores) / len(composite_scores)
-            },
+            'citation_scoring_enabled': not config.DISABLE_CITATION_SCORING,
+            'average_scores': average_scores,
             'performance': {
                 'excellent': excellent,
                 'good': good,
@@ -100,6 +110,12 @@ class Reporter:
         report.append("=" * 80)
         report.append(f"\nTimestamp: {summary['timestamp']}")
         report.append(f"Total Evaluated: {summary['total_evaluated']} Q&A pairs")
+        
+        # Add citation scoring status note
+        if config.DISABLE_CITATION_SCORING:
+            report.append("\n⚠️  NOTE: Citation scoring DISABLED for this evaluation")
+            report.append("   Scoring criteria: Accuracy (55.6%), Completeness (33.3%), Coherence (11.1%)")
+            report.append("   Sources collected but not scored for quality")
 
         report.append("\n" + "=" * 80)
         report.append("AVERAGE SCORES")
@@ -107,7 +123,11 @@ class Reporter:
         report.append(f"Composite Score:     {summary['average_scores']['composite']:.1f}/100")
         report.append(f"Factual Accuracy:    {summary['average_scores']['accuracy']:.2f}/5")
         report.append(f"Completeness:        {summary['average_scores']['completeness']:.2f}/5")
-        report.append(f"Citation Quality:    {summary['average_scores']['citation_quality']:.2f}/5")
+        
+        # Only show citation quality if it was scored
+        if 'citation_quality' in summary['average_scores']:
+            report.append(f"Citation Quality:    {summary['average_scores']['citation_quality']:.2f}/5")
+        
         report.append(f"Coherence:           {summary['average_scores']['coherence']:.2f}/3")
 
         report.append("\n" + "=" * 80)
