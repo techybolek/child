@@ -59,3 +59,48 @@ def get_results_dir(mode: str = None):
 
     results_dir.mkdir(parents=True, exist_ok=True)
     return results_dir
+
+
+def create_run_directory(mode: str):
+    """Create timestamped run directory within mode directory.
+
+    Args:
+        mode: Evaluation mode ('hybrid', 'dense', 'openai', 'kendra')
+
+    Returns:
+        Path to created run directory (e.g., results/hybrid/RUN_20251125_143022/)
+    """
+    from pathlib import Path
+    from datetime import datetime
+
+    mode_dir = get_results_dir(mode)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    run_dir = mode_dir / f'RUN_{timestamp}'
+
+    # Handle timestamp collision (unlikely but possible)
+    counter = 1
+    while run_dir.exists():
+        run_dir = mode_dir / f'RUN_{timestamp}_{counter}'
+        counter += 1
+
+    run_dir.mkdir(parents=True, exist_ok=True)
+    return run_dir
+
+
+def get_most_recent_run(mode: str):
+    """Find most recent run directory for the specified mode.
+
+    Args:
+        mode: Evaluation mode ('hybrid', 'dense', 'openai', 'kendra')
+
+    Returns:
+        Path to most recent run directory, or None if no runs found
+    """
+    from pathlib import Path
+
+    mode_dir = get_results_dir(mode)
+    run_dirs = sorted(mode_dir.glob('RUN_*'), reverse=True)
+
+    if run_dirs:
+        return run_dirs[0]
+    return None

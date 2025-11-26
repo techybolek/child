@@ -25,6 +25,7 @@ class BatchEvaluator:
         self.stop_on_fail = stop_on_fail
         self.mode = mode
         self.results_dir = config.get_results_dir(mode)
+        self.run_dir = None  # Will be set in _evaluate_batch
 
     def evaluate_all(self, limit: int = None):
         """Evaluate all Q&A pairs"""
@@ -58,11 +59,29 @@ class BatchEvaluator:
         # Track if this is a partial resume (for checkpoint cleanup decision)
         partial_resume = False
 
+        # Create or detect run directory
+        if self.resume:
+            # Resume existing run - find most recent run directory
+            self.run_dir = config.get_most_recent_run(self.mode)
+            if self.run_dir:
+                print(f"\n📂 Resuming run: {self.run_dir}")
+            else:
+                # No existing run directory found, but resume was requested
+                # This can happen if using old-style flat structure
+                print(f"\n⚠️  No existing run directory found for mode '{self.mode}'")
+                print(f"   Creating new run directory...")
+                self.run_dir = config.create_run_directory(self.mode)
+                print(f"   Created run directory: {self.run_dir}")
+        else:
+            # New evaluation run - create new run directory
+            self.run_dir = config.create_run_directory(self.mode)
+            print(f"\n📁 Created run directory: {self.run_dir}")
+
         # Check for existing checkpoint
         checkpoint_file = self.results_dir / "checkpoint.json"
         if checkpoint_file.exists():
             if self.resume:
-                print(f"\n📂 Loading checkpoint from {checkpoint_file}...")
+                print(f"   Loading checkpoint from {checkpoint_file}...")
                 checkpoint_data = self._load_checkpoint(checkpoint_file)
                 
                 # Validate citation scoring mode compatibility

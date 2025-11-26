@@ -121,8 +121,7 @@ def main():
         evaluator=custom_evaluator,
         mode=mode
     )
-    reporter = Reporter(mode=mode)
-    print(f"Results Directory: {eval_config.get_results_dir(mode)}")
+    print(f"Mode Directory: {eval_config.get_results_dir(mode)}")
 
     # Run evaluation
     if args.file:
@@ -135,11 +134,13 @@ def main():
             print("\nMode: Full evaluation")
         evaluation_data = evaluator.evaluate_all(limit=args.limit)
 
-    # Generate reports
+    # Generate reports - pass run_dir from evaluator
     print("\n" + "=" * 80)
     print("GENERATING REPORTS")
     print("=" * 80)
+    reporter = Reporter(mode=mode, run_dir=evaluator.run_dir)
     summary = reporter.generate_reports(evaluation_data)
+    print(f"\n✓ Results saved to: {evaluator.run_dir}")
 
     # Print summary
     print("\n" + "=" * 80)

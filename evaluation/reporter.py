@@ -5,21 +5,36 @@ from . import config
 
 
 class Reporter:
-    def __init__(self, mode=None):
-        """Initialize reporter with optional mode for isolated output directories.
+    def __init__(self, mode=None, run_dir=None):
+        """Initialize reporter with optional mode and run directory.
 
         Args:
             mode: Evaluation mode ('hybrid', 'dense', 'openai'). Creates mode-specific subdirectory.
+            run_dir: Specific run directory path (e.g., results/hybrid/RUN_20251125_143022/).
+                     If None, uses mode-level directory (for backward compatibility).
         """
         self.mode = mode
-        self.results_dir = config.get_results_dir(mode)
+        self.run_dir = run_dir
+        # Use run_dir if provided, otherwise fall back to mode-level directory
+        self.results_dir = run_dir if run_dir else config.get_results_dir(mode)
 
     def generate_reports(self, evaluation_data: dict):
         """Generate all reports"""
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        # Use clean filenames when writing to run directory, otherwise add timestamp
+        if self.run_dir:
+            detailed_file = self.results_dir / 'detailed_results.jsonl'
+            summary_file = self.results_dir / 'evaluation_summary.json'
+            report_file = self.results_dir / 'evaluation_report.txt'
+            failure_file = self.results_dir / 'failure_analysis.txt'
+        else:
+            # Backward compatibility: use timestamped filenames at mode level
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            detailed_file = self.results_dir / f'detailed_results_{timestamp}.jsonl'
+            summary_file = self.results_dir / f'evaluation_summary_{timestamp}.json'
+            report_file = self.results_dir / f'evaluation_report_{timestamp}.txt'
+            failure_file = self.results_dir / f'failure_analysis_{timestamp}.txt'
 
         # Save detailed results (JSONL)
-        detailed_file = self.results_dir / f'detailed_results_{timestamp}.jsonl'
         with open(detailed_file, 'w') as f:
             for result in evaluation_data['results']:
                 # Add citation_scoring_enabled to each result
@@ -30,13 +45,11 @@ class Reporter:
 
         # Generate and save summary
         summary = self._calculate_summary(evaluation_data)
-        summary_file = self.results_dir / f'evaluation_summary_{timestamp}.json'
         with open(summary_file, 'w') as f:
             json.dump(summary, f, indent=2)
         print(f"✓ Summary: {summary_file}")
 
         # Generate and save human-readable report
-        report_file = self.results_dir / f'evaluation_report_{timestamp}.txt'
         with open(report_file, 'w') as f:
             f.write(self._format_report(summary, evaluation_data))
         print(f"✓ Report: {report_file}")
@@ -44,7 +57,6 @@ class Reporter:
         # Generate failure analysis
         failures = [r for r in evaluation_data['results'] if r['scores']['composite_score'] < config.THRESHOLDS['needs_review']]
         if failures:
-            failure_file = self.results_dir / f'failure_analysis_{timestamp}.txt'
             with open(failure_file, 'w') as f:
                 f.write(self._format_failures(failures))
             print(f"✓ Failure analysis: {failure_file}")
