@@ -5,6 +5,7 @@ from .qa_parser import load_all_qa_pairs, parse_qa_file
 from .evaluator import ChatbotEvaluator
 from .judge import LLMJudge
 from . import config
+from .run_info_writer import write_run_info
 
 
 class BatchEvaluator:
@@ -76,6 +77,10 @@ class BatchEvaluator:
             # New evaluation run - create new run directory
             self.run_dir = config.create_run_directory(self.mode)
             print(f"\n📁 Created run directory: {self.run_dir}")
+
+        # Write run configuration info to run-specific directory (overwrites on resume)
+        write_run_info(self.run_dir, self.mode)
+        print(f"   Saved configuration to: {self.run_dir / 'run_info.txt'}")
 
         # Check for existing checkpoint
         checkpoint_file = self.results_dir / "checkpoint.json"

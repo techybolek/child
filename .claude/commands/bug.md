@@ -1,13 +1,13 @@
 # Bug Planning
 
-Create a new plan in specs/*.md to resolve the `Bug` using the exact specified markdown `Plan Format`. Follow the `Instructions` to create the plan use the `Relevant Files` to focus on the right files.
+Create a new plan in SPECS/PLANS/*.md to resolve the `Bug` using the exact specified markdown `Plan Format`. Follow the `Instructions` to create the plan use the `Relevant Files` to focus on the right files.
 
 ## Instructions
 
 - IMPORTANT: You're writing a plan to resolve a bug based on the `Bug` that will add value to the application.
 - IMPORTANT: The `Bug` describes the bug that will be resolved but remember we're not resolving the bug, we're creating the plan that will be used to resolve the bug based on the `Plan Format` below.
 - You're writing a plan to resolve a bug, it should be thorough and precise so we fix the root cause and prevent regressions.
-- Create the plan in the `specs/*.md` file. Name it appropriately based on the `Bug`.
+- Create the plan in the `SPECS/PLANS/*.md` file. Name it appropriately based on the `Bug`.
 - Use the plan format below to create the plan. 
 - Research the codebase to understand the bug, reproduce it, and put together a plan to fix it.
 - IMPORTANT: Replace every <placeholder> in the `Plan Format` with the requested value. Add as much detail as needed to fix the bug.

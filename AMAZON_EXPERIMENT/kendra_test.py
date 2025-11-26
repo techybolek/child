@@ -48,10 +48,10 @@ query = "What is the Parent Share of Cost (PSoC) and how does it work?"
 print("Fetching from Kendra and generating answer...\n")
 
 # Get documents for source display
-docs = retriever.invoke(query)
+# docs = retriever.invoke(query)
 answer = rag_chain.invoke(query)
 
 print("Answer:", answer)
-print("\nSources:")
-for doc in docs:
-    print(f"  - {doc.metadata.get('source', doc.metadata.get('title', 'Unknown'))}")
+#print("\nSources:")
+#for doc in docs:
+#    print(f"  - {doc.metadata.get('source', doc.metadata.get('title', 'Unknown'))}")

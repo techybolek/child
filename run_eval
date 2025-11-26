@@ -1,6 +1,6 @@
-rm -f results/dense/*
-rm -f results/kendra/*
-rm -f results/openai/*
+#rm -rf results/dense/*
+#rm -rf results/kendra/*
+#rm -rf results/openai/*
 
 
 python -m evaluation.run_evaluation  --no-stop-on-fail --mode dense &
@@ -21,7 +21,3 @@ echo ""
 echo "===================================="
 echo "All evaluations complete!"
 echo ""
-echo "Results saved to:"
-ls -la results/dense/ 2>/dev/null && echo ""
-ls -la results/kendra/ 2>/dev/null
-ls -la results/openai/ 2>/dev/null

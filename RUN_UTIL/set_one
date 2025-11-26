@@ -1,0 +1,2 @@
+rm -rf QUESTIONS/pdfs/*
+cp -r TEST/short.md QUESTIONS/pdfs/

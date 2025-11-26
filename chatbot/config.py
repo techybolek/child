@@ -65,7 +65,7 @@ SINGLE_FACT_PATTERNS = [
 # 'hybrid' = QdrantHybridRetriever (dense + sparse with RRF fusion)
 # 'dense' = QdrantRetriever (dense-only semantic search)
 # Both use the same unified hybrid collection
-RETRIEVAL_MODE = os.getenv('RETRIEVAL_MODE', 'hybrid')
+RETRIEVAL_MODE = os.getenv('RETRIEVAL_MODE', 'dense')
 FUSION_METHOD = 'rrf'  # Reciprocal Rank Fusion
 RRF_K = 60  # Standard RRF parameter
 HYBRID_PREFETCH_LIMIT = 100  # Number of candidates to retrieve from each vector type before fusion
@@ -78,5 +78,4 @@ QDRANT_RETRY_BASE_DELAY = 1.0  # Base delay in seconds (exponential backoff)
 # ===== AMAZON KENDRA SETTINGS =====
 KENDRA_INDEX_ID = "4aee3b7a-0217-4ce5-a0a2-b737cda375d9"
 KENDRA_REGION = "us-east-1"
-BEDROCK_MODEL = "openai.gpt-oss-20b-1:0"  # GPT-OSS 20B (fast, good at instructions)
-KENDRA_TOP_K = 5
+KENDRA_TOP_K = 7

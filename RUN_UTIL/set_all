@@ -1,0 +1,2 @@
+rm -rf QUESTIONS/pdfs/*
+cp -r QUESTIONS/pd-copy/* QUESTIONS/pdfs/

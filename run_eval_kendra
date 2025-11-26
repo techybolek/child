@@ -1,5 +1,2 @@
-rm -f results/kendra/*
-
-
 python -m evaluation.run_evaluation  --no-stop-on-fail --mode kendra
 finished

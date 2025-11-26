@@ -1,19 +1,17 @@
-"""Kendra handler for queries using Amazon Kendra retrieval + Bedrock Titan generation"""
+"""Kendra handler for queries using Amazon Kendra retrieval + ResponseGenerator"""
 
-from langchain_aws import AmazonKendraRetriever, ChatBedrockConverse
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
+from langchain_aws import AmazonKendraRetriever
 
 from .base import BaseHandler
+from ..generator import ResponseGenerator
 from .. import config
 
 
 class KendraHandler(BaseHandler):
-    """Handles queries using Amazon Kendra for retrieval and Bedrock Titan for generation"""
+    """Handles queries using Amazon Kendra for retrieval and ResponseGenerator for generation"""
 
     def __init__(self):
-        """Initialize Kendra retriever and Bedrock LLM"""
+        """Initialize Kendra retriever and ResponseGenerator"""
         # Initialize Kendra retriever
         self.retriever = AmazonKendraRetriever(
             index_id=config.KENDRA_INDEX_ID,
@@ -22,52 +20,52 @@ class KendraHandler(BaseHandler):
             min_score_confidence=0.0
         )
 
-        # Initialize Bedrock LLM (Titan)
-        self.llm = ChatBedrockConverse(
-            model_id=config.BEDROCK_MODEL,
-            region_name=config.KENDRA_REGION
+        # Initialize ResponseGenerator (replaces Bedrock LLM)
+        effective_provider = config.LLM_PROVIDER
+        generator_api_key = (
+            config.GROQ_API_KEY if effective_provider == 'groq'
+            else config.OPENAI_API_KEY
+        )
+        self.generator = ResponseGenerator(
+            api_key=generator_api_key,
+            provider=effective_provider,
+            model=config.LLM_MODEL
         )
 
-        # Create prompt template
-        self.prompt = ChatPromptTemplate.from_template("""Answer the question based on the following context.
-If the context doesn't contain enough information to answer the question, say so clearly.
-Include specific details and cite your sources using [Doc N] format where N is the document number.
+    def _convert_kendra_docs_to_chunks(self, kendra_docs) -> list:
+        """Convert AmazonKendraRetriever documents to ResponseGenerator format
 
-Context:
-{context}
+        Args:
+            kendra_docs: List of LangChain Document objects from Kendra
 
-Question: {question}
+        Returns:
+            List of chunk dictionaries compatible with ResponseGenerator
+        """
+        chunks = []
+        for doc in kendra_docs:
+            chunk = {
+                # Required fields for generator
+                'text': doc.page_content,
+                'filename': doc.metadata.get('source') or doc.metadata.get('title', 'Unknown'),
+                'page': doc.metadata.get('page', 'N/A'),
+                'source_url': doc.metadata.get('source_uri') or doc.metadata.get('document_uri', ''),
 
-Answer:""")
-
-    def _format_docs(self, docs):
-        """Format documents for context with doc numbers"""
-        formatted = []
-        for i, doc in enumerate(docs, 1):
-            source = doc.metadata.get('source', doc.metadata.get('title', 'Unknown'))
-            formatted.append(f"[Doc {i}] (Source: {source})\n{doc.page_content}")
-        return "\n\n".join(formatted)
-
-    def _map_sources(self, docs) -> list:
-        """Map Kendra metadata to standard source format"""
-        sources = []
-        for doc in docs:
-            meta = doc.metadata
-            sources.append({
-                'doc': meta.get('source', meta.get('title', 'Unknown')),
-                'page': meta.get('page', None),
-                'url': meta.get('source_uri', meta.get('document_uri', ''))
-            })
-        return sources
+                # Optional context fields (Kendra doesn't provide these - use empty strings)
+                'master_context': '',
+                'document_context': '',
+                'chunk_context': '',
+            }
+            chunks.append(chunk)
+        return chunks
 
     def handle(self, query: str, debug: bool = False) -> dict:
-        """Run Kendra retrieval + Bedrock generation pipeline"""
+        """Run Kendra retrieval + ResponseGenerator pipeline"""
         debug_data = {}
 
-        # Step 1: Retrieve from Kendra
-        docs = self.retriever.invoke(query)
+        # Step 1: Retrieve from Kendra (includes built-in reranking)
+        kendra_docs = self.retriever.invoke(query)
 
-        if not docs:
+        if not kendra_docs:
             return {
                 'answer': "I couldn't find information about that. Try calling 1-800-862-5252.",
                 'sources': [],
@@ -85,20 +83,21 @@ Answer:""")
                     'text': d.page_content[:500] + '...' if len(d.page_content) > 500 else d.page_content,
                     'source_url': d.metadata.get('source_uri', ''),
                 }
-                for d in docs
+                for d in kendra_docs
             ]
 
-        # Step 2: Generate answer using Bedrock
-        context = self._format_docs(docs)
-        chain = self.prompt | self.llm | StrOutputParser()
-        answer = chain.invoke({"context": context, "question": query})
+        # Step 2: Convert Kendra docs to generator-compatible chunks
+        chunks = self._convert_kendra_docs_to_chunks(kendra_docs)
 
-        # Step 3: Extract cited sources
-        sources = self._extract_cited_sources(answer, docs)
+        # Step 3: Generate answer using ResponseGenerator (not Bedrock)
+        result = self.generator.generate(query, chunks)
+
+        # Step 4: Extract cited sources from answer
+        cited_sources = self._extract_cited_sources(result['answer'], chunks)
 
         response = {
-            'answer': answer,
-            'sources': sources,
+            'answer': result['answer'],
+            'sources': cited_sources,
             'response_type': 'information',
             'action_items': []
         }
@@ -108,27 +107,42 @@ Answer:""")
 
         return response
 
-    def _extract_cited_sources(self, answer: str, docs: list) -> list:
-        """Extract only the sources that were actually cited in the answer"""
+    def _extract_cited_sources(self, answer: str, chunks: list) -> list:
+        """Extract only the sources that were actually cited in the answer
+
+        Args:
+            answer: Generated answer text with [Doc N] citations
+            chunks: List of chunk dictionaries used for generation
+
+        Returns:
+            List of cited source dictionaries
+        """
         import re
 
         # Find all [Doc N] citations in the answer
-        cited_doc_nums = set(re.findall(r'\[Doc\s*(\d+)\]', answer))
+        cited_doc_nums = set(re.findall(r'\[Doc\s*(\d+):', answer))
 
-        # Map citation numbers to doc metadata
+        # Map citation numbers to chunk metadata
         cited_sources = []
         for doc_num in sorted(cited_doc_nums, key=int):
             idx = int(doc_num) - 1  # Convert to 0-based index
-            if 0 <= idx < len(docs):
-                meta = docs[idx].metadata
+            if 0 <= idx < len(chunks):
+                chunk = chunks[idx]
                 cited_sources.append({
-                    'doc': meta.get('source', meta.get('title', 'Unknown')),
-                    'page': meta.get('page', None),
-                    'url': meta.get('source_uri', meta.get('document_uri', ''))
+                    'doc': chunk['filename'],
+                    'page': chunk['page'],
+                    'url': chunk['source_url']
                 })
 
         # If no citations found, return all sources
         if not cited_sources:
-            return self._map_sources(docs)
+            return [
+                {
+                    'doc': chunk['filename'],
+                    'page': chunk['page'],
+                    'url': chunk['source_url']
+                }
+                for chunk in chunks
+            ]
 
         return cited_sources
