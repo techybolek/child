@@ -1,0 +1,5 @@
+rm -f results/openai/*
+
+
+python -m evaluation.run_evaluation  --no-stop-on-fail --mode openai
+finished

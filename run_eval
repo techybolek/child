@@ -1,9 +1,6 @@
-#python -m evaluation.run_evaluation --no-stop-on-fail --mode kendra
-#python -m evaluation.run_evaluation --resume
-#finished
-
 rm -f results/dense/*
 rm -f results/kendra/*
+rm -f results/openai/*
 
 
 python -m evaluation.run_evaluation  --no-stop-on-fail --mode dense &
@@ -12,9 +9,12 @@ PID_DENSE=$!
 python -m evaluation.run_evaluation  --no-stop-on-fail --mode kendra &
 PID_KENDRA=$!
 
+python -m evaluation.run_evaluation  --no-stop-on-fail --mode openai &
+PID_OPENAI=$!
+
 # Wait for all to complete
 echo "Waiting for all evaluations to complete..."
-wait $PID_DENSE $PID_KENDRA
+wait $PID_DENSE $PID_KENDRA $PID_OPENAI
 finished
 
 echo ""
@@ -24,3 +24,4 @@ echo ""
 echo "Results saved to:"
 ls -la results/dense/ 2>/dev/null && echo ""
 ls -la results/kendra/ 2>/dev/null
+ls -la results/openai/ 2>/dev/null

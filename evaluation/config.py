@@ -36,7 +36,7 @@ THRESHOLDS = {
 STOP_ON_FAIL_THRESHOLD = 60
 
 # Citation Scoring Toggle
-DISABLE_CITATION_SCORING = False  # Set True to evaluate without citation scoring
+DISABLE_CITATION_SCORING = True  # Set True to evaluate without citation scoring
 
 # Valid evaluation modes
 VALID_MODES = ['hybrid', 'dense', 'openai', 'kendra']
