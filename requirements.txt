@@ -22,6 +22,9 @@ groq>=0.4.0
 # RAG Chatbot (optional)
 tiktoken>=0.5.0
 
+# LangGraph (agentic RAG)
+langgraph>=0.2.0
+
 # Standard library dependencies (usually pre-installed)
 # typing-extensions is installed as a dependency of beautifulsoup4
 openai-agents

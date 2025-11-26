@@ -1,0 +1,3 @@
+rm -f results/hybrid/checkpoint.json
+python -m evaluation.run_evaluation  --no-stop-on-fail --mode hybrid
+finished

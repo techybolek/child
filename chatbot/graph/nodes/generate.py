@@ -1,0 +1,68 @@
+"""Generation node for LangGraph RAG pipeline"""
+
+import re
+from ... import config
+from ...generator import ResponseGenerator
+
+
+def generate_node(state: dict) -> dict:
+    """Generate answer from reranked chunks.
+
+    Uses ResponseGenerator to create an answer with citations,
+    then extracts the cited sources.
+
+    Args:
+        state: RAGState with 'query' and 'reranked_chunks' fields
+
+    Returns:
+        dict with 'answer', 'sources', 'response_type', 'action_items'
+    """
+    query = state["query"]
+    reranked_chunks = state["reranked_chunks"]
+
+    # Handle empty chunks
+    if not reranked_chunks:
+        print("[Generate Node] No chunks available, returning fallback response")
+        return {
+            "answer": "I couldn't find information about that. Try calling 1-800-862-5252.",
+            "sources": [],
+            "response_type": "information",
+            "action_items": []
+        }
+
+    # Initialize generator
+    provider = config.LLM_PROVIDER
+    api_key = config.GROQ_API_KEY if provider == 'groq' else config.OPENAI_API_KEY
+    generator = ResponseGenerator(
+        api_key=api_key,
+        provider=provider,
+        model=config.LLM_MODEL
+    )
+
+    print(f"[Generate Node] Generating answer with {config.LLM_MODEL}")
+
+    # Generate response
+    result = generator.generate(query, reranked_chunks)
+    answer = result['answer']
+
+    # Extract cited sources (same logic as RAGHandler._extract_cited_sources)
+    cited_doc_nums = set(re.findall(r'\[Doc\s*(\d+)\]', answer))
+    sources = []
+    for doc_num in sorted(cited_doc_nums, key=int):
+        idx = int(doc_num) - 1  # Convert to 0-based index
+        if 0 <= idx < len(reranked_chunks):
+            chunk = reranked_chunks[idx]
+            sources.append({
+                'doc': chunk['filename'],
+                'page': chunk['page'],
+                'url': chunk['source_url']
+            })
+
+    print(f"[Generate Node] Generated answer with {len(sources)} cited sources")
+
+    return {
+        "answer": answer,
+        "sources": sources,
+        "response_type": "information",
+        "action_items": []
+    }

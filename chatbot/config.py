@@ -79,3 +79,8 @@ QDRANT_RETRY_BASE_DELAY = 1.0  # Base delay in seconds (exponential backoff)
 KENDRA_INDEX_ID = "4aee3b7a-0217-4ce5-a0a2-b737cda375d9"
 KENDRA_REGION = "us-east-1"
 KENDRA_TOP_K = 7
+
+# ===== LANGGRAPH SETTINGS =====
+# When False (default): Uses LangGraph with stateless behavior
+# When True: Enables conversation memory and agentic features (Phase 1+)
+CONVERSATIONAL_MODE = os.getenv("CONVERSATIONAL_MODE", "false").lower() == "true"
