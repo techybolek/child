@@ -833,6 +833,20 @@ MIN_CONTEXT_RESOLUTION_RATE = 0.95
 
 ---
 
+## Prompts Required
+
+| # | Prompt | Purpose | File |
+|---|--------|---------|------|
+| 1 | **Reformulation** | Transform context-dependent queries into standalone queries | `reformulation_prompt.py` |
+| 2 | **Classification** (modify existing) | Update to use `reformulated_query` as input | `intent_classification_prompt.py` (existing) |
+| 3 | **Multi-Turn Judge** | Evaluate response with conversation context for testing | `multi_turn_judge_prompt.py` |
+| 4 | **Conversation-Aware Rerank** | Score chunks considering conversation summary | `conversational_rerank_prompt.py` |
+| 5 | **Clarification** | Generate clarifying question for ambiguous queries | `clarification_prompt.py` |
+
+**Location:** `chatbot/prompts/conversational/`
+
+---
+
 ## Sources
 
 - [MTRAG Benchmark (IBM Research)](https://arxiv.org/abs/2501.03468) - Multi-turn RAG evaluation framework
