@@ -88,41 +88,13 @@ class MemoryManager:
 
 The most critical component for conversational RAG. Transforms context-dependent queries into standalone queries.
 
+> **Prompt:** See [conversational_prompts_design.md](./conversational_prompts_design.md#prompt-1-query-reformulation)
+
 ```python
 # chatbot/graph/nodes/reformulate.py
-from langchain_core.prompts import ChatPromptTemplate
-
-REFORMULATION_PROMPT = ChatPromptTemplate.from_messages([
-    ("system", """You are a query reformulation assistant for a Texas childcare assistance chatbot.
-
-Given the conversation history and the latest user question, reformulate the question to be standalone 
-and self-contained, incorporating necessary context from the conversation.
-
-Rules:
-1. If the question is already standalone, return it unchanged
-2. Resolve pronouns (it, they, this, that) to their referents
-3. Include relevant context (income amounts, family sizes, program names mentioned earlier)
-4. Keep the reformulated query concise and focused on retrieval
-5. For follow-up questions like "what about X?", include the comparison context
-
-Examples:
-- History: "What is the income limit for CCS?" → "What about a family of 4?"
-  Reformulated: "What is the income limit for CCS for a family of 4?"
-
-- History: "Tell me about CCMS" → "How do I apply?"
-  Reformulated: "How do I apply for the Child Care Management Services (CCMS) program?"
-
-- History: "I have 2 kids and make $3000/month" → "Am I eligible?"
-  Reformulated: "Is a family with 2 children and monthly income of $3000 eligible for Texas childcare assistance?"
-"""),
-    ("human", """Conversation history:
-{history}
-
-Latest question: {query}
-
-Reformulated standalone question:""")
-])
-
+from chatbot.prompts.conversational.reformulation_prompt import (
+    REFORMULATION_SYSTEM, REFORMULATION_USER
+)
 
 def reformulate_node(state: ConversationalRAGState) -> dict:
     """Reformulate query using conversation history."""
@@ -134,46 +106,18 @@ def reformulate_node(state: ConversationalRAGState) -> dict:
         return {"reformulated_query": state["query"]}
     
     # Format history for prompt
-    history = format_conversation_history(messages[:-1])  # Exclude current
+    history = format_conversation_history(messages[:-1])
     
-    # Get reformulated query
-    chain = REFORMULATION_PROMPT | llm
-    result = chain.invoke({"history": history, "query": state["query"]})
+    response = llm.invoke([
+        SystemMessage(content=REFORMULATION_SYSTEM),
+        HumanMessage(content=REFORMULATION_USER.format(
+            history=history, query=state["query"]
+        ))
+    ])
     
-    reformulated = result.content.strip()
+    reformulated = extract_tag(response.content, "reformulated_query")
     
-    if state.get("debug"):
-        print(f"[Reformulate] Original: {state['query']}")
-        print(f"[Reformulate] Reformulated: {reformulated}")
-    
-    return {"reformulated_query": reformulated}
-```
-
-### 2.2 Advanced: Hypothetical Document Embedding (HyDE)
-
-For complex follow-ups, generate a hypothetical ideal answer first, then use its embedding for retrieval.
-
-```python
-# chatbot/graph/nodes/hyde.py (optional enhancement)
-
-HYDE_PROMPT = """Based on the conversation and question, write a hypothetical ideal answer 
-that would appear in a Texas childcare assistance document.
-
-Question: {reformulated_query}
-Context from conversation: {context_summary}
-
-Hypothetical document passage:"""
-
-def hyde_node(state: ConversationalRAGState) -> dict:
-    """Generate hypothetical document for better retrieval."""
-    
-    # Only use HyDE for complex/ambiguous queries
-    if not should_use_hyde(state):
-        return {}
-    
-    hypothetical = llm.invoke(HYDE_PROMPT.format(...))
-    
-    return {"hyde_embedding": embed(hypothetical.content)}
+    return {"reformulated_query": reformulated or state["query"]}
 ```
 
 ---
@@ -353,17 +297,22 @@ def retrieve_node(state: ConversationalRAGState) -> dict:
 
 Include conversation context in reranking prompt.
 
+> **Prompt:** See [conversational_prompts_design.md](./conversational_prompts_design.md#prompt-3-reranking-conversation-aware)
+
 ```python
 # chatbot/graph/nodes/rerank.py (updated)
+from chatbot.prompts.conversational.reranking_prompt import (
+    RERANKING_PROMPT, RERANKING_PROMPT_CONVERSATIONAL, format_chunks_xml
+)
 
-RERANK_PROMPT_CONVERSATIONAL = """Score this chunk's relevance to the question.
-Consider the conversation context when scoring.
-
-Conversation summary: {conversation_summary}
-Current question: {query}
-Chunk: {chunk_text}
-
-Score (0-10):"""
+def rerank_node(state: ConversationalRAGState) -> dict:
+    """Rerank with optional conversation context."""
+    
+    messages = state.get("messages", [])
+    has_history = len(messages) > 1
+    
+    prompt = RERANKING_PROMPT_CONVERSATIONAL if has_history else RERANKING_PROMPT
+    # ... scoring logic
 ```
 
 ---
@@ -557,49 +506,11 @@ class ConversationEvaluator:
 
 ### 5.3 Multi-Turn Judge
 
+> **Prompt:** See [conversational_prompts_design.md](./conversational_prompts_design.md#prompt-5-multi-turn-judge)
+
 ```python
 # evaluation/multi_turn_judge.py
-
-MULTI_TURN_JUDGE_PROMPT = """You are evaluating a chatbot response in a multi-turn conversation.
-
-## Conversation Context
-{conversation_history}
-
-## Current Turn
-User Query (original): {original_query}
-User Query (reformulated): {reformulated_query}
-Chatbot Response: {response}
-
-## Expected
-Topics: {expected_topics}
-Should contain: {expected_contains}
-Requires context from previous turns: {requires_context}
-
-## Scoring Criteria
-
-1. **Factual Accuracy** (0-5): Is the information correct based on Texas childcare policies?
-
-2. **Completeness** (0-5): Does it address what was asked, including context from previous turns?
-
-3. **Context Resolution** (0-5): If this was a follow-up question:
-   - Did the response correctly understand what "it/they/this" referred to?
-   - Did it maintain continuity with previous discussion?
-   - Did it avoid asking for information already provided?
-
-4. **Coherence** (0-3): Is the response clear, well-structured, and natural?
-
-## Output Format (JSON)
-{{
-  "accuracy": <0-5>,
-  "accuracy_reasoning": "<brief explanation>",
-  "completeness": <0-5>,
-  "completeness_reasoning": "<brief explanation>",
-  "context_resolution": <0-5>,
-  "context_reasoning": "<brief explanation>",
-  "coherence": <0-3>,
-  "coherence_reasoning": "<brief explanation>"
-}}"""
-
+from evaluation.prompts.multi_turn_judge_prompt import MULTI_TURN_JUDGE_PROMPT
 
 class MultiTurnJudge:
     """LLM-as-a-Judge for multi-turn conversations."""
@@ -616,7 +527,6 @@ class MultiTurnJudge:
     ) -> dict:
         """Score a single turn with conversation context."""
         
-        # Format conversation history
         history = self._format_history(previous_turns)
         
         prompt = MULTI_TURN_JUDGE_PROMPT.format(
@@ -835,15 +745,22 @@ MIN_CONTEXT_RESOLUTION_RATE = 0.95
 
 ## Prompts Required
 
+> **See:** [conversational_prompts_design.md](./conversational_prompts_design.md) for full prompt specifications.
+
 | # | Prompt | Purpose | File |
 |---|--------|---------|------|
-| 1 | **Reformulation** | Transform context-dependent queries into standalone queries | `reformulation_prompt.py` |
-| 2 | **Classification** (modify existing) | Update to use `reformulated_query` as input | `intent_classification_prompt.py` (existing) |
-| 3 | **Multi-Turn Judge** | Evaluate response with conversation context for testing | `multi_turn_judge_prompt.py` |
-| 4 | **Conversation-Aware Rerank** | Score chunks considering conversation summary | `conversational_rerank_prompt.py` |
-| 5 | **Clarification** | Generate clarifying question for ambiguous queries | `clarification_prompt.py` |
+| 1 | **Reformulation** | Transform context-dependent queries into standalone | `conversational/reformulation_prompt.py` |
+| 2 | **Intent Classification** | Classify using reformulated query | `conversational/intent_classification_prompt.py` |
+| 3 | **Reranking** | Score chunks with conversation context | `conversational/reranking_prompt.py` |
+| 4 | **Response Generation** | Generate answers maintaining conversation consistency | `conversational/response_generation_prompt.py` |
+| 5 | **Summarizer** | Compress conversation history for context injection | `conversational/summarizer_prompt.py` |
+| 6 | **Multi-Turn Judge** | Evaluate responses in conversation context (testing) | `evaluation/prompts/multi_turn_judge_prompt.py` |
 
-**Location:** `chatbot/prompts/conversational/`
+**Design Principles:**
+- XML tags for structured output and reliable parsing
+- Few-shot examples over verbose rules
+- Domain context in system prompts
+- Stateless/conversational variants for each prompt
 
 ---
 
