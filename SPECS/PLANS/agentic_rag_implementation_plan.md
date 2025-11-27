@@ -221,6 +221,502 @@ query = state["rewritten_query"] or state["query"]
 
 ---
 
+## Phase 3 Implementation Plan
+
+### Purpose
+Replace the simple 2-way intent classifier with an intelligent 5-way router that selects the optimal processing path.
+
+### Router Categories
+
+| Route | Description | When to Use |
+|-------|-------------|-------------|
+| `rag` | Full RAG pipeline | Policy questions, eligibility, procedures |
+| `location` | Facility search | "Find childcare near..." |
+| `conversational` | Direct LLM response | Greetings, clarifications, meta-questions |
+| `out_of_scope` | Polite decline | Non-childcare topics |
+| `clarify` | Request more info | Ambiguous queries (feeds Phase 5) |
+
+### Step 1: Extend RAGState
+```python
+# Add to chatbot/graph/state.py
+route: Literal["rag", "location", "conversational", "out_of_scope", "clarify"] | None
+routing_confidence: float | None  # 0.0-1.0
+```
+
+### Step 2: Create Router Node
+```python
+# chatbot/graph/nodes/router.py
+from pydantic import BaseModel, Field
+
+class RouterDecision(BaseModel):
+    route: Literal["rag", "location", "conversational", "out_of_scope", "clarify"]
+    confidence: float = Field(ge=0.0, le=1.0)
+    reasoning: str
+
+ROUTER_PROMPT = """You are a router for a Texas childcare assistance chatbot.
+
+Classify the user query into one of these categories:
+- rag: Questions about childcare policies, eligibility, income limits, subsidies, procedures
+- location: Requests to find childcare facilities or providers
+- conversational: Greetings, thanks, meta-questions about the bot itself
+- out_of_scope: Topics unrelated to Texas childcare (weather, sports, general knowledge)
+- clarify: Query is too vague to process (e.g., "help me", "what can you do")
+
+Conversation context:
+{conversation_history}
+
+Current query: {query}
+
+Return JSON with: route, confidence (0-1), reasoning
+"""
+
+def router_node(state: RAGState) -> dict:
+    llm = get_llm().with_structured_output(RouterDecision)
+    decision = llm.invoke(ROUTER_PROMPT.format(
+        conversation_history=format_messages(state.get("messages", [])),
+        query=state["rewritten_query"] or state["query"]
+    ))
+    return {
+        "route": decision.route,
+        "routing_confidence": decision.confidence
+    }
+```
+
+### Step 3: Create New Handler Nodes
+```python
+# chatbot/graph/nodes/conversational.py
+def conversational_node(state: RAGState) -> dict:
+    """Handle greetings, thanks, meta-questions without RAG."""
+    response = llm.invoke(
+        "You are a helpful Texas childcare assistant. "
+        "Respond briefly to: {query}".format(query=state["query"])
+    )
+    return {
+        "answer": response.content,
+        "response_type": "conversational",
+        "sources": []
+    }
+
+# chatbot/graph/nodes/out_of_scope.py
+def out_of_scope_node(state: RAGState) -> dict:
+    """Politely decline out-of-scope questions."""
+    return {
+        "answer": "I specialize in Texas childcare assistance programs. "
+                  "I can help with eligibility, income limits, subsidies, "
+                  "and finding childcare providers. How can I assist you with childcare?",
+        "response_type": "out_of_scope",
+        "sources": []
+    }
+```
+
+### Step 4: Update Graph
+```python
+# In chatbot/graph/builder.py
+workflow.add_node("router", router_node)
+workflow.add_node("conversational", conversational_node)
+workflow.add_node("out_of_scope", out_of_scope_node)
+
+# Replace classify with router after rewrite
+workflow.add_edge("rewrite", "router")
+
+workflow.add_conditional_edges(
+    "router",
+    route_by_decision,
+    {
+        "rag": "retrieve",
+        "location": "location",
+        "conversational": "conversational",
+        "out_of_scope": "out_of_scope",
+        "clarify": "clarify"  # Phase 5
+    }
+)
+```
+
+### Step 5: Test Router
+```bash
+pytest tests/test_router.py -v
+```
+Test cases:
+- "What are the income limits?" → `rag`
+- "Find childcare in Austin" → `location`
+- "Hello!" → `conversational`
+- "What's the weather?" → `out_of_scope`
+- "Help" → `clarify`
+
+---
+
+## Phase 4 Implementation Plan
+
+### Purpose
+Add a validation layer between generation and response that checks:
+1. Answer is grounded in retrieved chunks (no hallucination)
+2. Answer actually addresses the question
+3. Confidence meets threshold
+
+### Step 1: Extend RAGState
+```python
+# Add to chatbot/graph/state.py
+draft_answer: str | None           # Before validation
+validation_passed: bool | None
+validation_issues: list[str]
+validation_retry_count: int
+```
+
+### Step 2: Create Validator Node
+```python
+# chatbot/graph/nodes/validate.py
+from pydantic import BaseModel
+
+class ValidationResult(BaseModel):
+    is_grounded: bool
+    addresses_question: bool
+    issues: list[str]
+    confidence: float
+
+VALIDATOR_PROMPT = """You are a strict fact-checker for a childcare assistance chatbot.
+
+Retrieved source chunks:
+{chunks}
+
+User question: {query}
+
+Draft answer: {draft_answer}
+
+Evaluate:
+1. is_grounded: Does EVERY claim in the answer appear in the source chunks?
+2. addresses_question: Does the answer actually answer what was asked?
+3. issues: List any problems found (empty if none)
+4. confidence: 0-1 score of answer quality
+
+Be strict. If the answer includes ANY information not in the sources, mark is_grounded=false.
+"""
+
+VALIDATION_THRESHOLD = 0.7
+MAX_VALIDATION_RETRIES = 2
+
+def validate_node(state: RAGState) -> dict:
+    llm = get_llm().with_structured_output(ValidationResult)
+    result = llm.invoke(VALIDATOR_PROMPT.format(
+        chunks=format_chunks(state["reranked_chunks"]),
+        query=state["query"],
+        draft_answer=state["draft_answer"]
+    ))
+    passed = (
+        result.is_grounded and
+        result.addresses_question and
+        result.confidence >= VALIDATION_THRESHOLD
+    )
+    return {
+        "validation_passed": passed,
+        "validation_issues": result.issues,
+    }
+```
+
+### Step 3: Create Retry and Fallback Nodes
+```python
+# chatbot/graph/edges.py
+def route_after_validation(state: RAGState) -> str:
+    if state["validation_passed"]:
+        return "finalize"
+    if state["validation_retry_count"] >= MAX_VALIDATION_RETRIES:
+        return "fallback"
+    return "regenerate"
+
+# chatbot/graph/nodes/regenerate.py
+def regenerate_node(state: RAGState) -> dict:
+    """Regenerate with explicit grounding instruction."""
+    issues = state.get("validation_issues", [])
+    stricter_prompt = GENERATE_PROMPT + f"""
+
+IMPORTANT: Your previous answer had these issues: {issues}
+Only use information from the provided chunks. Do not add any external knowledge.
+"""
+    # ... regenerate ...
+    return {
+        "draft_answer": new_answer,
+        "validation_retry_count": state["validation_retry_count"] + 1
+    }
+
+# chatbot/graph/nodes/fallback.py
+def fallback_node(state: RAGState) -> dict:
+    """Provide best-effort response with uncertainty caveat."""
+    return {
+        "answer": f"Based on the available information: {state['draft_answer']}\n\n"
+                  "Note: I wasn't able to fully verify this answer against my sources. "
+                  "Please verify with TWC directly for critical decisions.",
+        "response_type": "fallback",
+        "sources": state.get("sources", [])
+    }
+```
+
+### Step 4: Update Graph with Validation Loop
+```python
+# In chatbot/graph/builder.py
+
+# Split generate into draft → validate → finalize
+workflow.add_node("generate_draft", generate_draft_node)
+workflow.add_node("validate", validate_node)
+workflow.add_node("regenerate", regenerate_node)
+workflow.add_node("finalize", finalize_node)
+workflow.add_node("fallback", fallback_node)
+
+workflow.add_edge("rerank", "generate_draft")
+workflow.add_edge("generate_draft", "validate")
+
+workflow.add_conditional_edges(
+    "validate",
+    route_after_validation,
+    {
+        "finalize": "finalize",
+        "regenerate": "regenerate",
+        "fallback": "fallback"
+    }
+)
+
+workflow.add_edge("regenerate", "validate")  # Loop back
+workflow.add_edge("finalize", END)
+workflow.add_edge("fallback", END)
+```
+
+### Step 5: Test Validator
+```bash
+pytest tests/test_validator.py -v
+```
+Test cases:
+- Grounded answer → passes
+- Answer with hallucinated fact → fails, retries
+- Completely off-topic answer → fails, goes to fallback
+- Answer after 2 retries still failing → fallback with caveat
+
+---
+
+## Phase 5 Implementation Plan
+
+### Purpose
+When the router detects an ambiguous query, pause execution and ask the user for clarification before proceeding.
+
+### Step 1: Extend RAGState
+```python
+# Add to chatbot/graph/state.py
+clarification_needed: bool
+clarification_question: str | None
+clarification_options: list[str]
+user_clarification: str | None  # Populated on resume
+```
+
+### Step 2: Create Clarification Node
+```python
+# chatbot/graph/nodes/clarify.py
+from langgraph.types import interrupt
+from pydantic import BaseModel
+
+class ClarificationRequest(BaseModel):
+    question: str
+    options: list[str]  # 2-4 suggested options
+
+CLARIFICATION_PROMPT = """The user query is ambiguous: "{query}"
+
+Generate a clarifying question with 2-4 options.
+Example:
+- Query: "What are the requirements?"
+- Question: "Which requirements would you like to know about?"
+- Options: ["Income eligibility", "Provider licensing", "Application process"]
+"""
+
+def clarify_node(state: RAGState) -> dict:
+    llm = get_llm().with_structured_output(ClarificationRequest)
+    request = llm.invoke(CLARIFICATION_PROMPT.format(query=state["query"]))
+
+    # LangGraph interrupt - pauses graph execution
+    user_response = interrupt({
+        "type": "clarification_needed",
+        "question": request.question,
+        "options": request.options
+    })
+
+    # Execution resumes here after user responds
+    return {
+        "user_clarification": user_response,
+        "query": f"{state['query']} - specifically: {user_response}"
+    }
+```
+
+### Step 3: Define API Contract
+```python
+# backend/api/models.py
+from pydantic import BaseModel
+from typing import Literal
+
+class ChatResponse(BaseModel):
+    response_type: Literal["answer", "clarification_needed", "error"]
+    answer: str | None = None
+    sources: list[dict] | None = None
+    clarification_question: str | None = None
+    clarification_options: list[str] | None = None
+    thread_id: str
+
+class ChatRequest(BaseModel):
+    message: str
+    thread_id: str | None = None
+    clarification_response: str | None = None
+```
+
+### Step 4: Update Backend to Handle Interrupts
+```python
+# backend/api/routes.py
+from langgraph.errors import GraphInterrupt
+from langgraph.types import Command
+
+@router.post("/chat")
+async def chat(request: ChatRequest):
+    try:
+        config = {"configurable": {"thread_id": request.thread_id or str(uuid4())}}
+
+        if request.clarification_response:
+            result = chatbot.graph.invoke(
+                Command(resume=request.clarification_response),
+                config
+            )
+        else:
+            result = chatbot.graph.invoke({"query": request.message}, config)
+
+        return ChatResponse(
+            response_type="answer",
+            answer=result["answer"],
+            sources=result["sources"],
+            thread_id=config["configurable"]["thread_id"]
+        )
+    except GraphInterrupt as e:
+        interrupt_data = e.value
+        return ChatResponse(
+            response_type="clarification_needed",
+            clarification_question=interrupt_data["question"],
+            clarification_options=interrupt_data["options"],
+            thread_id=config["configurable"]["thread_id"]
+        )
+```
+
+### Step 5: Update Frontend
+```typescript
+// frontend/components/ChatInterface.tsx
+interface ClarificationUI {
+  question: string;
+  options: string[];
+  threadId: string;
+}
+
+const [clarification, setClarification] = useState<ClarificationUI | null>(null);
+
+const handleResponse = (response: ChatResponse) => {
+  if (response.response_type === "clarification_needed") {
+    setClarification({
+      question: response.clarification_question!,
+      options: response.clarification_options!,
+      threadId: response.thread_id
+    });
+  } else {
+    addMessage({ role: "assistant", content: response.answer });
+    setClarification(null);
+  }
+};
+
+// Render clarification UI
+{clarification && (
+  <div className="clarification-panel">
+    <p>{clarification.question}</p>
+    {clarification.options.map(option => (
+      <button key={option} onClick={() => sendClarification(option, clarification.threadId)}>
+        {option}
+      </button>
+    ))}
+    <input placeholder="Or type your own..." onSubmit={...} />
+  </div>
+)}
+```
+
+### Step 6: Update Graph
+```python
+# In chatbot/graph/builder.py
+workflow.add_node("clarify", clarify_node)
+workflow.add_edge("clarify", "router")  # Loop back with enriched query
+
+# IMPORTANT: Checkpointer required for interrupts
+def build_rag_graph(checkpointer=None):
+    return workflow.compile(
+        checkpointer=checkpointer,
+        interrupt_before=["clarify"]
+    )
+```
+
+### Step 7: Test Clarification
+```bash
+pytest tests/test_clarification.py -v
+```
+Test cases:
+- Ambiguous query → interrupt triggered, options returned
+- User selects option → graph resumes, processes enriched query
+- User types custom response → graph resumes with custom text
+- Non-ambiguous query → no interrupt, normal flow
+
+---
+
+## Error Handling
+
+### Node-Level Error Boundaries
+```python
+# chatbot/graph/utils/error_handler.py
+from functools import wraps
+
+class RAGError(Exception):
+    def __init__(self, message: str, recoverable: bool = True):
+        self.message = message
+        self.recoverable = recoverable
+
+def with_error_handling(fallback_state: dict):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(state):
+            try:
+                return func(state)
+            except Exception as e:
+                logger.error(f"Node {func.__name__} failed: {e}")
+                if isinstance(e, RAGError) and e.recoverable:
+                    return fallback_state
+                raise
+        return wrapper
+    return decorator
+
+# Usage
+@with_error_handling(fallback_state={"retrieved_chunks": []})
+def retrieve_node(state: RAGState) -> dict:
+    ...
+```
+
+### Graceful Degradation Paths
+| Error | Degradation |
+|-------|-------------|
+| Retrieval fails | Return empty chunks → generate "I couldn't find information" |
+| Router LLM fails | Default to `rag` route |
+| Validator LLM fails | Skip validation, pass draft through |
+| Clarification interrupt fails | Proceed with original query |
+
+### Rate Limiting
+```python
+# chatbot/config.py
+RATE_LIMIT_RETRIES = 3
+RATE_LIMIT_BACKOFF = [1, 2, 4]  # seconds
+
+@retry(
+    stop=stop_after_attempt(RATE_LIMIT_RETRIES),
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    retry=retry_if_exception_type(RateLimitError)
+)
+def call_llm(prompt):
+    return llm.invoke(prompt)
+```
+
+---
+
 ## Testing Requirements
 
 > **IMPORTANT:** All tests must be EXECUTED, not just created. Each phase is not complete until all tests pass.
@@ -339,3 +835,23 @@ A phase is **NOT complete** until:
 | 2 | `chatbot/graph/nodes/rewrite.py` | Create rewriter node |
 | 2 | `chatbot/graph/builder.py` | Add rewrite node to graph |
 | 2 | `chatbot/graph/nodes/retrieve.py` | Use rewritten query if available |
+| 3 | `chatbot/graph/state.py` | Add `route`, `routing_confidence` fields |
+| 3 | `chatbot/graph/nodes/router.py` | Create router node |
+| 3 | `chatbot/graph/nodes/conversational.py` | Create conversational node |
+| 3 | `chatbot/graph/nodes/out_of_scope.py` | Create out_of_scope node |
+| 3 | `chatbot/graph/builder.py` | Add router, new nodes, update edges |
+| 3 | `chatbot/graph/edges.py` | Add `route_by_decision` function |
+| 4 | `chatbot/graph/state.py` | Add `draft_answer`, `validation_*` fields |
+| 4 | `chatbot/graph/nodes/validate.py` | Create validator node |
+| 4 | `chatbot/graph/nodes/regenerate.py` | Create regenerate node |
+| 4 | `chatbot/graph/nodes/fallback.py` | Create fallback node |
+| 4 | `chatbot/graph/nodes/generate.py` | Rename to `generate_draft`, output to `draft_answer` |
+| 4 | `chatbot/graph/builder.py` | Add validation loop |
+| 4 | `chatbot/graph/edges.py` | Add `route_after_validation` |
+| 5 | `chatbot/graph/state.py` | Add clarification fields |
+| 5 | `chatbot/graph/nodes/clarify.py` | Create clarify node with interrupt |
+| 5 | `chatbot/graph/builder.py` | Add clarify node, configure interrupt |
+| 5 | `backend/api/routes.py` | Handle GraphInterrupt, update request/response models |
+| 5 | `backend/api/models.py` | Create ChatRequest/ChatResponse models |
+| 5 | `frontend/components/ChatInterface.tsx` | Add clarification UI |
+| - | `chatbot/graph/utils/error_handler.py` | Create error handling decorator |
