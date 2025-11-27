@@ -726,12 +726,22 @@ conversation:
 ```python
 # chatbot/config.py (additions)
 
-# Conversation settings
-ENABLE_CONVERSATION_MEMORY = True
+# ============================================================
+# CONVERSATIONAL MODE - Master toggle
+# ============================================================
+# When False: Stateless RAG (current behavior)
+#   - No memory, no reformulation, single-turn only
+#   - Graph: classify → retrieve → rerank → generate
+#
+# When True: Conversational RAG (new behavior)
+#   - Thread-scoped memory, query reformulation, multi-turn
+#   - Graph: reformulate → classify → retrieve → rerank → generate
+# ============================================================
+CONVERSATIONAL_MODE = os.getenv("CONVERSATIONAL_MODE", "false").lower() == "true"
+
+# Conversation settings (only used when CONVERSATIONAL_MODE=True)
 MAX_CONVERSATION_TURNS = 20
 MEMORY_BACKEND = "memory"  # or "postgres" for production
-
-# Reformulation
 REFORMULATION_MODEL = "openai/gpt-oss-20b"
 REFORMULATION_MAX_HISTORY_TURNS = 5  # Last N turns for context
 
@@ -740,6 +750,167 @@ CONVERSATION_TEST_DIR = "QUESTIONS/conversations"
 CONVERSATION_STOP_ON_FAIL = True
 MIN_CONTEXT_RESOLUTION_RATE = 0.95
 ```
+
+### Environment Variable
+
+```bash
+# Enable conversational mode
+export CONVERSATIONAL_MODE=true
+
+# Or disable (default)
+export CONVERSATIONAL_MODE=false
+```
+
+### Graph Builder with Feature Flag
+
+```python
+# chatbot/graph/builder.py
+
+from chatbot import config
+
+def build_graph(checkpointer=None):
+    """Build RAG graph - stateless or conversational based on config."""
+    
+    if config.CONVERSATIONAL_MODE:
+        return _build_conversational_graph(checkpointer)
+    else:
+        return _build_stateless_graph()
+
+
+def _build_stateless_graph():
+    """Original stateless pipeline."""
+    workflow = StateGraph(RAGState)
+    
+    workflow.add_node("classify", classify_node)
+    workflow.add_node("retrieve", retrieve_node)
+    workflow.add_node("rerank", rerank_node)
+    workflow.add_node("generate", generate_node)
+    workflow.add_node("location", location_node)
+    
+    workflow.add_edge(START, "classify")
+    workflow.add_conditional_edges("classify", route_by_intent, {...})
+    workflow.add_edge("retrieve", "rerank")
+    workflow.add_edge("rerank", "generate")
+    workflow.add_edge("generate", END)
+    workflow.add_edge("location", END)
+    
+    return workflow.compile()  # No checkpointer
+
+
+def _build_conversational_graph(checkpointer=None):
+    """Conversational pipeline with memory."""
+    from langgraph.checkpoint.memory import InMemorySaver
+    
+    workflow = StateGraph(ConversationalRAGState)
+    
+    workflow.add_node("reformulate", reformulate_node)  # NEW
+    workflow.add_node("classify", classify_node)
+    workflow.add_node("retrieve", retrieve_node)
+    workflow.add_node("rerank", rerank_node)
+    workflow.add_node("generate", generate_node)
+    workflow.add_node("location", location_node)
+    
+    workflow.add_edge(START, "reformulate")  # Entry point differs
+    workflow.add_edge("reformulate", "classify")
+    workflow.add_conditional_edges("classify", route_by_intent, {...})
+    workflow.add_edge("retrieve", "rerank")
+    workflow.add_edge("rerank", "generate")
+    workflow.add_edge("generate", END)
+    workflow.add_edge("location", END)
+    
+    if checkpointer is None:
+        checkpointer = InMemorySaver()
+    
+    return workflow.compile(checkpointer=checkpointer)
+```
+
+### Chatbot Interface with Feature Flag
+
+```python
+# chatbot/chatbot.py
+
+class TexasChildcareChatbot:
+    """RAG chatbot - stateless or conversational based on config."""
+    
+    def __init__(self):
+        if config.CONVERSATIONAL_MODE:
+            from .memory import MemoryManager
+            self.memory = MemoryManager(backend=config.MEMORY_BACKEND)
+            self.graph = build_graph(checkpointer=self.memory.checkpointer)
+        else:
+            self.memory = None
+            self.graph = build_graph()
+    
+    def ask(
+        self, 
+        question: str, 
+        thread_id: str | None = None,
+        debug: bool = False
+    ) -> dict:
+        """Ask a question.
+        
+        Args:
+            question: User's question
+            thread_id: Conversation thread (ignored if not conversational)
+            debug: Enable debug output
+        """
+        if config.CONVERSATIONAL_MODE:
+            return self._ask_conversational(question, thread_id, debug)
+        else:
+            return self._ask_stateless(question, debug)
+    
+    def _ask_stateless(self, question: str, debug: bool) -> dict:
+        """Original single-turn behavior."""
+        input_state = {"query": question, "debug": debug}
+        final_state = self.graph.invoke(input_state)
+        
+        return {
+            "answer": final_state["answer"],
+            "sources": final_state["sources"],
+            "response_type": final_state["response_type"],
+        }
+    
+    def _ask_conversational(
+        self, question: str, thread_id: str | None, debug: bool
+    ) -> dict:
+        """Multi-turn with memory."""
+        import uuid
+        from langchain_core.messages import HumanMessage
+        
+        if thread_id is None:
+            thread_id = str(uuid.uuid4())
+        
+        config = self.memory.get_thread_config(thread_id)
+        
+        input_state = {
+            "messages": [HumanMessage(content=question)],
+            "query": question,
+            "debug": debug,
+        }
+        
+        final_state = self.graph.invoke(input_state, config)
+        turn_count = len(final_state.get("messages", [])) // 2
+        
+        return {
+            "answer": final_state["answer"],
+            "sources": final_state["sources"],
+            "thread_id": thread_id,
+            "turn_count": turn_count,
+            "reformulated_query": final_state.get("reformulated_query"),
+            "response_type": final_state["response_type"],
+        }
+```
+
+### Backward Compatibility
+
+| Aspect | `CONVERSATIONAL_MODE=false` | `CONVERSATIONAL_MODE=true` |
+|--------|---------------------------|---------------------------|
+| State class | `RAGState` | `ConversationalRAGState` |
+| Entry node | `classify` | `reformulate` |
+| Checkpointer | None | `InMemorySaver` |
+| `thread_id` param | Ignored | Used for memory |
+| Response fields | `answer`, `sources`, `response_type` | + `thread_id`, `turn_count`, `reformulated_query` |
+| Existing tests | Pass unchanged | Pass unchanged |
 
 ---
 
