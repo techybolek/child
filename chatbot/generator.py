@@ -33,8 +33,8 @@ class ResponseGenerator:
         # Build prompt
         prompt = RESPONSE_GENERATION_PROMPT.format(context=context, query=query)
 
-        # Use the configured model or the one passed in constructor
-        model = self.model or ("openai/gpt-oss-20b" if self.provider == 'groq' else "gpt-4-turbo-preview")
+        # Use the model passed in constructor (required)
+        model = self.model
 
         print(f"[Generator] Using model: {model}")
 

@@ -30,10 +30,7 @@ class IntentRouter:
             self.client = OpenAI(api_key=config.OPENAI_API_KEY)
 
         # Store model override or use config default
-        intent_model_default = config.INTENT_CLASSIFIER_MODEL if not provider else (
-            'llama-3.3-70b-versatile' if provider == 'groq' else 'gpt-4o-mini'
-        )
-        self.intent_model = intent_model or intent_model_default
+        self.intent_model = intent_model or config.INTENT_CLASSIFIER_MODEL
 
         # Initialize handlers with model params
         self.handlers = {

@@ -34,26 +34,20 @@ class RAGHandler(BaseHandler):
         # Use provider override or config default
         effective_provider = provider or config.LLM_PROVIDER
 
-        # Initialize reranker with provider override or config default
+        # Initialize reranker with config defaults
         reranker_api_key = config.GROQ_API_KEY if effective_provider == 'groq' else config.OPENAI_API_KEY
-        reranker_model_default = config.RERANKER_MODEL if not provider else (
-            'openai/gpt-oss-20b' if provider == 'groq' else 'gpt-4o-mini'
-        )
         self.reranker = LLMJudgeReranker(
             api_key=reranker_api_key,
             provider=effective_provider,
-            model=reranker_model or reranker_model_default
+            model=reranker_model or config.RERANKER_MODEL
         )
 
-        # Initialize generator with provider override or config default
+        # Initialize generator with config defaults
         generator_api_key = config.GROQ_API_KEY if effective_provider == 'groq' else config.OPENAI_API_KEY
-        llm_model_default = config.LLM_MODEL if not provider else (
-            'openai/gpt-oss-20b' if provider == 'groq' else 'gpt-4o-mini'
-        )
         self.generator = ResponseGenerator(
             api_key=generator_api_key,
             provider=effective_provider,
-            model=llm_model or llm_model_default
+            model=llm_model or config.LLM_MODEL
         )
 
     def handle(self, query: str, debug: bool = False) -> dict:

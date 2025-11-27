@@ -66,8 +66,8 @@ class LLMJudgeReranker:
         if debug:
             debug_info['reranker_prompt'] = prompt
 
-        # Use the configured model or the one passed in constructor
-        model = self.model or ("openai/gpt-oss-20b" if self.provider == 'groq' else "gpt-4o-mini")
+        # Use the model passed in constructor (required)
+        model = self.model
 
         print(f"[Reranker] Using model: {model}")
 

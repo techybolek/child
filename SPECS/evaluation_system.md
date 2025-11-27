@@ -1,66 +1,55 @@
 # Chatbot Evaluation System
 
-LLM-as-a-Judge evaluation framework for the Texas Childcare Chatbot. Automatically tests chatbot responses against curated Q&A pairs and scores them on multiple criteria.
+LLM-as-a-Judge evaluation framework for the Texas Childcare Chatbot. Tests chatbot responses against curated Q&A pairs with scoring on multiple criteria.
 
 ## Quick Start
 
 ```bash
-# Run evaluation with specific retrieval mode
-python -m evaluation.run_evaluation --mode hybrid    # Dense + sparse RRF fusion
-python -m evaluation.run_evaluation --mode dense     # Dense-only semantic search
-python -m evaluation.run_evaluation --mode openai    # OpenAI agent (gpt-5 + FileSearch)
+# Run evaluation with specific mode
+python -m evaluation.run_evaluation --mode hybrid
+python -m evaluation.run_evaluation --mode dense
+python -m evaluation.run_evaluation --mode openai
+python -m evaluation.run_evaluation --mode kendra
 
-# Test mode - evaluate first 5 questions
+# Test mode (limit questions)
 python -m evaluation.run_evaluation --mode hybrid --test --limit 5
 
-# Evaluate specific Q&A file
-python -m evaluation.run_evaluation --mode hybrid --file bcy-26-psoc-chart-twc-qa.md
-
-# Use specific Qdrant collection
-python -m evaluation.run_evaluation --mode hybrid --collection tro-child-3-contextual
-
-# Resume from mode-specific checkpoint
-python -m evaluation.run_evaluation --mode hybrid --resume
-
-# Debug failed question (after stop-on-fail)
-python -m evaluation.run_evaluation --mode hybrid --investigate
+# Resume from checkpoint after failure
+python -m evaluation.run_evaluation --mode hybrid --resume --resume-limit 1
 ```
 
-## System Overview
-
-### Architecture
+## Architecture
 
 ```
 evaluation/run_evaluation.py (entry point)
     ↓
-BatchEvaluator (evaluation/batch_evaluator.py)
+BatchEvaluator (batch_evaluator.py)
     ↓
-    ├─→ ChatbotEvaluator → RAGHandler (queries chatbot)
-    ├─→ LLMJudge → GROQ/OpenAI (scores response)
-    └─→ Reporter (generates 3 report types)
+    ├── ChatbotEvaluator / OpenAIEvaluator / KendraEvaluator
+    ├── LLMJudge (scores response)
+    └── Reporter (generates reports)
 ```
 
-### Pipeline Flow
+## Pipeline Flow
 
-1. **Load Q&A Pairs**: Parse markdown files from `QUESTIONS/pdfs/`
-2. **Query Chatbot**: Send question to RAGHandler (or OpenAI agent)
-3. **Judge Response**: Score answer on 4 criteria using LLM judge
-4. **Check Threshold**: Stop if score < 70 (stop-on-fail)
-5. **Generate Reports**: Create JSONL, JSON, and TXT reports in `results/<mode>/`
+1. **Load Q&A Pairs** - Parse markdown files from `QUESTIONS/pdfs/`
+2. **Query Chatbot** - Send question to appropriate evaluator
+3. **Judge Response** - Score on 4 criteria using LLM judge
+4. **Check Threshold** - Stop if score < 70 (stop-on-fail)
+5. **Generate Reports** - Create JSONL, JSON, TXT in `results/<mode>/RUN_<timestamp>/`
 
-## Parallel Evaluation Modes
+## Evaluation Modes
 
-### Available Modes
-
-| Mode | Retriever | Description |
+| Mode | Evaluator | Description |
 |------|-----------|-------------|
-| `hybrid` | QdrantHybridRetriever | Dense + sparse vectors with RRF fusion |
-| `dense` | QdrantRetriever | Dense-only semantic search |
-| `openai` | OpenAIAgentEvaluator | GPT-5 with FileSearch tool |
+| `hybrid` | ChatbotEvaluator | Dense + sparse with RRF fusion |
+| `dense` | ChatbotEvaluator | Dense-only semantic search |
+| `openai` | OpenAIEvaluator | GPT model with FileSearch tool |
+| `kendra` | KendraEvaluator | Amazon Kendra retrieval |
 
 ### Running Parallel Evaluations
 
-Each mode writes to isolated subdirectories, allowing simultaneous execution:
+Each mode writes to isolated directories, allowing simultaneous execution:
 
 ```bash
 # Terminal 1
@@ -70,213 +59,92 @@ python -m evaluation.run_evaluation --mode hybrid
 python -m evaluation.run_evaluation --mode dense
 
 # Terminal 3
-python -m evaluation.run_evaluation --mode openai
+python -m evaluation.run_evaluation --mode kendra
 ```
 
-### Mode-Specific Output Structure
+## Output Structure
 
 ```
 results/
 ├── hybrid/
-│   ├── checkpoint.json              # Mode-specific checkpoint
-│   ├── debug_eval.txt               # Debug output for failed questions
-│   ├── detailed_results_*.jsonl     # Per-question results
-│   ├── evaluation_summary_*.json    # Aggregate statistics
-│   ├── evaluation_report_*.txt      # Human-readable report
-│   └── failure_analysis_*.txt       # Failed question details (if any)
+│   └── RUN_20251127_143022/
+│       ├── checkpoint.json           # Resume checkpoint
+│       ├── run_info.json             # Run metadata
+│       ├── detailed_results_*.jsonl  # Per-question results
+│       ├── evaluation_summary_*.json # Aggregate statistics
+│       └── evaluation_report_*.txt   # Human-readable report
 ├── dense/
-│   └── ... (same structure)
-└── openai/
-    └── ... (same structure)
+│   └── RUN_*/
+├── openai/
+│   └── RUN_*/
+└── kendra/
+    └── RUN_*/
 ```
 
-### Default Mode
+## Command Reference
 
-When `--mode` is not specified:
-1. Reads from `chatbot.config.RETRIEVAL_MODE`
-2. Defaults to `hybrid` if not set
-3. Can be overridden via environment: `export RETRIEVAL_MODE=dense`
-
-### Stop-on-Fail Behavior
-
-When a question scores < 70:
-- ❌ Evaluation stops immediately
-- 📊 Detailed failure report printed to console
-- 💾 Checkpoint saved (up to but NOT including the failed question)
-- 📌 Resume instructions displayed
-
-**Philosophy**: Fix failures incrementally rather than batch-processing multiple failures.
-
-## Resume After Failure
-
-### How Checkpoint System Works
-
-When evaluation stops on failure:
-1. **Checkpoint Saved**: Progress saved up to (but not including) the failed question
-2. **Failed Question Excluded**: The failed question will be re-evaluated on resume
-3. **Resume Available**: Use `--resume` flag to continue from where you left off
-
-### Resume Commands
+### Basic Usage
 
 ```bash
-# Re-evaluate just the failed question (mode-specific checkpoint)
-python -m evaluation.run_evaluation --mode hybrid --resume --resume-limit 1
-
-# Continue from the failed question onwards
-python -m evaluation.run_evaluation --mode hybrid --resume
-
-# Resume with debug output for the failed question
-python -m evaluation.run_evaluation --mode dense --resume --resume-limit 1 --debug
-
-# Resume with different collection to test changes
-python -m evaluation.run_evaluation --mode hybrid --resume --collection tro-child-3-contextual
+python -m evaluation.run_evaluation --mode hybrid         # Full evaluation
+python -m evaluation.run_evaluation --mode hybrid --limit 10  # Limit questions
+python -m evaluation.run_evaluation --mode hybrid --test      # Quick test
 ```
 
-**Note**: Each mode has its own checkpoint in `results/<mode>/checkpoint.json`. You must specify the same `--mode` when resuming.
+### File Selection
 
-### Typical Fix-and-Resume Workflow
-
-1. **Evaluation stops** on failed question (e.g., Q15)
-2. **Checkpoint saved** with Q1-Q14 complete
-3. **Investigate failure**:
-   - Review detailed failure output in console
-   - Check sources, scores, and judge reasoning
-   - Identify root cause (poor retrieval, missing context, etc.)
-4. **Fix the issue**:
-   - Update chunking, embeddings, or prompts
-   - Reload PDFs to vector database if needed
-5. **Re-evaluate**:
-   - `--resume --resume-limit 1` to test just Q15
-   - `--resume` to continue full evaluation from Q15
-
-### Benefits
-
-- **No manual tracking**: Checkpoint automatically knows which question failed
-- **Surgical re-evaluation**: `--resume-limit 1` tests only the fixed question
-- **Integrated workflow**: Same evaluation pipeline for all questions
-- **Consistent interface**: No separate debug scripts to maintain
-
-## Input Format: Q&A Markdown Files
-
-Location: `QUESTIONS/pdfs/*.md`
-
-### Format Structure
-
-```markdown
-# Title
-
-## Optional Section
-
-### Q1: Question text here?
-**A1:** Expected answer text here.
-
-### Q2: Another question?
-**A2:** Another expected answer.
+```bash
+python -m evaluation.run_evaluation --mode hybrid --file bcy-26-psoc-chart-twc-qa.md
 ```
 
-### Parsing Rules
+### Resume After Failure
 
-- **Pattern**: `### Q<num>:` followed by `**A<num>:**`
-- **Numbering**: Q/A numbers must match (e.g., Q5 → A5)
-- **Whitespace**: Leading/trailing whitespace automatically stripped
-- **Separator**: Questions separated by `\n###` or end of file
-
-### Example
-
-```markdown
-### Q5: What income levels correspond to each SMI percentage for a family of 5?
-**A5:** For a family of 5, the monthly income thresholds are: $105 (1% SMI), $1,571 (15% SMI), $2,617 (25% SMI), $3,664 (35% SMI), $4,711 (45% SMI), $5,757 (55% SMI), $6,804 (65% SMI), $7,851 (75% SMI), and $8,897 (85% SMI). These thresholds determine which sliding fee scale bracket the family falls into.
+```bash
+python -m evaluation.run_evaluation --mode hybrid --resume              # Continue from checkpoint
+python -m evaluation.run_evaluation --mode hybrid --resume --resume-limit 1  # Re-evaluate just failed question
+python -m evaluation.run_evaluation --mode hybrid --resume --debug      # With debug output
 ```
 
-## Output Format
+### Advanced Options
 
-### 1. Detailed Results (JSONL)
-
-**File**: `results/detailed_results_YYYYMMDD_HHMMSS.jsonl`
-
-One JSON object per line:
-```json
-{"source_file": "bcy-26-psoc-chart-twc-qa.md", "question_num": 5, "question": "...", "expected_answer": "...", "chatbot_answer": "...", "sources": [...], "response_type": "information", "response_time": 3.45, "scores": {...}}
+```bash
+python -m evaluation.run_evaluation --mode hybrid --run-name experiment1  # Custom run name
+python -m evaluation.run_evaluation --mode hybrid --no-stop-on-fail      # Don't stop on low scores
+python -m evaluation.run_evaluation --mode hybrid --clear-checkpoint     # Delete checkpoint after success
+python -m evaluation.run_evaluation --mode hybrid --capture-on-error     # Save failed questions
+python -m evaluation.run_evaluation --mode hybrid --debug                # Show retrieval details
+python -m evaluation.run_evaluation --mode hybrid --investigate          # Re-evaluate same question
+python -m evaluation.run_evaluation --mode hybrid --retrieval-top-k 50   # Override retrieval limit
 ```
 
-### 2. Evaluation Summary (JSON)
+### All CLI Arguments
 
-**File**: `results/evaluation_summary_YYYYMMDD_HHMMSS.json`
-
-```json
-{
-  "timestamp": "2025-11-04T07:22:28",
-  "total_evaluated": 25,
-  "average_scores": {
-    "accuracy": 4.2,
-    "completeness": 3.8,
-    "citation_quality": 4.5,
-    "coherence": 2.9,
-    "composite": 75.3
-  },
-  "performance": {
-    "excellent": 10,
-    "good": 8,
-    "needs_review": 5,
-    "failed": 2,
-    "pass_rate": 72.0
-  },
-  "response_time": {
-    "average": 3.45,
-    "min": 2.1,
-    "max": 5.8
-  }
-}
-```
-
-### 3. Human-Readable Report (TXT)
-
-**File**: `results/evaluation_report_YYYYMMDD_HHMMSS.txt`
-
-```
-================================================================================
-CHATBOT EVALUATION REPORT
-================================================================================
-
-Timestamp: 2025-11-04T07:22:28
-Total Evaluated: 25 Q&A pairs
-
-================================================================================
-AVERAGE SCORES
-================================================================================
-Composite Score:     75.3/100
-Factual Accuracy:    4.20/5
-Completeness:        3.80/5
-Citation Quality:    4.50/5
-Coherence:           2.90/3
-
-================================================================================
-PERFORMANCE BREAKDOWN
-================================================================================
-Excellent (≥85):       10 ( 40.0%)
-Good (70-84):           8 ( 32.0%)
-Needs Review (50-69):   5 ( 20.0%)
-Failed (<50):           2 (  8.0%)
-
-Overall Pass Rate:   72.0%
-```
-
-### 4. Failure Analysis (TXT)
-
-**File**: `results/failure_analysis_YYYYMMDD_HHMMSS.txt` (only if failures exist)
-
-Lists all questions scoring < 50 with details.
+| Argument | Description |
+|----------|-------------|
+| `--mode` | Evaluation mode: hybrid, dense, openai, kendra |
+| `--test` | Test mode flag |
+| `--limit N` | Limit to N questions |
+| `--file FILENAME` | Evaluate specific Q&A file |
+| `--resume` | Resume from checkpoint |
+| `--resume-limit N` | Process only N questions after resume |
+| `--debug` | Show retrieval details |
+| `--investigate` | Re-evaluate same question (debug) |
+| `--retrieval-top-k N` | Override retrieval limit |
+| `--run-name PREFIX` | Custom run directory prefix |
+| `--clear-checkpoint` | Delete checkpoint after successful run |
+| `--capture-on-error` | Save failed question details |
+| `--no-stop-on-fail` | Continue evaluation on low scores |
 
 ## Scoring System
 
 ### Criteria and Weights
 
-| Criterion          | Weight | Max Points | Description                                |
-|--------------------|--------|------------|--------------------------------------------|
-| Factual Accuracy   | 50%    | 5          | Correctness of information                 |
-| Completeness       | 30%    | 5          | Coverage of expected answer                |
-| Citation Quality   | 10%    | 5          | Source documentation                       |
-| Coherence          | 10%    | 3          | Clarity and readability                    |
+| Criterion | Weight | Max | Description |
+|-----------|--------|-----|-------------|
+| Factual Accuracy | 50% | 5 | Correctness of information |
+| Completeness | 30% | 5 | Coverage of expected answer |
+| Citation Quality | 10% | 5 | Source documentation (disabled by default) |
+| Coherence | 10% | 3 | Clarity and readability |
 
 ### Composite Score Calculation
 
@@ -287,119 +155,93 @@ composite = (accuracy * 10 * 0.5) +
             (coherence * 10/3 * 0.1)
 ```
 
-Result: 0-100 scale
+**Result:** 0-100 scale
+
+### When Citation Scoring Disabled
+
+Current default: `DISABLE_CITATION_SCORING = True`
+
+Weights redistribute to:
+- Accuracy: 55.6%
+- Completeness: 33.3%
+- Coherence: 11.1%
 
 ### Performance Thresholds
 
-- **Excellent**: ≥ 85
-- **Good**: 70-84 (pass)
-- **Needs Review**: 50-69
-- **Failed**: < 50
-- **Stop-on-Fail**: < 70 (default)
+| Category | Score Range |
+|----------|-------------|
+| Excellent | >= 85 |
+| Good | 70-84 (pass) |
+| Needs Review | 50-69 |
+| Failed | < 50 |
 
-## Command Reference
+**Stop-on-Fail Threshold:** < 70
 
-### Mode Selection
+## Resume System
 
-```bash
-# Specify retrieval mode (required for parallel runs)
-python -m evaluation.run_evaluation --mode hybrid    # Dense + sparse RRF
-python -m evaluation.run_evaluation --mode dense     # Dense-only
-python -m evaluation.run_evaluation --mode openai    # OpenAI agent
+### How It Works
+
+When evaluation stops on failure:
+1. **Checkpoint Saved** - Progress up to (but not including) failed question
+2. **Resume Available** - Use `--resume` to continue
+3. **Failed Question Re-evaluated** - Not included in checkpoint
+
+### Typical Fix-and-Resume Workflow
+
+1. Evaluation stops on Q15 (score < 70)
+2. Checkpoint saved with Q1-Q14 complete
+3. Investigate failure in console output
+4. Fix issue (update chunking, prompts, etc.)
+5. Re-evaluate: `--resume --resume-limit 1` to test Q15 only
+6. Continue: `--resume` for remaining questions
+
+## Input Format
+
+**Location:** `QUESTIONS/pdfs/*.md`
+
+### Q&A Format
+
+```markdown
+### Q1: Question text here?
+**A1:** Expected answer text here.
+
+### Q2: Another question?
+**A2:** Another expected answer.
 ```
 
-### Basic Usage
+### Parsing Rules
 
-```bash
-# Evaluate all Q&A pairs with default mode
-python -m evaluation.run_evaluation
-
-# Limit to first N questions
-python -m evaluation.run_evaluation --mode hybrid --limit 10
-
-# Test mode (quick check)
-python -m evaluation.run_evaluation --mode hybrid --test --limit 5
-```
-
-### Single File Evaluation
-
-```bash
-# Evaluate specific Q&A file
-python -m evaluation.run_evaluation --mode hybrid --file bcy-26-psoc-chart-twc-qa.md
-```
-
-### Collection Override
-
-```bash
-# Use non-default Qdrant collection
-python -m evaluation.run_evaluation --mode hybrid --collection tro-child-3-contextual
-```
-
-### Resume After Failure
-
-```bash
-# Resume from mode-specific checkpoint
-python -m evaluation.run_evaluation --mode hybrid --resume
-
-# Resume and re-evaluate just the failed question
-python -m evaluation.run_evaluation --mode hybrid --resume --resume-limit 1
-
-# Resume with debug output
-python -m evaluation.run_evaluation --mode dense --resume --resume-limit 1 --debug
-```
-
-### Parallel Evaluation (Compare Modes)
-
-```bash
-# Run all three modes simultaneously in separate terminals
-./test_parallel_eval.sh
-
-# Or manually:
-python -m evaluation.run_evaluation --mode hybrid &
-python -m evaluation.run_evaluation --mode dense &
-python -m evaluation.run_evaluation --mode openai &
-```
+- Pattern: `### Q<num>:` followed by `**A<num>:**`
+- Q/A numbers must match
+- Whitespace automatically stripped
 
 ## Configuration
 
-Configuration file: `evaluation/config.py`
+**File:** `evaluation/config.py`
 
 ### Judge Settings
 
 ```python
-JUDGE_PROVIDER = 'groq'              # or 'openai'
-JUDGE_MODEL = 'llama-3.3-70b-versatile'
-JUDGE_API_KEY = os.getenv('GROQ_API_KEY')
+JUDGE_PROVIDER = 'groq'
+JUDGE_MODEL = 'openai/gpt-oss-20b'
 ```
 
-### Processing Settings
+### Processing
 
 ```python
-PARALLEL_WORKERS = 5                 # Concurrent evaluations
-TIMEOUT = 30                         # Seconds per evaluation
-CHECKPOINT_INTERVAL = 50             # Save checkpoint every N questions
-```
-
-### Paths
-
-```python
-QA_DIR = 'QUESTIONS/pdfs'            # Q&A markdown files
-RESULTS_DIR = 'results'              # Base output location
-VALID_MODES = ['hybrid', 'dense', 'openai']  # Supported modes
-
-# Helper function for mode-specific directories
-def get_results_dir(mode: str = None) -> Path:
-    """Returns results/<mode>/ if mode specified, else results/"""
+PARALLEL_WORKERS = 5
+TIMEOUT = 30  # seconds
+CHECKPOINT_INTERVAL = 50
 ```
 
 ### Scoring
 
 ```python
 WEIGHTS = {
-    'accuracy': 0.5,                 # 50%
-    'completeness': 0.3,             # 30%
-    'citation_quality': 0.1,         # 10%
-    'coherence': 0.1                 # 10%
+    'accuracy': 0.5,
+    'completeness': 0.3,
+    'citation_quality': 0.1,
+    'coherence': 0.1
 }
 
 THRESHOLDS = {
@@ -408,23 +250,48 @@ THRESHOLDS = {
     'needs_review': 50
 }
 
-STOP_ON_FAIL_THRESHOLD = 70          # Stop evaluation if score < 70
+STOP_ON_FAIL_THRESHOLD = 70
+DISABLE_CITATION_SCORING = True
 ```
 
-## Typical Workflow
+### Paths
 
-1. **Create Q&A file**: Add questions to `QUESTIONS/pdfs/your-file-qa.md`
-2. **Run test evaluation**: `python -m evaluation.run_evaluation --test --limit 5`
-3. **Fix failures**: Use `--resume --resume-limit 1` to re-evaluate failed questions
-4. **Run full evaluation**: `python -m evaluation.run_evaluation` (or `--resume` to continue)
-5. **Review reports**: Check `results/` directory
+```python
+QA_DIR = 'QUESTIONS/pdfs'
+RESULTS_DIR = 'results'
+VALID_MODES = ['hybrid', 'dense', 'openai', 'kendra']
+```
 
 ## Key Files
 
-- `evaluation/run_evaluation.py` - Main entry point
-- `evaluation/batch_evaluator.py` - Core evaluation logic
-- `evaluation/evaluator.py` - Chatbot query wrapper
-- `evaluation/judge.py` - LLM-based scoring
-- `evaluation/reporter.py` - Report generation
-- `evaluation/qa_parser.py` - Q&A file parsing
-- `evaluation/config.py` - Configuration
+| File | Purpose |
+|------|---------|
+| `run_evaluation.py` | Main entry point |
+| `batch_evaluator.py` | Core evaluation loop |
+| `evaluator.py` | ChatbotEvaluator (hybrid/dense) |
+| `openai_evaluator.py` | OpenAI agent evaluator |
+| `kendra_evaluator.py` | Amazon Kendra evaluator |
+| `judge.py` | LLM-as-a-Judge scoring |
+| `reporter.py` | Report generation |
+| `qa_parser.py` | Q&A file parsing |
+| `run_info_writer.py` | Run metadata tracking |
+| `config.py` | Configuration |
+
+## Typical Workflow
+
+1. **Create Q&A file** - Add to `QUESTIONS/pdfs/your-file-qa.md`
+2. **Test evaluation** - `python -m evaluation.run_evaluation --mode hybrid --test --limit 5`
+3. **Fix failures** - Use `--resume --resume-limit 1`
+4. **Full evaluation** - `python -m evaluation.run_evaluation --mode hybrid`
+5. **Review reports** - Check `results/hybrid/RUN_*/`
+
+## Troubleshooting
+
+### Checkpoint not found
+Each mode has its own checkpoint in `results/<mode>/checkpoint.json`. Ensure you specify the correct `--mode`.
+
+### Score always low
+Check judge model configuration. Verify Q&A file format matches expected pattern.
+
+### Kendra mode fails
+Ensure AWS credentials are configured and `KENDRA_INDEX_ID` is set in config.

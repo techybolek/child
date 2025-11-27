@@ -41,7 +41,7 @@ class ChatRequest(BaseModel):
                     "question": "What are the income limits for a family of 3 in BCY 2026?",
                     "session_id": "550e8400-e29b-41d4-a716-446655440000",
                     "provider": "groq",
-                    "llm_model": "llama-3.3-70b-versatile"
+                    "llm_model": "openai/gpt-oss-20b"
                 }
             ]
         }
@@ -148,8 +148,8 @@ class Model(BaseModel):
         "json_schema_extra": {
             "examples": [
                 {
-                    "id": "llama-3.3-70b-versatile",
-                    "name": "llama-3.3-70b-versatile"
+                    "id": "openai/gpt-oss-20b",
+                    "name": "openai/gpt-oss-20b"
                 }
             ]
         }
@@ -176,13 +176,13 @@ class ModelsResponse(BaseModel):
             "examples": [
                 {
                     "provider": "groq",
-                    "generators": [{"id": "llama-3.3-70b-versatile", "name": "llama-3.3-70b-versatile"}],
-                    "rerankers": [{"id": "llama-3.3-70b-versatile", "name": "llama-3.3-70b-versatile"}],
-                    "classifiers": [{"id": "llama-3.3-70b-versatile", "name": "llama-3.3-70b-versatile"}],
+                    "generators": [{"id": "openai/gpt-oss-20b", "name": "openai/gpt-oss-20b"}],
+                    "rerankers": [{"id": "openai/gpt-oss-120b", "name": "openai/gpt-oss-120b"}],
+                    "classifiers": [{"id": "openai/gpt-oss-20b", "name": "openai/gpt-oss-20b"}],
                     "defaults": {
                         "generator": "openai/gpt-oss-20b",
-                        "reranker": "openai/gpt-oss-20b",
-                        "classifier": "llama-3.3-70b-versatile"
+                        "reranker": "openai/gpt-oss-120b",
+                        "classifier": "openai/gpt-oss-20b"
                     }
                 }
             ]
