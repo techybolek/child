@@ -694,30 +694,32 @@ conversation:
 
 ## Phase 8: Implementation Roadmap
 
-### Milestone 1: Basic Conversational Memory (1-2 days)
+**Phase-Gated Tests:** See test specifications in plan file. Tests will be created as part of each milestone implementation.
+
+### Milestone 1: Basic Conversational Memory
 - [ ] Update `RAGState` → `ConversationalRAGState`
 - [ ] Add `InMemorySaver` checkpointer to graph
 - [ ] Update `TexasChildcareChatbot` with `thread_id` support
-- [ ] Basic integration test
+- [ ] Create gate tests (3 tests: memory persistence, thread isolation, stateless mode)
 
-### Milestone 2: Query Reformulation (1-2 days)
+### Milestone 2: Query Reformulation
 - [ ] Implement `reformulate_node`
 - [ ] Add to graph pipeline before `classify`
 - [ ] Tune reformulation prompt for Texas childcare domain
-- [ ] Unit tests for reformulation
+- [ ] Create gate tests (4 tests: pronoun resolution, implicit context, passthrough, fallback)
 
-### Milestone 3: Testing Framework (2-3 days)
+### Milestone 3: Testing Framework
 - [ ] Define YAML conversation format
 - [ ] Implement `ConversationEvaluator`
 - [ ] Implement `MultiTurnJudge`
-- [ ] Create 5-10 test conversations covering key patterns
-- [ ] Integrate with existing evaluation runner
+- [ ] Create 5+ test conversations covering key patterns
+- [ ] Create gate tests (4 tests: YAML parsing, evaluator runs, context metric, judge scoring)
 
-### Milestone 4: Advanced Features (optional)
-- [ ] HyDE for complex queries
-- [ ] Conversation-aware reranking
-- [ ] Long-term memory store (cross-session)
-- [ ] Clarification node for ambiguous queries
+### Milestone 4: Full E2E Integration
+- [ ] Wire all components together
+- [ ] Run full conversation evaluation
+- [ ] Validate metrics meet targets (90% context resolution rate)
+- [ ] Create gate tests (3 tests + verify existing e2e tests still pass)
 
 ---
 
