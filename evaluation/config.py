@@ -61,26 +61,28 @@ def get_results_dir(mode: str = None):
     return results_dir
 
 
-def create_run_directory(mode: str):
+def create_run_directory(mode: str, run_name: str = None):
     """Create timestamped run directory within mode directory.
 
     Args:
         mode: Evaluation mode ('hybrid', 'dense', 'openai', 'kendra')
+        run_name: Optional custom prefix for run directory. If not specified, defaults to 'RUN'.
 
     Returns:
-        Path to created run directory (e.g., results/hybrid/RUN_20251125_143022/)
+        Path to created run directory (e.g., results/hybrid/RUN_20251125_143022/ or results/hybrid/TEST_BASIC_20251125_143022/)
     """
     from pathlib import Path
     from datetime import datetime
 
     mode_dir = get_results_dir(mode)
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    run_dir = mode_dir / f'RUN_{timestamp}'
+    prefix = run_name if run_name else 'RUN'
+    run_dir = mode_dir / f'{prefix}_{timestamp}'
 
     # Handle timestamp collision (unlikely but possible)
     counter = 1
     while run_dir.exists():
-        run_dir = mode_dir / f'RUN_{timestamp}_{counter}'
+        run_dir = mode_dir / f'{prefix}_{timestamp}_{counter}'
         counter += 1
 
     run_dir.mkdir(parents=True, exist_ok=True)

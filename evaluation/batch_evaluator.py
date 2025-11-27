@@ -9,7 +9,7 @@ from .run_info_writer import write_run_info
 
 
 class BatchEvaluator:
-    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, investigate_mode=False, retrieval_top_k=None, clear_checkpoint=False, capture_on_error=False, stop_on_fail=True, evaluator=None, mode=None):
+    def __init__(self, collection_name=None, resume=False, resume_limit=None, debug=False, investigate_mode=False, retrieval_top_k=None, clear_checkpoint=False, capture_on_error=False, stop_on_fail=True, evaluator=None, mode=None, run_name=None):
         # Use injected evaluator if provided, otherwise default to ChatbotEvaluator
         if evaluator is not None:
             self.evaluator = evaluator
@@ -25,6 +25,7 @@ class BatchEvaluator:
         self.capture_on_error = capture_on_error
         self.stop_on_fail = stop_on_fail
         self.mode = mode
+        self.run_name = run_name
         self.results_dir = config.get_results_dir(mode)
         self.run_dir = None  # Will be set in _evaluate_batch
 
@@ -71,11 +72,11 @@ class BatchEvaluator:
                 # This can happen if using old-style flat structure
                 print(f"\n⚠️  No existing run directory found for mode '{self.mode}'")
                 print(f"   Creating new run directory...")
-                self.run_dir = config.create_run_directory(self.mode)
+                self.run_dir = config.create_run_directory(self.mode, self.run_name)
                 print(f"   Created run directory: {self.run_dir}")
         else:
             # New evaluation run - create new run directory
-            self.run_dir = config.create_run_directory(self.mode)
+            self.run_dir = config.create_run_directory(self.mode, self.run_name)
             print(f"\n📁 Created run directory: {self.run_dir}")
 
         # Write run configuration info to run-specific directory (overwrites on resume)
@@ -274,7 +275,10 @@ class BatchEvaluator:
         print("\nSCORES:")
         print(f"  Factual Accuracy:    {scores['accuracy']:.1f}/5")
         print(f"  Completeness:        {scores['completeness']:.1f}/5")
-        print(f"  Citation Quality:    {scores['citation_quality']:.1f}/5")
+        if scores.get('citation_quality') is not None:
+            print(f"  Citation Quality:    {scores['citation_quality']:.1f}/5")
+        else:
+            print(f"  Citation Quality:    N/A (disabled)")
         print(f"  Coherence:           {scores['coherence']:.1f}/3")
         print(f"  Composite:           {scores['composite_score']:.1f}/100")
 
@@ -470,7 +474,11 @@ class BatchEvaluator:
                 f.write("Individual Scores:\n")
                 f.write(f"  Factual Accuracy:    {scores.get('accuracy', 0):.1f}/5\n")
                 f.write(f"  Completeness:        {scores.get('completeness', 0):.1f}/5\n")
-                f.write(f"  Citation Quality:    {scores.get('citation_quality', 0):.1f}/5\n")
+                citation_score = scores.get('citation_quality')
+                if citation_score is not None:
+                    f.write(f"  Citation Quality:    {citation_score:.1f}/5\n")
+                else:
+                    f.write(f"  Citation Quality:    N/A (disabled)\n")
                 f.write(f"  Coherence:           {scores.get('coherence', 0):.1f}/3\n\n")
                 f.write("Judge Reasoning:\n")
                 f.write(f"{scores.get('reasoning', 'N/A')}\n\n")

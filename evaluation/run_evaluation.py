@@ -48,6 +48,7 @@ def main():
     parser.add_argument('--capture-on-error', action='store_true', help='Save failed questions to checkpoint with "failed" status (allows --resume to skip them)')
     parser.add_argument('--no-stop-on-fail', action='store_true', help='Continue evaluation even when a question scores below threshold')
     parser.add_argument('--mode', type=str, choices=eval_config.VALID_MODES, help='Evaluation mode: hybrid, dense, or openai (default: from chatbot config)')
+    parser.add_argument('--run-name', type=str, help='Custom prefix for run directory (default: RUN)')
     args = parser.parse_args()
 
     # Handle investigate mode - automatically set resume, resume_limit, and debug
@@ -119,7 +120,8 @@ def main():
         capture_on_error=args.capture_on_error,
         stop_on_fail=not args.no_stop_on_fail,
         evaluator=custom_evaluator,
-        mode=mode
+        mode=mode,
+        run_name=args.run_name
     )
     print(f"Mode Directory: {eval_config.get_results_dir(mode)}")
 
