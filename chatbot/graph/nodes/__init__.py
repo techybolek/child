@@ -5,6 +5,7 @@ from .retrieve import retrieve_node
 from .rerank import rerank_node
 from .generate import generate_node
 from .location import location_node
+from .reformulate import reformulate_node
 
 __all__ = [
     'classify_node',
@@ -12,4 +13,5 @@ __all__ = [
     'rerank_node',
     'generate_node',
     'location_node',
+    'reformulate_node',
 ]

@@ -48,7 +48,7 @@ class TexasChildcareChatbot:
 
         Returns:
             dict with answer, sources, response_type, action_items, processing_time
-            In conversational mode, also includes: thread_id, turn_count
+            In conversational mode, also includes: thread_id, turn_count, reformulated_query
         """
         if config.CONVERSATIONAL_MODE:
             return self._ask_conversational(question, thread_id, debug)
@@ -78,7 +78,7 @@ class TexasChildcareChatbot:
             'answer': final_state['answer'],
             'sources': final_state['sources'],
             'response_type': final_state['response_type'],
-            'action_items': final_state['action_items']
+            'action_items': final_state.get('action_items', []),
         }
 
         if debug:
@@ -103,7 +103,7 @@ class TexasChildcareChatbot:
         input_state = {
             "messages": [HumanMessage(content=question)],
             "query": question,
-            "reformulated_query": None,  # For Milestone 2
+            "reformulated_query": None,
             "debug": debug,
             "intent": None,
             "retrieved_chunks": [],
@@ -128,6 +128,7 @@ class TexasChildcareChatbot:
             'action_items': final_state.get('action_items', []),
             'thread_id': thread_id,
             'turn_count': turn_count,
+            'reformulated_query': final_state.get('reformulated_query'),
         }
 
         if debug:

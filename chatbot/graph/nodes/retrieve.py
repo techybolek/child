@@ -12,13 +12,17 @@ def retrieve_node(state: dict) -> dict:
     - 'hybrid': Dense + sparse with RRF fusion
     - 'dense': Dense-only semantic search
 
+    Uses reformulated_query if available (conversational mode),
+    otherwise falls back to original query.
+
     Args:
-        state: RAGState with 'query' and optional 'debug' fields
+        state: RAGState with 'query', optional 'reformulated_query' and 'debug' fields
 
     Returns:
         dict with 'retrieved_chunks' and optionally updated 'debug_info'
     """
-    query = state["query"]
+    # Use reformulated query if available (conversational mode)
+    query = state.get("reformulated_query") or state["query"]
     debug = state.get("debug", False)
 
     # Select retriever based on config

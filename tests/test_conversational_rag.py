@@ -139,6 +139,171 @@ def run_milestone1_tests():
     return failed == 0
 
 
+class TestMilestone2:
+    """Gate: Query Reformulation
+
+    Tests for context-aware query reformulation.
+    All tests must pass before proceeding to Milestone 3.
+    """
+
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        """Enable conversational mode for tests."""
+        original = config.CONVERSATIONAL_MODE
+        config.CONVERSATIONAL_MODE = True
+        yield
+        config.CONVERSATIONAL_MODE = original
+
+    def test_pronoun_resolution(self):
+        """Pronouns are resolved using conversation context."""
+        from chatbot import TexasChildcareChatbot
+
+        bot = TexasChildcareChatbot()
+        thread_id = bot.new_conversation()
+
+        # First turn: establish context
+        r1 = bot.ask("What is CCS?", thread_id=thread_id)
+        assert "answer" in r1
+
+        # Second turn: use pronoun "it"
+        r2 = bot.ask("How do I apply for it?", thread_id=thread_id, debug=True)
+        assert "answer" in r2
+
+        # Reformulated query should mention CCS explicitly
+        reformulated = r2.get("reformulated_query", "")
+        print(f"Original: How do I apply for it?")
+        print(f"Reformulated: {reformulated}")
+
+        # Should expand "it" to reference CCS
+        assert "CCS" in reformulated or "Child Care" in reformulated, \
+            f"Expected CCS in reformulated query, got: {reformulated}"
+
+    def test_implicit_context_resolution(self):
+        """Implicit context references are expanded."""
+        from chatbot import TexasChildcareChatbot
+
+        bot = TexasChildcareChatbot()
+        thread_id = bot.new_conversation()
+
+        # First turn: ask about family of 3
+        r1 = bot.ask("What is the income limit for a family of 3?", thread_id=thread_id)
+        assert "answer" in r1
+
+        # Second turn: "what about 4" implicitly refers to family size
+        r2 = bot.ask("What about for 4?", thread_id=thread_id, debug=True)
+        assert "answer" in r2
+
+        reformulated = r2.get("reformulated_query", "")
+        print(f"Original: What about for 4?")
+        print(f"Reformulated: {reformulated}")
+
+        # Should expand to include "income limit" and "family of 4"
+        reformulated_lower = reformulated.lower()
+        assert "4" in reformulated_lower, f"Expected '4' in reformulated query"
+        assert ("income" in reformulated_lower or "family" in reformulated_lower or "limit" in reformulated_lower), \
+            f"Expected context from previous turn, got: {reformulated}"
+
+    def test_standalone_query_passthrough(self):
+        """Standalone queries pass through unchanged."""
+        from chatbot import TexasChildcareChatbot
+
+        bot = TexasChildcareChatbot()
+        thread_id = bot.new_conversation()
+
+        # First turn
+        r1 = bot.ask("What is CCS?", thread_id=thread_id)
+
+        # Second turn: completely standalone question
+        standalone_query = "What are the Texas Rising Star quality standards?"
+        r2 = bot.ask(standalone_query, thread_id=thread_id, debug=True)
+
+        reformulated = r2.get("reformulated_query", "")
+        print(f"Original: {standalone_query}")
+        print(f"Reformulated: {reformulated}")
+
+        # Standalone query should remain relatively unchanged
+        # (might have minor rewording but core meaning preserved)
+        assert "Texas Rising Star" in reformulated or "quality" in reformulated.lower(), \
+            f"Standalone query was incorrectly modified: {reformulated}"
+
+    def test_first_turn_no_reformulation(self):
+        """First turn skips reformulation (no history)."""
+        from chatbot import TexasChildcareChatbot
+
+        bot = TexasChildcareChatbot()
+        thread_id = bot.new_conversation()
+
+        query = "What are the income limits for childcare assistance?"
+        r1 = bot.ask(query, thread_id=thread_id, debug=True)
+
+        reformulated = r1.get("reformulated_query", "")
+        print(f"First turn query: {query}")
+        print(f"Reformulated: {reformulated}")
+
+        # First turn should use original query (no history to reformulate from)
+        assert reformulated == query or reformulated == "", \
+            f"First turn should not reformulate, got: {reformulated}"
+
+
+def run_milestone2_tests():
+    """Run Milestone 2 tests with formatted output."""
+    print("\n" + "=" * 60)
+    print("MILESTONE 2: Query Reformulation Tests")
+    print("=" * 60)
+
+    tests = [
+        ("test_pronoun_resolution", "Pronoun resolution (it → CCS)"),
+        ("test_implicit_context_resolution", "Implicit context (what about 4?)"),
+        ("test_standalone_query_passthrough", "Standalone query passthrough"),
+        ("test_first_turn_no_reformulation", "First turn skips reformulation"),
+    ]
+
+    # Enable conversational mode
+    original = config.CONVERSATIONAL_MODE
+    config.CONVERSATIONAL_MODE = True
+
+    passed = 0
+    failed = 0
+
+    try:
+        from chatbot import TexasChildcareChatbot
+
+        for test_name, description in tests:
+            try:
+                test_class = TestMilestone2()
+
+                if test_name == "test_pronoun_resolution":
+                    test_class.test_pronoun_resolution()
+                elif test_name == "test_implicit_context_resolution":
+                    test_class.test_implicit_context_resolution()
+                elif test_name == "test_standalone_query_passthrough":
+                    test_class.test_standalone_query_passthrough()
+                elif test_name == "test_first_turn_no_reformulation":
+                    test_class.test_first_turn_no_reformulation()
+
+                print(f"  ✓ {description}")
+                passed += 1
+
+            except AssertionError as e:
+                print(f"  ✗ {description}")
+                print(f"    Assertion: {e}")
+                failed += 1
+
+            except Exception as e:
+                print(f"  ✗ {description}")
+                print(f"    Error: {type(e).__name__}: {e}")
+                failed += 1
+
+    finally:
+        config.CONVERSATIONAL_MODE = original
+
+    print("-" * 60)
+    print(f"Results: {passed} passed, {failed} failed")
+    print("=" * 60)
+
+    return failed == 0
+
+
 def run_all_tests():
     """Run all milestone tests with formatted output."""
     print("\n" + "=" * 70)
@@ -153,9 +318,11 @@ def run_all_tests():
         print("\n*** MILESTONE 1 FAILED - Fix before proceeding ***\n")
         return False
 
-    # Future milestones would go here
-    # if not run_milestone2_tests():
-    #     all_passed = False
+    # Milestone 2
+    if not run_milestone2_tests():
+        all_passed = False
+        print("\n*** MILESTONE 2 FAILED - Fix before proceeding ***\n")
+        return False
 
     if all_passed:
         print("\n*** ALL MILESTONES PASSED ***\n")

@@ -78,10 +78,10 @@ def _build_stateless_graph():
 def _build_conversational_graph(checkpointer=None):
     """Build conversational RAG graph with memory.
 
-    Graph structure (same as stateless for Milestone 1):
-        START → CLASSIFY → [conditional]
-                              ├── RETRIEVE → RERANK → GENERATE → END
-                              └── LOCATION → END
+    Graph structure (Milestone 2 - with reformulation):
+        START → REFORMULATE → CLASSIFY → [conditional]
+                                            ├── RETRIEVE → RERANK → GENERATE → END
+                                            └── LOCATION → END
 
     Args:
         checkpointer: Checkpointer for conversation memory.
@@ -90,17 +90,23 @@ def _build_conversational_graph(checkpointer=None):
     Returns:
         Compiled LangGraph workflow with memory
     """
+    from .nodes.reformulate import reformulate_node
+
     workflow = StateGraph(ConversationalRAGState)
 
-    # Same nodes as stateless
+    # Add nodes - reformulate is first for Milestone 2
+    workflow.add_node("reformulate", reformulate_node)
     workflow.add_node("classify", classify_node)
     workflow.add_node("retrieve", retrieve_node)
     workflow.add_node("rerank", rerank_node)
     workflow.add_node("generate", generate_node)
     workflow.add_node("location", location_node)
 
-    # Entry point
-    workflow.set_entry_point("classify")
+    # Entry point: reformulate first (Milestone 2)
+    workflow.set_entry_point("reformulate")
+
+    # Reformulate → Classify
+    workflow.add_edge("reformulate", "classify")
 
     # Conditional routing after classification
     workflow.add_conditional_edges(
@@ -124,7 +130,7 @@ def _build_conversational_graph(checkpointer=None):
     if checkpointer is None:
         checkpointer = MemorySaver()
 
-    print("[Graph Builder] Building conversational RAG graph with memory")
+    print("[Graph Builder] Building conversational RAG graph with memory and reformulation")
     return workflow.compile(checkpointer=checkpointer)
 
 
