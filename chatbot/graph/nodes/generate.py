@@ -60,9 +60,16 @@ def generate_node(state: dict) -> dict:
 
     print(f"[Generate Node] Generated answer with {len(sources)} cited sources")
 
-    return {
+    result = {
         "answer": answer,
         "sources": sources,
         "response_type": "information",
         "action_items": []
     }
+
+    # If conversational mode, append AI message for memory
+    if "messages" in state:
+        from langchain_core.messages import AIMessage
+        result["messages"] = [AIMessage(content=answer)]
+
+    return result

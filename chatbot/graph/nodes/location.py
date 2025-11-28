@@ -17,7 +17,7 @@ def location_node(state: dict) -> dict:
     """
     print("[Location Node] Returning location search template")
 
-    return {
+    result = {
         "answer": LOCATION_SEARCH_TEMPLATE,
         "sources": [],
         "response_type": "location_search",
@@ -30,3 +30,10 @@ def location_node(state: dict) -> dict:
             }
         ]
     }
+
+    # If conversational mode, append AI message for memory
+    if "messages" in state:
+        from langchain_core.messages import AIMessage
+        result["messages"] = [AIMessage(content=LOCATION_SEARCH_TEMPLATE)]
+
+    return result
