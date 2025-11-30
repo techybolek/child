@@ -3,15 +3,64 @@ Phase-gated tests for conversational RAG implementation.
 
 Each TestMilestone class gates a phase - all tests must pass before proceeding.
 
+Milestones:
+    1. State + Memory     - Thread isolation, memory persistence
+    2. Query Reformulation - Pronoun resolution, context expansion
+    3. Testing Framework   - YAML parsing, evaluator, judge
+
 Usage:
-    pytest tests/test_conversational_rag.py -v                     # All tests
-    pytest tests/test_conversational_rag.py::TestMilestone1 -v     # Phase 1 only
-    python tests/test_conversational_rag.py                        # Direct execution
+    # Direct execution (recommended) - stops on first failure, clean output
+    python tests/test_conversational_rag.py
+
+    # pytest with stop-on-failure
+    pytest tests/test_conversational_rag.py -x -v
+
+    # pytest run all (verbose output)
+    pytest tests/test_conversational_rag.py -v
+
+    # Single milestone only
+    pytest tests/test_conversational_rag.py::TestMilestone1 -v
+    pytest tests/test_conversational_rag.py::TestMilestone2 -v
+    pytest tests/test_conversational_rag.py::TestMilestone3 -v
+
+    # Single test
+    pytest tests/test_conversational_rag.py::TestMilestone2::test_pronoun_resolution -v
+
+Output:
+    - On success: single checkmark line per test
+    - On failure: clear banner + last 15 lines of debug output
 """
 
 import pytest
 import sys
+import io
 from pathlib import Path
+from contextlib import contextmanager
+
+
+@contextmanager
+def capture_output():
+    """Capture stdout/stderr during test, show last 15 lines on failure only."""
+    old_stdout, old_stderr = sys.stdout, sys.stderr
+    sys.stdout, sys.stderr = io.StringIO(), io.StringIO()
+    try:
+        yield
+    except Exception:
+        # On failure, restore streams and print last 15 lines
+        output = sys.stdout.getvalue()
+        sys.stdout, sys.stderr = old_stdout, old_stderr
+        if output:
+            lines = output.strip().split('\n')
+            if len(lines) > 15:
+                print(f"\n--- Last 15 of {len(lines)} lines ---")
+                print('\n'.join(lines[-15:]))
+            else:
+                print("\n--- Captured Output ---")
+                print(output)
+            print("--- End Output ---")
+        raise
+    finally:
+        sys.stdout, sys.stderr = old_stdout, old_stderr
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -89,7 +138,7 @@ class TestMilestone1:
 
 
 def run_milestone1_tests():
-    """Run Milestone 1 tests with formatted output."""
+    """Run Milestone 1 tests with formatted output. Stops on first failure."""
     print("\n" + "=" * 60)
     print("MILESTONE 1: State + Memory Tests")
     print("=" * 60)
@@ -105,38 +154,38 @@ def run_milestone1_tests():
     config.CONVERSATIONAL_MODE = True
 
     passed = 0
-    failed = 0
 
     try:
-        from chatbot import TexasChildcareChatbot
-
         for test_name, description in tests:
             try:
                 test_class = TestMilestone1()
-
-                if test_name == "test_memory_persistence":
-                    test_class.test_memory_persistence()
-                elif test_name == "test_thread_isolation":
-                    test_class.test_thread_isolation()
-                elif test_name == "test_stateless_mode_unchanged":
-                    test_class.test_stateless_mode_unchanged()
+                with capture_output():
+                    if test_name == "test_memory_persistence":
+                        test_class.test_memory_persistence()
+                    elif test_name == "test_thread_isolation":
+                        test_class.test_thread_isolation()
+                    elif test_name == "test_stateless_mode_unchanged":
+                        test_class.test_stateless_mode_unchanged()
 
                 print(f"  ✓ {description}")
                 passed += 1
 
             except Exception as e:
-                print(f"  ✗ {description}")
-                print(f"    Error: {e}")
-                failed += 1
+                print(f"\n{'='*60}")
+                print(f"  ✗ FAILED: {description}")
+                print(f"{'='*60}")
+                print(f"    {type(e).__name__}: {e}")
+                print(f"{'='*60}")
+                return False  # Stop on first failure
 
     finally:
         config.CONVERSATIONAL_MODE = original
 
     print("-" * 60)
-    print(f"Results: {passed} passed, {failed} failed")
+    print(f"Results: {passed} passed, 0 failed")
     print("=" * 60)
 
-    return failed == 0
+    return True
 
 
 class TestMilestone2:
@@ -197,9 +246,10 @@ class TestMilestone2:
         print(f"Original: What about for 4?")
         print(f"Reformulated: {reformulated}")
 
-        # Should expand to include "income limit" and "family of 4"
+        # Should expand to include "income limit" and "family of 4" (or "four")
         reformulated_lower = reformulated.lower()
-        assert "4" in reformulated_lower, f"Expected '4' in reformulated query"
+        assert ("4" in reformulated_lower or "four" in reformulated_lower), \
+            f"Expected '4' or 'four' in reformulated query, got: {reformulated}"
         assert ("income" in reformulated_lower or "family" in reformulated_lower or "limit" in reformulated_lower), \
             f"Expected context from previous turn, got: {reformulated}"
 
@@ -246,7 +296,7 @@ class TestMilestone2:
 
 
 def run_milestone2_tests():
-    """Run Milestone 2 tests with formatted output."""
+    """Run Milestone 2 tests with formatted output. Stops on first failure."""
     print("\n" + "=" * 60)
     print("MILESTONE 2: Query Reformulation Tests")
     print("=" * 60)
@@ -263,45 +313,186 @@ def run_milestone2_tests():
     config.CONVERSATIONAL_MODE = True
 
     passed = 0
-    failed = 0
 
     try:
-        from chatbot import TexasChildcareChatbot
-
         for test_name, description in tests:
             try:
                 test_class = TestMilestone2()
-
-                if test_name == "test_pronoun_resolution":
-                    test_class.test_pronoun_resolution()
-                elif test_name == "test_implicit_context_resolution":
-                    test_class.test_implicit_context_resolution()
-                elif test_name == "test_standalone_query_passthrough":
-                    test_class.test_standalone_query_passthrough()
-                elif test_name == "test_first_turn_no_reformulation":
-                    test_class.test_first_turn_no_reformulation()
+                with capture_output():
+                    if test_name == "test_pronoun_resolution":
+                        test_class.test_pronoun_resolution()
+                    elif test_name == "test_implicit_context_resolution":
+                        test_class.test_implicit_context_resolution()
+                    elif test_name == "test_standalone_query_passthrough":
+                        test_class.test_standalone_query_passthrough()
+                    elif test_name == "test_first_turn_no_reformulation":
+                        test_class.test_first_turn_no_reformulation()
 
                 print(f"  ✓ {description}")
                 passed += 1
 
-            except AssertionError as e:
-                print(f"  ✗ {description}")
-                print(f"    Assertion: {e}")
-                failed += 1
-
             except Exception as e:
-                print(f"  ✗ {description}")
-                print(f"    Error: {type(e).__name__}: {e}")
-                failed += 1
+                print(f"\n{'='*60}")
+                print(f"  ✗ FAILED: {description}")
+                print(f"{'='*60}")
+                print(f"    {type(e).__name__}: {e}")
+                print(f"{'='*60}")
+                return False  # Stop on first failure
 
     finally:
         config.CONVERSATIONAL_MODE = original
 
     print("-" * 60)
-    print(f"Results: {passed} passed, {failed} failed")
+    print(f"Results: {passed} passed, 0 failed")
     print("=" * 60)
 
-    return failed == 0
+    return True
+
+
+class TestMilestone3:
+    """Gate: Testing Framework
+
+    Tests for the multi-turn conversation testing framework.
+    All tests must pass before proceeding to Milestone 4.
+    """
+
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        """Enable conversational mode for tests."""
+        original = config.CONVERSATIONAL_MODE
+        config.CONVERSATIONAL_MODE = True
+        yield
+        config.CONVERSATIONAL_MODE = original
+
+    def test_yaml_parsing(self):
+        """YAML conversation files parse correctly."""
+        import yaml
+
+        conv_file = Path("QUESTIONS/conversations/ccs_eligibility_conv.yaml")
+        assert conv_file.exists(), f"Conversation file not found: {conv_file}"
+
+        spec = yaml.safe_load(conv_file.read_text())
+
+        assert "name" in spec, "Missing 'name' field"
+        assert "conversation" in spec, "Missing 'conversation' field"
+        assert len(spec["conversation"]) >= 2, "Need at least 2 turns"
+        assert spec["conversation"][0]["turn"] == 1, "First turn should be turn 1"
+
+        # Verify turn structure
+        for turn in spec["conversation"]:
+            assert "turn" in turn, "Turn missing 'turn' number"
+            assert "user" in turn, "Turn missing 'user' query"
+
+    def test_evaluator_runs(self):
+        """ConversationEvaluator executes without error."""
+        from chatbot import TexasChildcareChatbot
+        from evaluation.conversation_evaluator import ConversationEvaluator
+        from evaluation.multi_turn_judge import MultiTurnJudge
+
+        bot = TexasChildcareChatbot()
+        judge = MultiTurnJudge()
+        evaluator = ConversationEvaluator(bot, judge)
+
+        result = evaluator.evaluate_conversation(
+            "QUESTIONS/conversations/ccs_eligibility_conv.yaml"
+        )
+
+        assert result.name == "CCS Eligibility Multi-Turn", f"Wrong name: {result.name}"
+        assert len(result.turns) >= 1, "Should have at least 1 turn result"
+        assert result.average_score >= 0, "Average score should be non-negative"
+
+    def test_context_metric_calculated(self):
+        """Context resolution rate is calculated."""
+        from chatbot import TexasChildcareChatbot
+        from evaluation.conversation_evaluator import ConversationEvaluator
+        from evaluation.multi_turn_judge import MultiTurnJudge
+
+        bot = TexasChildcareChatbot()
+        judge = MultiTurnJudge()
+        evaluator = ConversationEvaluator(bot, judge)
+
+        result = evaluator.evaluate_conversation(
+            "QUESTIONS/conversations/ccs_eligibility_conv.yaml"
+        )
+
+        assert 0 <= result.context_resolution_rate <= 1.0, \
+            f"Context rate should be 0-1, got: {result.context_resolution_rate}"
+
+    def test_judge_scores_turn(self):
+        """MultiTurnJudge returns valid scores."""
+        from evaluation.multi_turn_judge import MultiTurnJudge
+
+        judge = MultiTurnJudge()
+        scores = judge.score_turn(
+            query="What about for a family of 4?",
+            reformulated_query="What are the income limits for a family of 4 for CCS?",
+            response="For a family of 4, the income limit is 85% of SMI.",
+            expected_topics=["income", "family"],
+            expected_answer_contains=["family of 4"],
+            requires_context=True,
+            previous_turns=[]
+        )
+
+        assert "accuracy" in scores, "Missing accuracy score"
+        assert "completeness" in scores, "Missing completeness score"
+        assert "coherence" in scores, "Missing coherence score"
+        assert 1 <= scores["accuracy"] <= 5, f"Accuracy out of range: {scores['accuracy']}"
+        assert 1 <= scores["completeness"] <= 5, f"Completeness out of range: {scores['completeness']}"
+        assert 1 <= scores["coherence"] <= 3, f"Coherence out of range: {scores['coherence']}"
+
+
+def run_milestone3_tests():
+    """Run Milestone 3 tests with formatted output. Stops on first failure."""
+    print("\n" + "=" * 60)
+    print("MILESTONE 3: Testing Framework Tests")
+    print("=" * 60)
+
+    tests = [
+        ("test_yaml_parsing", "YAML conversation parsing"),
+        ("test_evaluator_runs", "Evaluator executes"),
+        ("test_context_metric_calculated", "Context metric calculated"),
+        ("test_judge_scores_turn", "Judge scores turn"),
+    ]
+
+    # Enable conversational mode
+    original = config.CONVERSATIONAL_MODE
+    config.CONVERSATIONAL_MODE = True
+
+    passed = 0
+
+    try:
+        for test_name, description in tests:
+            try:
+                test_class = TestMilestone3()
+                with capture_output():
+                    if test_name == "test_yaml_parsing":
+                        test_class.test_yaml_parsing()
+                    elif test_name == "test_evaluator_runs":
+                        test_class.test_evaluator_runs()
+                    elif test_name == "test_context_metric_calculated":
+                        test_class.test_context_metric_calculated()
+                    elif test_name == "test_judge_scores_turn":
+                        test_class.test_judge_scores_turn()
+
+                print(f"  ✓ {description}")
+                passed += 1
+
+            except Exception as e:
+                print(f"\n{'='*60}")
+                print(f"  ✗ FAILED: {description}")
+                print(f"{'='*60}")
+                print(f"    {type(e).__name__}: {e}")
+                print(f"{'='*60}")
+                return False  # Stop on first failure
+
+    finally:
+        config.CONVERSATIONAL_MODE = original
+
+    print("-" * 60)
+    print(f"Results: {passed} passed, 0 failed")
+    print("=" * 60)
+
+    return True
 
 
 def run_all_tests():
@@ -322,6 +513,12 @@ def run_all_tests():
     if not run_milestone2_tests():
         all_passed = False
         print("\n*** MILESTONE 2 FAILED - Fix before proceeding ***\n")
+        return False
+
+    # Milestone 3
+    if not run_milestone3_tests():
+        all_passed = False
+        print("\n*** MILESTONE 3 FAILED - Fix before proceeding ***\n")
         return False
 
     if all_passed:

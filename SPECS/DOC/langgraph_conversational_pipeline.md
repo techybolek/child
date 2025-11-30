@@ -209,3 +209,191 @@ r3 = bot.ask("How do I apply?", thread_id="conv-123")
 # New conversation
 r4 = bot.ask("Where can I find daycare?", thread_id="conv-456")
 ```
+
+---
+
+## Milestone 3: Testing Framework
+
+Automated testing for multi-turn conversations.
+
+### Architecture
+
+```mermaid
+flowchart TB
+    subgraph Input["Test Definition"]
+        YAML["YAML Conversation<br/>ccs_eligibility_conv.yaml"]
+    end
+
+    subgraph Evaluator["ConversationEvaluator"]
+        CE[evaluate_conversation]
+        ET[_evaluate_turn]
+        CR[_check_context_resolution]
+    end
+
+    subgraph Chatbot["TexasChildcareChatbot"]
+        ASK[ask with thread_id]
+        MEM[(Memory)]
+    end
+
+    subgraph Judge["MultiTurnJudge"]
+        ST[score_turn]
+        PROMPT[MULTI_TURN_JUDGE_PROMPT]
+        LLM[GROQ LLM]
+    end
+
+    subgraph Output["Results"]
+        TR[TurnResult]
+        CVR[ConversationResult]
+    end
+
+    YAML --> CE
+    CE --> ET
+    ET --> ASK
+    ASK <--> MEM
+    ASK --> ST
+    ST --> PROMPT --> LLM
+    LLM --> TR
+    ET --> CR
+    CR --> TR
+    TR --> CVR
+
+    style YAML fill:#5f3a1e,color:#fff
+    style CE fill:#1e3a5f,color:#fff
+    style ST fill:#5f1e5f,color:#fff
+    style CVR fill:#1e5f3a,color:#fff
+```
+
+### YAML Conversation Format
+
+```yaml
+# QUESTIONS/conversations/ccs_eligibility_conv.yaml
+name: "CCS Eligibility Multi-Turn"
+description: "Tests income eligibility flow with follow-ups"
+domain: "eligibility"
+
+conversation:
+  - turn: 1
+    user: "What are the income limits for childcare assistance?"
+    expected_topics: ["SMI", "income eligibility"]
+    min_score: 70
+
+  - turn: 2
+    user: "What about for a family of 4?"
+    requires_context: true                    # Must resolve "What about"
+    expected_answer_contains: ["family of 4", "income"]
+    min_score: 70
+
+  - turn: 3
+    user: "How do I apply?"
+    requires_context: true                    # Should know we're discussing CCS
+    expected_answer_contains: ["apply", "workforce"]
+    min_score: 70
+
+success_criteria:
+  min_average_score: 75
+  all_turns_pass: true
+  context_resolution_rate: 0.95
+```
+
+### Scoring System
+
+| Criterion | Weight | Range | Description |
+|-----------|--------|-------|-------------|
+| Accuracy | 45% | 1-5 | Factual correctness |
+| Completeness | 30% | 1-5 | Coverage of expected answer |
+| Context Resolution | 15% | 0-1 | Proper expansion of references |
+| Coherence | 10% | 1-3 | Clarity and structure |
+
+**Composite Score Formula:**
+```python
+composite = (accuracy/5 * 45) + (completeness/5 * 30) + (context * 15) + (coherence/3 * 10)
+# Range: 0-100
+```
+
+### Test Conversations
+
+| File | Turns | Purpose |
+|------|-------|---------|
+| `ccs_eligibility_conv.yaml` | 4 | Income eligibility flow with follow-ups |
+| `pronoun_resolution_conv.yaml` | 3 | Pronoun resolution ("it" → CCS) |
+| `topic_switch_conv.yaml` | 3 | Topic changes mid-conversation |
+
+### Usage
+
+```bash
+# Run single conversation
+python -m evaluation.run_conversation_eval --conversation ccs_eligibility_conv.yaml --debug
+
+# Run all conversations
+python -m evaluation.run_conversation_eval --all
+
+# With specific mode
+python -m evaluation.run_conversation_eval --mode hybrid --all
+```
+
+### Output Example
+
+```
+============================================================
+Evaluating: ccs_eligibility_conv.yaml
+============================================================
+  Turn 1: PASS (75.2)
+  Turn 2: PASS (72.1)
+    Original: What about for a family of 4?
+    Reformulated: What are the income limits for a family of 4 for CCS?
+  Turn 3: PASS (71.5)
+  Turn 4: PASS (78.3)
+
+  Conversation: PASS
+  Average Score: 74.3
+  Context Resolution: 100.0%
+  All Turns Passed: True
+
+============================================================
+SUMMARY
+============================================================
+Conversations: 1/1 passed
+Average Score: 74.3
+Context Resolution: 100.0%
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `evaluation/conversation_evaluator.py` | ConversationEvaluator, TurnResult, ConversationResult |
+| `evaluation/multi_turn_judge.py` | MultiTurnJudge (LLM-as-a-Judge) |
+| `evaluation/prompts/multi_turn_judge_prompt.py` | Judge scoring prompt |
+| `evaluation/run_conversation_eval.py` | CLI runner |
+| `tests/test_conversational_rag.py` | Gate tests (TestMilestone3) |
+
+### Gate Tests
+
+```bash
+pytest tests/test_conversational_rag.py::TestMilestone3 -v
+```
+
+| Test | Description |
+|------|-------------|
+| `test_yaml_parsing` | YAML files parse correctly |
+| `test_evaluator_runs` | Evaluator executes conversations |
+| `test_context_metric_calculated` | Context resolution rate computed |
+| `test_judge_scores_turn` | Judge returns valid scores |
+
+---
+
+## Implementation Status
+
+| Milestone | Status | Description |
+|-----------|--------|-------------|
+| **1. Memory** | Complete | Thread-scoped conversation memory with isolation |
+| **2. Reformulation** | Complete | Context-aware query rewriting |
+| **3. Testing Framework** | Complete | YAML-based conversation evaluation |
+| **4. E2E Integration** | Pending | 90%+ context resolution rate target |
+
+## Next Steps (Milestone 4)
+
+1. **Tune Scoring Thresholds** - Adjust `min_score` for realistic pass rates
+2. **Improve Reformulation** - More few-shot examples for edge cases
+3. **Add Test Conversations** - Entity tracking, clarification flow, error recovery
+4. **Metrics Dashboard** - Track context resolution over time
