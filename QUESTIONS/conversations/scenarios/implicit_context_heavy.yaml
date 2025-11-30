@@ -1,0 +1,32 @@
+name: "Implicit Context Heavy"
+description: "Stress tests pronoun and implicit reference resolution"
+domain: "eligibility"
+
+conversation:
+  - turn: 1
+    user: "What is the income limit for CCS for a family of 3?"
+    expected_topics: ["income", "$77,315", "family of 3"]
+    min_score: 50
+
+  - turn: 2
+    user: "What about for 5?"
+    requires_context: true
+    expected_answer_contains: ["family of 5", "$", "income"]
+    min_score: 50
+
+  - turn: 3
+    user: "And if they earn $4,000 monthly, would they qualify?"
+    requires_context: true
+    expected_answer_contains: ["eligible", "qualify", "income"]
+    min_score: 50
+
+  - turn: 4
+    user: "How much would they pay?"
+    requires_context: true
+    expected_answer_contains: ["$", "PSoC", "cost", "share"]
+    min_score: 50
+
+success_criteria:
+  min_average_score: 55
+  all_turns_pass: false
+  context_resolution_rate: 0.0

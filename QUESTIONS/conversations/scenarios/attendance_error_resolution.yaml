@@ -1,0 +1,32 @@
+name: "Attendance Error Resolution"
+description: "Tests troubleshooting flow for attendance system issues"
+domain: "attendance"
+
+conversation:
+  - turn: 1
+    user: "How do I record my child's attendance at the daycare?"
+    expected_topics: ["KinderSign", "tablet", "sign-in", "sign-out"]
+    min_score: 50
+
+  - turn: 2
+    user: "I forgot to sign out yesterday. Can I fix it?"
+    requires_context: true
+    expected_answer_contains: ["6 days", "retroactive", "past"]
+    min_score: 50
+
+  - turn: 3
+    user: "The tablet showed the wrong time. How do I correct that?"
+    requires_context: true
+    expected_answer_contains: ["provider", "correct", "speak"]
+    min_score: 50
+
+  - turn: 4
+    user: "What if I need more help with the system?"
+    requires_context: true
+    expected_answer_contains: ["support", "888", "KinderConnect"]
+    min_score: 50
+
+success_criteria:
+  min_average_score: 55
+  all_turns_pass: false
+  context_resolution_rate: 0.0

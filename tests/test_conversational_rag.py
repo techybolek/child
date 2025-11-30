@@ -354,6 +354,12 @@ class TestMilestone3:
 
     Tests for the multi-turn conversation testing framework.
     All tests must pass before proceeding to Milestone 4.
+
+    Milestone 3 Checklist:
+    - YAML parsing works
+    - Evaluator runs without error
+    - Context metric calculated
+    - Judge scores turns correctly
     """
 
     @pytest.fixture(autouse=True)
@@ -495,6 +501,147 @@ def run_milestone3_tests():
     return True
 
 
+class TestMilestone4:
+    """Gate: Full E2E Integration
+
+    Tests for complete conversational RAG pipeline.
+    All tests must pass to complete the conversational RAG implementation.
+
+    Milestone 4 Checklist:
+    - Full conversation evaluation runs
+    - Context resolution meets 90% target
+    - Stateless evaluation still works
+    """
+
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        """Enable conversational mode for tests."""
+        original = config.CONVERSATIONAL_MODE
+        config.CONVERSATIONAL_MODE = True
+        yield
+        config.CONVERSATIONAL_MODE = original
+
+    def test_full_conversation_evaluation(self):
+        """Run all conversation YAML files and verify no critical failures."""
+        from chatbot import TexasChildcareChatbot
+        from evaluation.conversation_evaluator import ConversationEvaluator
+        from evaluation.multi_turn_judge import MultiTurnJudge
+
+        bot = TexasChildcareChatbot()
+        judge = MultiTurnJudge()
+        evaluator = ConversationEvaluator(bot, judge)
+
+        conv_dir = Path("QUESTIONS/conversations")
+        conv_files = list(conv_dir.glob("*.yaml"))
+
+        assert len(conv_files) >= 3, f"Expected at least 3 conversation files, got {len(conv_files)}"
+
+        results = []
+        for conv_file in conv_files:
+            result = evaluator.evaluate_conversation(str(conv_file))
+            results.append(result)
+            print(f"  {conv_file.name}: avg={result.average_score:.1f}, context={result.context_resolution_rate:.1%}")
+
+        # At least one conversation should complete
+        assert len(results) == len(conv_files), "Not all conversations evaluated"
+
+    def test_context_resolution_meets_target(self):
+        """Context resolution rate >= 90% across all conversations."""
+        from chatbot import TexasChildcareChatbot
+        from evaluation.conversation_evaluator import ConversationEvaluator
+        from evaluation.multi_turn_judge import MultiTurnJudge
+
+        bot = TexasChildcareChatbot()
+        judge = MultiTurnJudge()
+        evaluator = ConversationEvaluator(bot, judge)
+
+        conv_dir = Path("QUESTIONS/conversations")
+        conv_files = list(conv_dir.glob("*.yaml"))
+
+        total_context_rate = 0
+        count = 0
+
+        for conv_file in conv_files:
+            result = evaluator.evaluate_conversation(str(conv_file))
+            total_context_rate += result.context_resolution_rate
+            count += 1
+
+        avg_context_rate = total_context_rate / count if count > 0 else 0
+        print(f"Average context resolution rate: {avg_context_rate:.1%}")
+
+        assert avg_context_rate >= 0.90, \
+            f"Context resolution rate {avg_context_rate:.1%} below 90% target"
+
+    def test_stateless_evaluation_still_works(self):
+        """Existing single-turn evaluation framework unchanged."""
+        # Temporarily disable conversational mode
+        config.CONVERSATIONAL_MODE = False
+
+        from chatbot import TexasChildcareChatbot
+
+        bot = TexasChildcareChatbot()
+        result = bot.ask("What is CCS?")
+
+        # Should work in stateless mode
+        assert "answer" in result, "Missing answer in stateless mode"
+        assert len(result["answer"]) > 10, "Answer too short"
+
+        # Should not have conversational fields
+        assert "thread_id" not in result or result.get("thread_id") is None, \
+            "Stateless mode should not have thread_id"
+
+
+def run_milestone4_tests():
+    """Run Milestone 4 tests with formatted output. Stops on first failure."""
+    print("\n" + "=" * 60)
+    print("MILESTONE 4: Full E2E Integration Tests")
+    print("=" * 60)
+
+    tests = [
+        ("test_full_conversation_evaluation", "Full conversation evaluation"),
+        ("test_context_resolution_meets_target", "Context resolution >= 90%"),
+        ("test_stateless_evaluation_still_works", "Stateless mode unchanged"),
+    ]
+
+    # Enable conversational mode
+    original = config.CONVERSATIONAL_MODE
+    config.CONVERSATIONAL_MODE = True
+
+    passed = 0
+
+    try:
+        for test_name, description in tests:
+            try:
+                test_class = TestMilestone4()
+                with capture_output():
+                    if test_name == "test_full_conversation_evaluation":
+                        test_class.test_full_conversation_evaluation()
+                    elif test_name == "test_context_resolution_meets_target":
+                        test_class.test_context_resolution_meets_target()
+                    elif test_name == "test_stateless_evaluation_still_works":
+                        test_class.test_stateless_evaluation_still_works()
+
+                print(f"  ✓ {description}")
+                passed += 1
+
+            except Exception as e:
+                print(f"\n{'='*60}")
+                print(f"  ✗ FAILED: {description}")
+                print(f"{'='*60}")
+                print(f"    {type(e).__name__}: {e}")
+                print(f"{'='*60}")
+                return False  # Stop on first failure
+
+    finally:
+        config.CONVERSATIONAL_MODE = original
+
+    print("-" * 60)
+    print(f"Results: {passed} passed, 0 failed")
+    print("=" * 60)
+
+    return True
+
+
 def run_all_tests():
     """Run all milestone tests with formatted output."""
     print("\n" + "=" * 70)
@@ -519,6 +666,12 @@ def run_all_tests():
     if not run_milestone3_tests():
         all_passed = False
         print("\n*** MILESTONE 3 FAILED - Fix before proceeding ***\n")
+        return False
+
+    # Milestone 4
+    if not run_milestone4_tests():
+        all_passed = False
+        print("\n*** MILESTONE 4 FAILED - Fix before proceeding ***\n")
         return False
 
     if all_passed:

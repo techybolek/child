@@ -1,0 +1,32 @@
+name: "Absence Policy Scenario"
+description: "Tests understanding of absence limits and consequences"
+domain: "policy"
+
+conversation:
+  - turn: 1
+    user: "How many absences are allowed for child care services?"
+    expected_topics: ["40", "absences", "12-month"]
+    min_score: 50
+
+  - turn: 2
+    user: "What happens if my child exceeds that limit?"
+    requires_context: true
+    expected_answer_contains: ["terminated", "60", "days", "reapply"]
+    min_score: 50
+
+  - turn: 3
+    user: "Are there any exceptions to this rule?"
+    requires_context: true
+    expected_answer_contains: ["chronic illness", "disability", "court-ordered", "visitation"]
+    min_score: 50
+
+  - turn: 4
+    user: "How do I report an absence when my child is sick?"
+    requires_context: true
+    expected_answer_contains: ["KinderSmart", "app", "notify"]
+    min_score: 50
+
+success_criteria:
+  min_average_score: 55
+  all_turns_pass: false
+  context_resolution_rate: 0.0

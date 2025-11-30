@@ -1,0 +1,25 @@
+name: "Pronoun Resolution Test"
+description: "Tests pronoun and reference resolution"
+domain: "general"
+
+conversation:
+  - turn: 1
+    user: "What is CCS?"
+    expected_topics: ["Childcare Services", "subsidized"]
+    min_score: 70
+
+  - turn: 2
+    user: "How do I apply for it?"
+    requires_context: true
+    expected_answer_contains: ["apply", "CCS"]
+    min_score: 70
+
+  - turn: 3
+    user: "What documents do I need?"
+    requires_context: true
+    expected_answer_contains: ["documents", "income", "verification"]
+    min_score: 70
+
+success_criteria:
+  min_average_score: 70
+  context_resolution_rate: 0.95

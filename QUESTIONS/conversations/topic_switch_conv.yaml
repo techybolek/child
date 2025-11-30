@@ -1,0 +1,23 @@
+name: "Topic Switch Handling"
+description: "Tests handling topic changes mid-conversation"
+domain: "mixed"
+
+conversation:
+  - turn: 1
+    user: "What is the income limit for CCS?"
+    expected_topics: ["income", "eligibility"]
+    min_score: 70
+
+  - turn: 2
+    user: "Where can I find a daycare near Austin?"
+    expected_intent: "location_search"
+    min_score: 60
+
+  - turn: 3
+    user: "Back to eligibility - do I need to be employed?"
+    requires_context: false
+    expected_answer_contains: ["employment", "work", "activity"]
+    min_score: 70
+
+success_criteria:
+  min_average_score: 65

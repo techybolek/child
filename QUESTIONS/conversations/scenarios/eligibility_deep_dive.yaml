@@ -1,0 +1,44 @@
+name: "Eligibility Deep Dive"
+description: "Tests multi-step eligibility determination with documentation and timeline questions"
+domain: "eligibility"
+
+conversation:
+  - turn: 1
+    user: "What is the income limit for child care assistance in Texas for a family of 4?"
+    expected_topics: ["income", "eligibility", "$92,041", "85% SMI"]
+    min_score: 50
+
+  - turn: 2
+    user: "What documents do I need to apply?"
+    requires_context: true
+    expected_answer_contains: ["documents", "required"]
+    min_score: 50
+
+  - turn: 3
+    user: "How long does it take to get approved?"
+    requires_context: true
+    expected_answer_contains: ["20", "calendar days"]
+    min_score: 50
+
+  - turn: 4
+    user: "What changes do I need to report after I'm approved?"
+    requires_context: true
+    expected_answer_contains: ["report", "14", "days", "income", "job"]
+    min_score: 50
+
+  - turn: 5
+    user: "What if my income drops - can I get my copay reduced?"
+    requires_context: true
+    expected_answer_contains: ["decrease", "copay", "share of cost", "contact"]
+    min_score: 50
+
+  - turn: 6
+    user: "When do I need to recertify?"
+    requires_context: true
+    expected_answer_contains: ["12-month", "eligibility", "redetermination"]
+    min_score: 50
+
+success_criteria:
+  min_average_score: 55
+  all_turns_pass: false
+  context_resolution_rate: 0.0

@@ -1,0 +1,32 @@
+name: "CCS Eligibility Multi-Turn"
+description: "Tests income eligibility flow with follow-ups"
+domain: "eligibility"
+
+conversation:
+  - turn: 1
+    user: "What are the income limits for childcare assistance in Texas?"
+    expected_topics: ["SMI", "income eligibility", "percentage"]
+    min_score: 70
+
+  - turn: 2
+    user: "What about for a family of 4?"
+    requires_context: true
+    expected_answer_contains: ["family of 4", "income", "$"]
+    min_score: 70
+
+  - turn: 3
+    user: "And if they make $5,000 per month?"
+    requires_context: true
+    expected_answer_contains: ["eligible", "income"]
+    min_score: 70
+
+  - turn: 4
+    user: "How do I apply?"
+    requires_context: true
+    expected_answer_contains: ["apply", "workforce"]
+    min_score: 70
+
+success_criteria:
+  min_average_score: 75
+  all_turns_pass: true
+  context_resolution_rate: 0.95

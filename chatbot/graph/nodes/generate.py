@@ -10,14 +10,17 @@ def generate_node(state: dict) -> dict:
 
     Uses ResponseGenerator to create an answer with citations,
     then extracts the cited sources.
+    Uses reformulated_query if available (conversational mode),
+    otherwise falls back to original query.
 
     Args:
-        state: RAGState with 'query' and 'reranked_chunks' fields
+        state: RAGState with 'query', optional 'reformulated_query', and 'reranked_chunks' fields
 
     Returns:
         dict with 'answer', 'sources', 'response_type', 'action_items'
     """
-    query = state["query"]
+    # Use reformulated query if available (conversational mode)
+    query = state.get("reformulated_query") or state["query"]
     reranked_chunks = state["reranked_chunks"]
 
     # Handle empty chunks

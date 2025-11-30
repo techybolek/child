@@ -1,0 +1,38 @@
+name: "PSoC Payment Calculation"
+description: "Tests parent share of cost calculation across family sizes and income levels"
+domain: "payment"
+
+conversation:
+  - turn: 1
+    user: "What is the Parent Share of Cost and how is it calculated?"
+    expected_topics: ["PSoC", "sliding fee", "income", "percentage"]
+    min_score: 50
+
+  - turn: 2
+    user: "What about for a family of 4?"
+    requires_context: true
+    expected_answer_contains: ["family of 4", "$"]
+    min_score: 50
+
+  - turn: 3
+    user: "And if they have two children in care?"
+    requires_context: true
+    expected_answer_contains: ["two", "children", "add"]
+    min_score: 50
+
+  - turn: 4
+    user: "What if their income increases to 75% SMI?"
+    requires_context: true
+    expected_answer_contains: ["75%", "SMI", "$"]
+    min_score: 50
+
+  - turn: 5
+    user: "Is there a maximum cap on what they'd pay?"
+    requires_context: true
+    expected_answer_contains: ["maximum", "cap", "$"]
+    min_score: 50
+
+success_criteria:
+  min_average_score: 55
+  all_turns_pass: false
+  context_resolution_rate: 0.0

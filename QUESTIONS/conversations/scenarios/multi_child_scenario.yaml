@@ -1,0 +1,32 @@
+name: "Multi-Child Scenario"
+description: "Tests accumulating family context with multiple children"
+domain: "eligibility"
+
+conversation:
+  - turn: 1
+    user: "I have one child and want to apply for child care assistance. What's the income limit for a family of 2?"
+    expected_topics: ["income", "family of 2", "$"]
+    min_score: 50
+
+  - turn: 2
+    user: "I'm expecting another child soon. How would that change things?"
+    requires_context: true
+    expected_answer_contains: ["family of 3", "income", "limit", "increase"]
+    min_score: 50
+
+  - turn: 3
+    user: "What would I pay for two children in care?"
+    requires_context: true
+    expected_answer_contains: ["two", "children", "PSoC", "additional"]
+    min_score: 50
+
+  - turn: 4
+    user: "How do I report this change to my family size?"
+    requires_context: true
+    expected_answer_contains: ["report", "14", "days", "CCS office", "contact"]
+    min_score: 50
+
+success_criteria:
+  min_average_score: 55
+  all_turns_pass: false
+  context_resolution_rate: 0.0

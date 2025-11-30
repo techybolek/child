@@ -8,14 +8,17 @@ def rerank_node(state: dict) -> dict:
     """Rerank chunks using LLM judge scoring.
 
     Uses the same adaptive reranking logic as RAGHandler.
+    Uses reformulated_query if available (conversational mode),
+    otherwise falls back to original query.
 
     Args:
-        state: RAGState with 'query', 'retrieved_chunks', and optional 'debug' fields
+        state: RAGState with 'query', optional 'reformulated_query', 'retrieved_chunks', and 'debug' fields
 
     Returns:
         dict with 'reranked_chunks' and optionally updated 'debug_info'
     """
-    query = state["query"]
+    # Use reformulated query if available (conversational mode)
+    query = state.get("reformulated_query") or state["query"]
     retrieved_chunks = state["retrieved_chunks"]
     debug = state.get("debug", False)
 
