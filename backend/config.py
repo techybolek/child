@@ -27,5 +27,5 @@ API_VERSION = "1.0.0"
 
 # Server settings
 HOST = "0.0.0.0"
-PORT = 8000
+PORT = int(os.getenv("PORT", 8000))
 RELOAD = True  # Set to False in production
