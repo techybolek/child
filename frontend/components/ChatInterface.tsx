@@ -18,7 +18,7 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [sessionId] = useState<string>(generateId())
+  const [sessionId, setSessionId] = useState<string>(generateId())
   const [lastQuestion, setLastQuestion] = useState<string>('')
   const [selectedProvider, setSelectedProvider] = useState<string>('groq')
   const [availableModels, setAvailableModels] = useState<ModelsResponse | null>(null)
@@ -140,6 +140,7 @@ export function ChatInterface() {
       setMessages([])
       setError(null)
       setLastQuestion('')
+      setSessionId(generateId())  // New session resets backend conversation memory
     }
   }
 
@@ -171,7 +172,7 @@ export function ChatInterface() {
                 onClick={handleClearConversation}
                 className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
               >
-                Clear
+                Clear Chat
               </button>
             )}
           </div>
