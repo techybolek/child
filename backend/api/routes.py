@@ -13,6 +13,10 @@ from services.chatbot_service import ChatbotService
 
 router = APIRouter()
 
+# Cache for conversational chatbot instances, keyed by session_id
+# Each session gets its own chatbot instance to preserve conversation memory
+_conversational_chatbots: Dict[str, Any] = {}
+
 
 def _get_chatbot_config():
     """Lazy import of chatbot config to avoid sys.path pollution at module level."""
@@ -156,6 +160,9 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
         sys.path.insert(0, str(parent_dir))
         from chatbot.chatbot import TexasChildcareChatbot
 
+        # Log the incoming query
+        print(f"[Chat] Query: {request.question}")
+
         # Generate session ID if not provided (needed for conversational mode)
         session_id = request.session_id or str(uuid.uuid4())
 
@@ -171,16 +178,36 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
 
         if needs_custom_instance:
             start_time = time.time()
-            chatbot = TexasChildcareChatbot(
-                llm_model=request.llm_model,
-                reranker_model=request.reranker_model,
-                intent_model=request.intent_model,
-                provider=request.provider,
-                conversational_mode=request.conversational_mode
-            )
-            # Pass thread_id for conversational mode
-            thread_id = session_id if request.conversational_mode else None
-            result = chatbot.ask(request.question, thread_id=thread_id)
+
+            if request.conversational_mode:
+                # For conversational mode, reuse cached chatbot to preserve memory
+                if session_id in _conversational_chatbots:
+                    chatbot = _conversational_chatbots[session_id]
+                    print(f"[Chat] Reusing cached chatbot for session: {session_id}")
+                else:
+                    # Create new chatbot and cache it
+                    chatbot = TexasChildcareChatbot(
+                        llm_model=request.llm_model,
+                        reranker_model=request.reranker_model,
+                        intent_model=request.intent_model,
+                        provider=request.provider,
+                        conversational_mode=True
+                    )
+                    _conversational_chatbots[session_id] = chatbot
+                    print(f"[Chat] Created new chatbot for session: {session_id}")
+
+                result = chatbot.ask(request.question, thread_id=session_id)
+            else:
+                # Non-conversational custom instance (model overrides only)
+                chatbot = TexasChildcareChatbot(
+                    llm_model=request.llm_model,
+                    reranker_model=request.reranker_model,
+                    intent_model=request.intent_model,
+                    provider=request.provider,
+                    conversational_mode=False
+                )
+                result = chatbot.ask(request.question)
+
             processing_time = time.time() - start_time
             result['processing_time'] = round(processing_time, 2)
         else:

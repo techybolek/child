@@ -37,11 +37,11 @@ class TexasChildcareChatbot:
         self.provider = provider
 
         # Explicit param takes precedence, otherwise use env var
-        use_conversational = (conversational_mode
-                              if conversational_mode is not None
-                              else config.CONVERSATIONAL_MODE)
+        self.conversational_mode = (conversational_mode
+                                    if conversational_mode is not None
+                                    else config.CONVERSATIONAL_MODE)
 
-        if use_conversational:
+        if self.conversational_mode:
             from .memory import MemoryManager
             self.memory = MemoryManager()
             self.graph = build_graph(checkpointer=self.memory.checkpointer)
@@ -63,7 +63,7 @@ class TexasChildcareChatbot:
             dict with answer, sources, response_type, action_items, processing_time
             In conversational mode, also includes: thread_id, turn_count, reformulated_query
         """
-        if config.CONVERSATIONAL_MODE:
+        if self.conversational_mode:
             return self._ask_conversational(question, thread_id, debug)
         else:
             return self._ask_stateless(question, debug)
@@ -178,7 +178,7 @@ class TexasChildcareChatbot:
         Returns:
             List of message dicts with 'role' and 'content' keys
         """
-        if not config.CONVERSATIONAL_MODE or self.memory is None:
+        if not self.conversational_mode or self.memory is None:
             return []
 
         from langchain_core.messages import HumanMessage

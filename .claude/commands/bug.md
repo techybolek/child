@@ -4,30 +4,20 @@ Create a new plan in SPECS/PLANS/*.md to resolve the `Bug` using the exact speci
 
 ## Instructions
 
-- IMPORTANT: You're writing a plan to resolve a bug based on the `Bug` that will add value to the application.
-- IMPORTANT: The `Bug` describes the bug that will be resolved but remember we're not resolving the bug, we're creating the plan that will be used to resolve the bug based on the `Plan Format` below.
+- You're writing a plan to resolve a bug based on the `Bug` that will add value to the application.
+- The `Bug` describes the bug that will be resolved but remember we're not resolving the bug, we're creating the plan that will be used to resolve the bug based on the `Plan Format` below.
 - You're writing a plan to resolve a bug, it should be thorough and precise so we fix the root cause and prevent regressions.
 - Create the plan in the `SPECS/PLANS/*.md` file. Name it appropriately based on the `Bug`.
 - Use the plan format below to create the plan. 
 - Research the codebase to understand the bug, reproduce it, and put together a plan to fix it.
 - IMPORTANT: Replace every <placeholder> in the `Plan Format` with the requested value. Add as much detail as needed to fix the bug.
 - Use your reasoning model: THINK HARD about the bug, its root cause, and the steps to fix it properly.
-- IMPORTANT: Be surgical with your bug fix, solve the bug at hand and don't fall off track.
-- IMPORTANT: We want the minimal number of changes that will fix and address the bug.
+- IMPORTANT: Before fixing the bug, see if the bug exposes a bigger issue that calls for refactoring or design descisions. If yes, document it focusing on the bigger issue rather than the bugitself.
+- Unless refactoring is necessary, be surgical with your bug fix, solve the bug at hand and don't fall off track. We want the minimal number of changes that will fix and address the bug.
 - Don't use decorators. Keep it simple.
 - If you need a new library, use `uv add` and be sure to report it in the `Notes` section of the `Plan Format`.
 - Respect requested files in the `Relevant Files` section.
 - Start your research by reading the `README.md` file.
-
-## Relevant Files
-
-Focus on the following files:
-- `README.md` - Contains the project overview and instructions.
-- `app/**` - Contains the codebase client/server.
-- `scripts/**` - Contains the scripts to start and stop the server + client.
-- `adws/**` - Contains the AI Developer Workflow (ADW) scripts.
-
-Ignore all other files in the codebase.
 
 ## Plan Format
 
@@ -63,7 +53,6 @@ IMPORTANT: Execute every step in order, top to bottom.
 Execute every command to validate the bug is fixed with zero regressions.
 
 <list commands you'll use to validate with 100% confidence the bug is fixed with zero regressions. every command must execute without errors so be specific about what you want to run to validate the bug is fixed with zero regressions. Include commands to reproduce the bug before and after the fix.>
-- `cd app/server && uv run pytest` - Run server tests to validate the bug is fixed with zero regressions
 
 ## Notes
 <optionally list any additional notes or context that are relevant to the bug that will be helpful to the developer>
