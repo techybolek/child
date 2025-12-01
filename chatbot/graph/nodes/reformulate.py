@@ -136,14 +136,15 @@ def reformulate_node(state: dict) -> dict:
 
     print(f"[Reformulate Node] Reformulating query with {len(messages)-1} previous messages")
 
+    # Check for overrides in state, fall back to config
+    provider = state.get("provider_override") or config.LLM_PROVIDER
+    model = state.get("llm_model_override") or config.LLM_MODEL
+
     # Initialize client based on provider
-    provider = config.LLM_PROVIDER
     if provider == 'groq':
         client = Groq(api_key=config.GROQ_API_KEY)
     else:
         client = OpenAI(api_key=config.OPENAI_API_KEY)
-
-    model = config.LLM_MODEL  # Use same model as generation
 
     prompt = REFORMULATION_USER.format(history=history, query=query)
 

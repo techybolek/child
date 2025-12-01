@@ -31,6 +31,7 @@ export function ChatInterface() {
     reranker: null,
     classifier: null,
   })
+  const [conversationalMode, setConversationalMode] = useState<boolean>(false)
 
   // Fetch available models on mount and when provider changes
   useEffect(() => {
@@ -89,13 +90,18 @@ export function ChatInterface() {
     setIsLoading(true)
 
     try {
-      // Call API with selected provider and models
-      const response = await askQuestion(question, sessionId, {
-        provider: selectedProvider,
-        llm_model: selectedModels.generator || undefined,
-        reranker_model: selectedModels.reranker || undefined,
-        intent_model: selectedModels.classifier || undefined,
-      })
+      // Call API with selected provider, models, and conversational mode
+      const response = await askQuestion(
+        question,
+        sessionId,
+        {
+          provider: selectedProvider,
+          llm_model: selectedModels.generator || undefined,
+          reranker_model: selectedModels.reranker || undefined,
+          intent_model: selectedModels.classifier || undefined,
+        },
+        conversationalMode
+      )
 
       // Add assistant message
       const assistantMessage: Message = {
@@ -157,6 +163,8 @@ export function ChatInterface() {
               selectedModels={selectedModels}
               onProviderChange={handleProviderChange}
               onModelChange={handleModelChange}
+              conversationalMode={conversationalMode}
+              onConversationalModeChange={setConversationalMode}
             />
             {messages.length > 0 && (
               <button

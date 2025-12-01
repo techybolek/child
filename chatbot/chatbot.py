@@ -19,16 +19,29 @@ class TexasChildcareChatbot:
         - Each thread maintains its own conversation history
     """
 
-    def __init__(self, llm_model=None, reranker_model=None, intent_model=None, provider=None):
+    def __init__(self, llm_model=None, reranker_model=None, intent_model=None,
+                 provider=None, conversational_mode=None):
         """Initialize chatbot with LangGraph-based RAG pipeline.
 
         Args:
-            llm_model: Optional model for generation (currently unused, for API compatibility)
-            reranker_model: Optional model for reranking (currently unused, for API compatibility)
-            intent_model: Optional model for intent classification (currently unused, for API compatibility)
-            provider: Optional provider (currently unused, for API compatibility)
+            llm_model: Optional model override for generation
+            reranker_model: Optional model override for reranking
+            intent_model: Optional model override for intent classification
+            provider: Optional provider override ('groq' or 'openai')
+            conversational_mode: Optional override for conversational mode (None = use env var)
         """
-        if config.CONVERSATIONAL_MODE:
+        # Store model overrides to pass through state
+        self.llm_model = llm_model
+        self.reranker_model = reranker_model
+        self.intent_model = intent_model
+        self.provider = provider
+
+        # Explicit param takes precedence, otherwise use env var
+        use_conversational = (conversational_mode
+                              if conversational_mode is not None
+                              else config.CONVERSATIONAL_MODE)
+
+        if use_conversational:
             from .memory import MemoryManager
             self.memory = MemoryManager()
             self.graph = build_graph(checkpointer=self.memory.checkpointer)
@@ -69,7 +82,12 @@ class TexasChildcareChatbot:
             "sources": [],
             "response_type": "",
             "action_items": [],
-            "debug_info": {} if debug else None
+            "debug_info": {} if debug else None,
+            # Model overrides (nodes check these before falling back to config)
+            "llm_model_override": self.llm_model,
+            "reranker_model_override": self.reranker_model,
+            "intent_model_override": self.intent_model,
+            "provider_override": self.provider,
         }
 
         final_state = self.graph.invoke(initial_state)
@@ -112,7 +130,12 @@ class TexasChildcareChatbot:
             "sources": [],
             "response_type": "",
             "action_items": [],
-            "debug_info": {} if debug else None
+            "debug_info": {} if debug else None,
+            # Model overrides (nodes check these before falling back to config)
+            "llm_model_override": self.llm_model,
+            "reranker_model_override": self.reranker_model,
+            "intent_model_override": self.intent_model,
+            "provider_override": self.provider,
         }
 
         final_state = self.graph.invoke(input_state, thread_config)

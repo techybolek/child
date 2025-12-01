@@ -33,6 +33,10 @@ class ChatRequest(BaseModel):
         None,
         description="Optional model to use for intent classification"
     )
+    conversational_mode: Optional[bool] = Field(
+        False,
+        description="Enable conversational memory for multi-turn conversations"
+    )
 
     model_config = {
         "json_schema_extra": {

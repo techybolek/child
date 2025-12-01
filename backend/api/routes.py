@@ -11,15 +11,18 @@ from groq import Groq
 from .models import ChatRequest, ChatResponse, HealthResponse, Source, ActionItem, ModelsResponse, Model, DefaultModels
 from services.chatbot_service import ChatbotService
 
-# Import chatbot config to get default models
-import sys
-from pathlib import Path
-parent_dir = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(parent_dir))
-from chatbot import config as chatbot_config
-
-
 router = APIRouter()
+
+
+def _get_chatbot_config():
+    """Lazy import of chatbot config to avoid sys.path pollution at module level."""
+    import sys
+    from pathlib import Path
+    parent_dir = Path(__file__).resolve().parent.parent.parent
+    if str(parent_dir) not in sys.path:
+        sys.path.insert(0, str(parent_dir))
+    from chatbot import config as chatbot_config
+    return chatbot_config
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -105,6 +108,7 @@ async def get_available_models(provider: str = 'groq') -> Dict[str, Any]:
             text_models.sort(key=lambda m: m.id)
 
             # Groq-specific defaults from config
+            chatbot_config = _get_chatbot_config()
             defaults = DefaultModels(
                 generator=chatbot_config.LLM_MODEL,
                 reranker=chatbot_config.RERANKER_MODEL,
@@ -152,26 +156,37 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
         sys.path.insert(0, str(parent_dir))
         from chatbot.chatbot import TexasChildcareChatbot
 
-        # If custom models or provider specified, create new chatbot instance
-        # Otherwise use singleton
-        if request.llm_model or request.reranker_model or request.intent_model or request.provider:
+        # Generate session ID if not provided (needed for conversational mode)
+        session_id = request.session_id or str(uuid.uuid4())
+
+        # Determine if we need a custom chatbot instance
+        # Custom instance needed for: model overrides, provider overrides, or conversational mode
+        needs_custom_instance = (
+            request.llm_model or
+            request.reranker_model or
+            request.intent_model or
+            request.provider or
+            request.conversational_mode
+        )
+
+        if needs_custom_instance:
             start_time = time.time()
             chatbot = TexasChildcareChatbot(
                 llm_model=request.llm_model,
                 reranker_model=request.reranker_model,
                 intent_model=request.intent_model,
-                provider=request.provider
+                provider=request.provider,
+                conversational_mode=request.conversational_mode
             )
-            result = chatbot.ask(request.question)
+            # Pass thread_id for conversational mode
+            thread_id = session_id if request.conversational_mode else None
+            result = chatbot.ask(request.question, thread_id=thread_id)
             processing_time = time.time() - start_time
             result['processing_time'] = round(processing_time, 2)
         else:
-            # Use singleton service
+            # Use singleton service (stateless mode only)
             service = ChatbotService.get_instance()
             result = service.ask(request.question)
-
-        # Generate session ID if not provided
-        session_id = request.session_id or str(uuid.uuid4())
 
         # Convert sources to Source models
         sources = [

@@ -27,16 +27,19 @@ def rerank_node(state: dict) -> dict:
         print("[Rerank Node] No chunks to rerank")
         return {"reranked_chunks": []}
 
+    # Check for overrides in state, fall back to config
+    provider = state.get("provider_override") or config.LLM_PROVIDER
+    model = state.get("reranker_model_override") or config.RERANKER_MODEL
+
     # Initialize reranker
-    provider = config.LLM_PROVIDER
     api_key = config.GROQ_API_KEY if provider == 'groq' else config.OPENAI_API_KEY
     reranker = LLMJudgeReranker(
         api_key=api_key,
         provider=provider,
-        model=config.RERANKER_MODEL
+        model=model
     )
 
-    print(f"[Rerank Node] Reranking {len(retrieved_chunks)} chunks with {config.RERANKER_MODEL}")
+    print(f"[Rerank Node] Reranking {len(retrieved_chunks)} chunks with {model}")
 
     # Use adaptive mode from config
     adaptive_mode = getattr(config, 'RERANK_ADAPTIVE_MODE', False)

@@ -4,16 +4,19 @@ Singleton wrapper for TexasChildcareChatbot
 This service provides a singleton instance of the chatbot to avoid
 reinitializing the expensive RAG pipeline on every request.
 """
-import sys
 import time
-from pathlib import Path
 from typing import Dict, Any, Optional
 
-# Add parent directory to path to import chatbot module
-parent_dir = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(parent_dir))
 
-from chatbot.chatbot import TexasChildcareChatbot
+def _get_chatbot_class():
+    """Lazy import of chatbot to avoid sys.path pollution at module level."""
+    import sys
+    from pathlib import Path
+    parent_dir = Path(__file__).resolve().parent.parent.parent
+    if str(parent_dir) not in sys.path:
+        sys.path.insert(0, str(parent_dir))
+    from chatbot.chatbot import TexasChildcareChatbot
+    return TexasChildcareChatbot
 
 
 class ChatbotService:
@@ -25,7 +28,7 @@ class ChatbotService:
     """
 
     _instance: Optional['ChatbotService'] = None
-    _chatbot: Optional[TexasChildcareChatbot] = None
+    _chatbot = None  # Will be TexasChildcareChatbot instance
 
     def __new__(cls):
         """Ensure only one instance exists"""
@@ -43,6 +46,7 @@ class ChatbotService:
         """
         if cls._instance is None:
             cls._instance = cls()
+            TexasChildcareChatbot = _get_chatbot_class()
             cls._chatbot = TexasChildcareChatbot()
             print("✓ Chatbot instance created and initialized")
         return cls._instance

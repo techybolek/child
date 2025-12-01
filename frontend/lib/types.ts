@@ -33,6 +33,7 @@ export interface ChatRequest {
   llm_model?: string
   reranker_model?: string
   intent_model?: string
+  conversational_mode?: boolean
 }
 
 export interface ChatResponse {

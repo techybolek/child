@@ -27,6 +27,8 @@ interface ModelSettingsProps {
   }
   onProviderChange: (provider: string) => void
   onModelChange: (type: 'generator' | 'reranker' | 'classifier', modelId: string | null) => void
+  conversationalMode: boolean
+  onConversationalModeChange: (enabled: boolean) => void
 }
 
 export function ModelSettings({
@@ -34,7 +36,9 @@ export function ModelSettings({
   selectedProvider,
   selectedModels,
   onProviderChange,
-  onModelChange
+  onModelChange,
+  conversationalMode,
+  onConversationalModeChange
 }: ModelSettingsProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -163,6 +167,30 @@ export function ModelSettings({
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Conversational Mode Toggle */}
+            <div className="flex items-center justify-between border-t border-gray-200 pt-3">
+              <div>
+                <label className="text-xs font-medium text-gray-700">
+                  Conversational Memory
+                </label>
+                <p className="text-xs text-gray-500">
+                  Remember context across messages
+                </p>
+              </div>
+              <button
+                onClick={() => onConversationalModeChange(!conversationalMode)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  conversationalMode ? 'bg-blue-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    conversationalMode ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
             </div>
 
             {/* Reset button */}

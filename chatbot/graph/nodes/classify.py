@@ -19,14 +19,15 @@ def classify_node(state: dict) -> dict:
     """
     query = state["query"]
 
+    # Check for overrides in state, fall back to config
+    provider = state.get("provider_override") or config.INTENT_CLASSIFIER_PROVIDER
+    model = state.get("intent_model_override") or config.INTENT_CLASSIFIER_MODEL
+
     # Initialize client based on provider
-    provider = config.INTENT_CLASSIFIER_PROVIDER
     if provider == 'groq':
         client = Groq(api_key=config.GROQ_API_KEY)
     else:
         client = OpenAI(api_key=config.OPENAI_API_KEY)
-
-    model = config.INTENT_CLASSIFIER_MODEL
 
     print(f"[Classify Node] Using model: {model}")
     prompt = INTENT_CLASSIFICATION_PROMPT.format(query=query)

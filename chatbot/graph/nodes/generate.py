@@ -33,16 +33,19 @@ def generate_node(state: dict) -> dict:
             "action_items": []
         }
 
+    # Check for overrides in state, fall back to config
+    provider = state.get("provider_override") or config.LLM_PROVIDER
+    model = state.get("llm_model_override") or config.LLM_MODEL
+
     # Initialize generator
-    provider = config.LLM_PROVIDER
     api_key = config.GROQ_API_KEY if provider == 'groq' else config.OPENAI_API_KEY
     generator = ResponseGenerator(
         api_key=api_key,
         provider=provider,
-        model=config.LLM_MODEL
+        model=model
     )
 
-    print(f"[Generate Node] Generating answer with {config.LLM_MODEL}")
+    print(f"[Generate Node] Generating answer with {model}")
 
     # Generate response
     result = generator.generate(query, reranked_chunks)

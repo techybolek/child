@@ -3,3 +3,4 @@
 
 ## Read
 SPECS/DOC/conversational_rag_implementation.md
+SPECS/DOC/frontend_backend_integration.md

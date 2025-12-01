@@ -23,7 +23,8 @@ def build_graph(checkpointer=None):
     Returns:
         Compiled LangGraph workflow
     """
-    if config.CONVERSATIONAL_MODE:
+    # Build conversational graph if checkpointer is provided OR config enables it
+    if checkpointer is not None or config.CONVERSATIONAL_MODE:
         return _build_conversational_graph(checkpointer)
     else:
         return _build_stateless_graph()
