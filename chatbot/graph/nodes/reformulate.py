@@ -81,7 +81,7 @@ def needs_reformulation(query: str) -> bool:
     Returns:
         True if query likely needs reformulation
     """
-    # Patterns that indicate context dependency
+    # EXISTING: Patterns that indicate context dependency
     context_markers = [
         r"\b(it|its|they|them|their|this|that|these|those)\b",
         r"\b(what about|how about|and|also|too)\b",
@@ -89,8 +89,40 @@ def needs_reformulation(query: str) -> bool:
         r"^(can|could|would|is|are|do|does|did)\s+(it|they|that|this)\b",
     ]
 
+    # NEW: Correction patterns
+    correction_patterns = [
+        r"\b(i meant|sorry|actually|no,?\s*i|correction)\b",
+        r"\b(i said|i was asking|not \d+)\b",
+    ]
+
+    # NEW: Topic return patterns
+    topic_return_patterns = [
+        r"\b(back to|return to|going back|earlier|previous)\b",
+        r"\b(my .* question|as i (asked|said)|originally)\b",
+    ]
+
+    # NEW: Hypothetical/scenario patterns
+    hypothetical_patterns = [
+        r"\b(what if|suppose|assuming|if i|if my)\b",
+        r"\b(raise to|increase to|goes? up|changed? to)\b",
+    ]
+
+    # NEW: Negation with carryover
+    negation_carryover_patterns = [
+        r"^which (ones?|programs?) (don't|aren't|do not|are not)\b",
+        r"^(the ones?|those) (that )?(don't|aren't)\b",
+    ]
+
+    all_patterns = (
+        context_markers +
+        correction_patterns +
+        topic_return_patterns +
+        hypothetical_patterns +
+        negation_carryover_patterns
+    )
+
     query_lower = query.lower()
-    for pattern in context_markers:
+    for pattern in all_patterns:
         if re.search(pattern, query_lower):
             return True
 
@@ -136,9 +168,9 @@ def reformulate_node(state: dict) -> dict:
 
     print(f"[Reformulate Node] Reformulating query with {len(messages)-1} previous messages")
 
-    # Check for overrides in state, fall back to config
-    provider = state.get("provider_override") or config.LLM_PROVIDER
-    model = state.get("llm_model_override") or config.LLM_MODEL
+    # Check for overrides in state, fall back to reformulator-specific config
+    provider = state.get("reformulator_provider_override") or config.REFORMULATOR_PROVIDER
+    model = state.get("reformulator_model_override") or config.REFORMULATOR_MODEL
 
     # Initialize client based on provider
     if provider == 'groq':

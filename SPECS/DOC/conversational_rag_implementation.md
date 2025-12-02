@@ -111,12 +111,12 @@ Reformulate the current query to be standalone. If already standalone, return un
 
 ```python
 # chatbot/config.py
-CONVERSATIONAL_MODE = os.getenv("CONVERSATIONAL_MODE", "false").lower() == "true"
+CONVERSATIONAL_MODE = os.getenv("CONVERSATIONAL_MODE", "true").lower() == "true"
 ```
 
+Conversational mode is **enabled by default**. To disable:
 ```bash
-# Enable conversational mode
-export CONVERSATIONAL_MODE=true
+export CONVERSATIONAL_MODE=false
 ```
 
 ---

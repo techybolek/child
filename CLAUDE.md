@@ -139,6 +139,7 @@ python -m evaluation.run_evaluation --mode kendra --debug --limit 5
 | `RERANKER_MODEL` | `'openai/gpt-oss-120b'` |
 | `RERANK_ADAPTIVE_MODE` | `True` |
 | `RRF_K` | 60 |
+| `CONVERSATIONAL_MODE` | `True` (default) |
 
 ### evaluation/config.py
 | Setting | Value |

@@ -25,6 +25,10 @@ TEMPERATURE = 0
 SEED = 42
 MAX_TOKENS = 2000
 
+# Reformulator settings (for conversational mode query reformulation)
+REFORMULATOR_PROVIDER = os.getenv('REFORMULATOR_PROVIDER', 'groq')  # 'groq' or 'openai'
+REFORMULATOR_MODEL = 'openai/gpt-oss-120b' if REFORMULATOR_PROVIDER == 'groq' else 'gpt-4o-mini'
+
 # Reranker settings
 RERANKER_PROVIDER = os.getenv('RERANKER_PROVIDER', 'groq')  # 'groq' or 'openai'
 RERANKER_MODEL = 'openai/gpt-oss-120b' if RERANKER_PROVIDER == 'groq' else 'gpt-4o-mini'
@@ -85,6 +89,6 @@ OPENAI_VECTOR_STORE_ID = os.getenv('OPENAI_VECTOR_STORE_ID', '')
 OPENAI_AGENT_MODEL = os.getenv('OPENAI_AGENT_MODEL', 'gpt-5-nano')
 
 # ===== LANGGRAPH SETTINGS =====
-# When False (default): Uses LangGraph with stateless behavior
-# When True: Enables conversation memory and agentic features (Phase 1+)
-CONVERSATIONAL_MODE = os.getenv("CONVERSATIONAL_MODE", "false").lower() == "true"
+# When True (default): Enables conversation memory with query reformulation
+# When False: Uses LangGraph with stateless behavior (no memory between turns)
+CONVERSATIONAL_MODE = os.getenv("CONVERSATIONAL_MODE", "true").lower() == "true"
