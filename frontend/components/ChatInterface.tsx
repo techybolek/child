@@ -6,7 +6,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Message, ModelsResponse } from '@/lib/types'
+import { Message, ModelsResponse, RetrievalMode } from '@/lib/types'
 import { askQuestion, fetchAvailableModels } from '@/lib/api'
 import { generateId } from '@/lib/utils'
 import { MessageList } from './MessageList'
@@ -32,6 +32,7 @@ export function ChatInterface() {
     classifier: null,
   })
   const [conversationalMode, setConversationalMode] = useState<boolean>(false)
+  const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>('dense')
 
   // Fetch available models on mount and when provider changes
   useEffect(() => {
@@ -90,7 +91,7 @@ export function ChatInterface() {
     setIsLoading(true)
 
     try {
-      // Call API with selected provider, models, and conversational mode
+      // Call API with selected provider, models, retrieval mode, and conversational mode
       const response = await askQuestion(
         question,
         sessionId,
@@ -99,6 +100,7 @@ export function ChatInterface() {
           llm_model: selectedModels.generator || undefined,
           reranker_model: selectedModels.reranker || undefined,
           intent_model: selectedModels.classifier || undefined,
+          retrieval_mode: retrievalMode,
         },
         conversationalMode
       )
@@ -164,6 +166,8 @@ export function ChatInterface() {
               selectedModels={selectedModels}
               onProviderChange={handleProviderChange}
               onModelChange={handleModelChange}
+              retrievalMode={retrievalMode}
+              onRetrievalModeChange={setRetrievalMode}
               conversationalMode={conversationalMode}
               onConversationalModeChange={setConversationalMode}
             />

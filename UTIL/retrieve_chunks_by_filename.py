@@ -56,7 +56,7 @@ logger = logging.getLogger(__name__)
 class ChunkRetriever:
     """Retrieve chunks from Qdrant filtered by filename."""
 
-    def __init__(self, collection_name: str = config.QDRANT_COLLECTION_NAME_CONTEXTUAL):
+    def __init__(self, collection_name: str = config.QDRANT_COLLECTION_NAME):
         """Initialize Qdrant client."""
         if not config.QDRANT_API_URL or not config.QDRANT_API_KEY:
             raise ValueError("QDRANT_API_URL and QDRANT_API_KEY must be set in environment")
@@ -240,8 +240,8 @@ def main():
     parser.add_argument(
         '--collection',
         type=str,
-        default=config.QDRANT_COLLECTION_NAME_CONTEXTUAL,
-        help=f'Qdrant collection name (default: {config.QDRANT_COLLECTION_NAME_CONTEXTUAL})'
+        default=config.QDRANT_COLLECTION_NAME,
+        help=f'Qdrant collection name (default: {config.QDRANT_COLLECTION_NAME})'
     )
     parser.add_argument(
         '--text-length',

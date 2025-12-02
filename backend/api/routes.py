@@ -166,13 +166,21 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
         # Generate session ID if not provided (needed for conversational mode)
         session_id = request.session_id or str(uuid.uuid4())
 
+        # Validate retrieval_mode if provided
+        if request.retrieval_mode and request.retrieval_mode not in ('dense', 'hybrid', 'kendra'):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid retrieval_mode. Must be: dense, hybrid, kendra"
+            )
+
         # Determine if we need a custom chatbot instance
-        # Custom instance needed for: model overrides, provider overrides, or conversational mode
+        # Custom instance needed for: model overrides, provider overrides, retrieval mode, or conversational mode
         needs_custom_instance = (
             request.llm_model or
             request.reranker_model or
             request.intent_model or
             request.provider or
+            request.retrieval_mode or
             request.conversational_mode
         )
 
@@ -191,6 +199,7 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
                         reranker_model=request.reranker_model,
                         intent_model=request.intent_model,
                         provider=request.provider,
+                        retrieval_mode=request.retrieval_mode,
                         conversational_mode=True
                     )
                     _conversational_chatbots[session_id] = chatbot
@@ -198,12 +207,13 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
 
                 result = chatbot.ask(request.question, thread_id=session_id)
             else:
-                # Non-conversational custom instance (model overrides only)
+                # Non-conversational custom instance (model/retrieval overrides only)
                 chatbot = TexasChildcareChatbot(
                     llm_model=request.llm_model,
                     reranker_model=request.reranker_model,
                     intent_model=request.intent_model,
                     provider=request.provider,
+                    retrieval_mode=request.retrieval_mode,
                     conversational_mode=False
                 )
                 result = chatbot.ask(request.question)
@@ -247,6 +257,9 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
             "timestamp": datetime.utcnow().isoformat() + "Z"
         }
 
+    except HTTPException:
+        # Re-raise HTTP exceptions (validation errors, etc.) as-is
+        raise
     except Exception as e:
         # Log the error (in production, use proper logging)
         print(f"Error in chat endpoint: {str(e)}")

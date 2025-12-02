@@ -16,6 +16,13 @@ class RAGState(TypedDict):
     query: str                              # User's question
     debug: bool                             # Enable debug output
 
+    # Overrides (per-request, takes precedence over config)
+    llm_model_override: str | None
+    reranker_model_override: str | None
+    intent_model_override: str | None
+    provider_override: str | None
+    retrieval_mode_override: str | None     # 'dense', 'hybrid', or 'kendra'
+
     # Routing
     intent: Literal["information", "location_search"] | None
 
@@ -44,6 +51,13 @@ class ConversationalRAGState(TypedDict):
     # Current turn
     query: str                                      # Original user query
     reformulated_query: str | None                  # History-aware query (Milestone 2)
+
+    # Overrides (per-request, takes precedence over config)
+    llm_model_override: str | None
+    reranker_model_override: str | None
+    intent_model_override: str | None
+    provider_override: str | None
+    retrieval_mode_override: str | None             # 'dense', 'hybrid', or 'kendra'
 
     # Routing
     intent: Literal["information", "location_search"] | None

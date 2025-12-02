@@ -26,6 +26,8 @@ export interface Message {
   processing_time?: number
 }
 
+export type RetrievalMode = 'dense' | 'hybrid' | 'kendra'
+
 export interface ChatRequest {
   question: string
   session_id?: string
@@ -33,6 +35,7 @@ export interface ChatRequest {
   llm_model?: string
   reranker_model?: string
   intent_model?: string
+  retrieval_mode?: RetrievalMode
   conversational_mode?: boolean
 }
 

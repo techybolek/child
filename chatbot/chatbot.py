@@ -20,7 +20,7 @@ class TexasChildcareChatbot:
     """
 
     def __init__(self, llm_model=None, reranker_model=None, intent_model=None,
-                 provider=None, conversational_mode=None):
+                 provider=None, retrieval_mode=None, conversational_mode=None):
         """Initialize chatbot with LangGraph-based RAG pipeline.
 
         Args:
@@ -28,6 +28,7 @@ class TexasChildcareChatbot:
             reranker_model: Optional model override for reranking
             intent_model: Optional model override for intent classification
             provider: Optional provider override ('groq' or 'openai')
+            retrieval_mode: Optional retrieval mode override ('dense', 'hybrid', or 'kendra')
             conversational_mode: Optional override for conversational mode (None = use env var)
         """
         # Store model overrides to pass through state
@@ -35,6 +36,7 @@ class TexasChildcareChatbot:
         self.reranker_model = reranker_model
         self.intent_model = intent_model
         self.provider = provider
+        self.retrieval_mode = retrieval_mode
 
         # Explicit param takes precedence, otherwise use env var
         self.conversational_mode = (conversational_mode
@@ -88,6 +90,7 @@ class TexasChildcareChatbot:
             "reranker_model_override": self.reranker_model,
             "intent_model_override": self.intent_model,
             "provider_override": self.provider,
+            "retrieval_mode_override": self.retrieval_mode,
         }
 
         final_state = self.graph.invoke(initial_state)
@@ -136,6 +139,7 @@ class TexasChildcareChatbot:
             "reranker_model_override": self.reranker_model,
             "intent_model_override": self.intent_model,
             "provider_override": self.provider,
+            "retrieval_mode_override": self.retrieval_mode,
         }
 
         final_state = self.graph.invoke(input_state, thread_config)

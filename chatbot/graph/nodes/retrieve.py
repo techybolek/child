@@ -6,9 +6,10 @@ from ...hybrid_retriever import QdrantHybridRetriever
 
 
 def retrieve_node(state: dict) -> dict:
-    """Retrieve chunks from Qdrant vector database.
+    """Retrieve chunks from vector database.
 
-    Selects retriever based on config.RETRIEVAL_MODE:
+    Selects retriever based on state override or config.RETRIEVAL_MODE:
+    - 'kendra': AWS Kendra managed search
     - 'hybrid': Dense + sparse with RRF fusion
     - 'dense': Dense-only semantic search
 
@@ -25,8 +26,15 @@ def retrieve_node(state: dict) -> dict:
     query = state.get("reformulated_query") or state["query"]
     debug = state.get("debug", False)
 
-    # Select retriever based on config
-    if config.RETRIEVAL_MODE == 'hybrid':
+    # Check state override first, then config
+    mode = state.get("retrieval_mode_override") or config.RETRIEVAL_MODE
+
+    # Select retriever based on mode
+    if mode == 'kendra':
+        from ...kendra_retriever import KendraRetriever
+        retriever = KendraRetriever()
+        print(f"[Retrieve Node] Using Kendra retriever")
+    elif mode == 'hybrid':
         retriever = QdrantHybridRetriever()
         print(f"[Retrieve Node] Using hybrid retriever (dense + sparse RRF)")
     else:

@@ -11,7 +11,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
  *
  * @param question - The question to ask
  * @param sessionId - Optional session ID for conversation tracking
- * @param models - Optional model selection and provider
+ * @param models - Optional model selection, provider, and retrieval mode
  * @param conversationalMode - Enable conversational memory
  * @returns Promise with the chatbot response
  * @throws Error if the request fails
@@ -24,6 +24,7 @@ export async function askQuestion(
     llm_model?: string
     reranker_model?: string
     intent_model?: string
+    retrieval_mode?: string
   },
   conversationalMode?: boolean
 ): Promise<ChatResponse> {

@@ -6,7 +6,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Model } from '@/lib/types'
+import { Model, RetrievalMode } from '@/lib/types'
 
 interface ModelSettingsProps {
   availableModels: {
@@ -27,6 +27,8 @@ interface ModelSettingsProps {
   }
   onProviderChange: (provider: string) => void
   onModelChange: (type: 'generator' | 'reranker' | 'classifier', modelId: string | null) => void
+  retrievalMode: RetrievalMode
+  onRetrievalModeChange: (mode: RetrievalMode) => void
   conversationalMode: boolean
   onConversationalModeChange: (enabled: boolean) => void
 }
@@ -37,6 +39,8 @@ export function ModelSettings({
   selectedModels,
   onProviderChange,
   onModelChange,
+  retrievalMode,
+  onRetrievalModeChange,
   conversationalMode,
   onConversationalModeChange
 }: ModelSettingsProps) {
@@ -94,6 +98,35 @@ export function ModelSettings({
           </div>
 
           <div className="space-y-3">
+            {/* Retrieval Mode selector */}
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-700">
+                Retrieval Mode
+              </label>
+              <div className="flex rounded-md border border-gray-300">
+                {(['dense', 'hybrid', 'kendra'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => onRetrievalModeChange(mode)}
+                    className={`flex-1 px-3 py-2 text-sm capitalize ${
+                      retrievalMode === mode
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    } ${mode === 'dense' ? 'rounded-l-md' : ''} ${mode === 'kendra' ? 'rounded-r-md' : ''}`}
+                    title={
+                      mode === 'dense'
+                        ? 'Semantic search using embeddings'
+                        : mode === 'hybrid'
+                          ? 'Combines semantic + keyword search'
+                          : 'AWS Kendra managed search'
+                    }
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Provider selector */}
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-700">

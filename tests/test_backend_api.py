@@ -158,6 +158,92 @@ class TestConversationalMode:
         )
 
 
+class TestRetrievalMode:
+    def test_dense_mode_returns_200(self, backend_server):
+        """Dense retrieval mode should work."""
+        r = requests.post(
+            f"{backend_server}/api/chat",
+            json={"question": RELIABLE_QUESTION, "retrieval_mode": "dense"}
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert "answer" in data
+        assert len(data["answer"]) > 10
+
+    def test_hybrid_mode_returns_200(self, backend_server):
+        """Hybrid retrieval mode should work."""
+        r = requests.post(
+            f"{backend_server}/api/chat",
+            json={"question": RELIABLE_QUESTION, "retrieval_mode": "hybrid"}
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert "answer" in data
+        assert len(data["answer"]) > 10
+
+    def test_kendra_mode_returns_200_or_config_error(self, backend_server):
+        """Kendra retrieval mode should work if configured, or return clear error."""
+        r = requests.post(
+            f"{backend_server}/api/chat",
+            json={"question": RELIABLE_QUESTION, "retrieval_mode": "kendra"}
+        )
+        # Kendra may not be configured (no AWS creds) - that's OK, just verify we get a response
+        if r.status_code == 200:
+            data = r.json()
+            assert "answer" in data
+            assert len(data["answer"]) > 10
+        else:
+            # If Kendra fails, it should be due to configuration, not a code bug
+            assert r.status_code == 500
+            # The error should mention AWS/Kendra/credentials
+            data = r.json()
+            error_str = str(data).lower()
+            assert any(term in error_str for term in ["kendra", "aws", "credential", "botocore", "failed"]), \
+                f"Expected Kendra-related error, got: {data}"
+
+    def test_invalid_retrieval_mode_returns_400(self, backend_server):
+        """Invalid retrieval mode should return 400."""
+        r = requests.post(
+            f"{backend_server}/api/chat",
+            json={"question": RELIABLE_QUESTION, "retrieval_mode": "invalid"}
+        )
+        assert r.status_code == 400
+        data = r.json()
+        assert "dense" in str(data).lower() or "hybrid" in str(data).lower()
+
+
+class TestSourceValidation:
+    def test_kendra_source_page_is_valid_integer(self, backend_server):
+        """Sources must have integer page values, not 'N/A' strings.
+
+        Bug: Kendra retriever returns page='N/A' which fails Source model validation.
+        This causes a 500 error instead of a successful response.
+        """
+        r = requests.post(
+            f"{backend_server}/api/chat",
+            json={
+                "question": "what assistance can a family of 4 expect",
+                "retrieval_mode": "kendra",
+                "conversational_mode": True
+            }
+        )
+        # Should not fail with 500 due to page validation
+        if r.status_code == 200:
+            data = r.json()
+            for source in data.get("sources", []):
+                assert isinstance(source["page"], int), \
+                    f"Source page must be int, got {type(source['page'])}: {source['page']}"
+        # If Kendra not configured, that's fine - but should NOT be a validation error
+        elif r.status_code == 500:
+            data = r.json()
+            detail = data.get("detail", {})
+            error_type = detail.get("error_type", "") if isinstance(detail, dict) else str(detail)
+            error_msg = str(detail)
+            # The bug: ValidationError indicates page='N/A' failed Source model validation
+            assert "ValidationError" not in error_type and "int_parsing" not in error_msg, \
+                f"Source validation failed - page is likely not an integer: {error_msg}"
+
+
 class TestResponseHeaders:
     def test_process_time_header_present(self, backend_server):
         r = requests.post(
