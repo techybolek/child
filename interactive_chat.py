@@ -10,6 +10,9 @@ def get_handler(mode: str):
     if mode == 'kendra':
         from chatbot.handlers.kendra_handler import KendraHandler
         return KendraHandler()
+    elif mode == 'openai':
+        from chatbot.handlers.openai_agent_handler import OpenAIAgentHandler
+        return OpenAIAgentHandler()
     else:
         # For hybrid/dense, use the standard chatbot which handles mode internally
         return None
@@ -17,7 +20,7 @@ def get_handler(mode: str):
 
 def main():
     parser = argparse.ArgumentParser(description='Texas Childcare Chatbot - Interactive Mode')
-    parser.add_argument('--mode', type=str, choices=['hybrid', 'dense', 'kendra'],
+    parser.add_argument('--mode', type=str, choices=['hybrid', 'dense', 'kendra', 'openai'],
                         help='Retrieval mode (default: from RETRIEVAL_MODE env or config)')
     parser.add_argument('question', nargs='*', help='Question to ask (optional)')
     args = parser.parse_args()
@@ -32,8 +35,8 @@ def main():
     print("Initializing chatbot...")
 
     try:
-        if mode == 'kendra':
-            handler = get_handler('kendra')
+        if mode in ('kendra', 'openai'):
+            handler = get_handler(mode)
             chatbot = None
         else:
             chatbot = TexasChildcareChatbot()

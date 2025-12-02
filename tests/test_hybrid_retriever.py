@@ -17,8 +17,8 @@ def test_hybrid_retriever():
     print("=" * 80)
 
     # Temporarily enable hybrid retrieval
-    original_flag = config.ENABLE_HYBRID_RETRIEVAL
-    config.ENABLE_HYBRID_RETRIEVAL = True
+    original_mode = config.RETRIEVAL_MODE
+    config.RETRIEVAL_MODE = 'hybrid'
 
     try:
         # Initialize retriever
@@ -58,7 +58,7 @@ def test_hybrid_retriever():
         import traceback
         traceback.print_exc()
     finally:
-        config.ENABLE_HYBRID_RETRIEVAL = original_flag
+        config.RETRIEVAL_MODE = original_mode
 
 if __name__ == '__main__':
     test_hybrid_retriever()

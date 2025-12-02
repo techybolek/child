@@ -12,3 +12,10 @@ try:
     __all__.append('KendraHandler')
 except ImportError:
     KendraHandler = None
+
+# OpenAIAgentHandler is optional - only available if openai-agents is installed
+try:
+    from .openai_agent_handler import OpenAIAgentHandler
+    __all__.append('OpenAIAgentHandler')
+except ImportError:
+    OpenAIAgentHandler = None

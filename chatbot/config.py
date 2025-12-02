@@ -80,6 +80,10 @@ KENDRA_INDEX_ID = "4aee3b7a-0217-4ce5-a0a2-b737cda375d9"
 KENDRA_REGION = "us-east-1"
 KENDRA_TOP_K = 7
 
+# ===== OPENAI AGENT SETTINGS =====
+OPENAI_VECTOR_STORE_ID = os.getenv('OPENAI_VECTOR_STORE_ID', '')
+OPENAI_AGENT_MODEL = os.getenv('OPENAI_AGENT_MODEL', 'gpt-5-nano')
+
 # ===== LANGGRAPH SETTINGS =====
 # When False (default): Uses LangGraph with stateless behavior
 # When True: Enables conversation memory and agentic features (Phase 1+)
