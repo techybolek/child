@@ -1,9 +1,7 @@
 """Graph construction for LangGraph RAG pipeline"""
 
 from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.memory import MemorySaver
 
-from chatbot import config
 from .state import RAGState, ConversationalRAGState
 from .nodes.classify import classify_node
 from .nodes.retrieve import retrieve_node
@@ -14,17 +12,16 @@ from .edges import route_by_intent
 
 
 def build_graph(checkpointer=None):
-    """Build RAG graph - stateless or conversational based on config.
+    """Build RAG graph - stateless or conversational.
 
     Args:
-        checkpointer: Optional checkpointer for conversation memory.
-                      Only used when CONVERSATIONAL_MODE=True.
+        checkpointer: If provided, builds conversational graph with memory.
+                      If None, builds stateless graph.
 
     Returns:
         Compiled LangGraph workflow
     """
-    # Build conversational graph if checkpointer is provided OR config enables it
-    if checkpointer is not None or config.CONVERSATIONAL_MODE:
+    if checkpointer is not None:
         return _build_conversational_graph(checkpointer)
     else:
         return _build_stateless_graph()
@@ -76,7 +73,7 @@ def _build_stateless_graph():
     return workflow.compile()
 
 
-def _build_conversational_graph(checkpointer=None):
+def _build_conversational_graph(checkpointer):
     """Build conversational RAG graph with memory.
 
     Graph structure (Milestone 2 - with reformulation):
@@ -85,8 +82,7 @@ def _build_conversational_graph(checkpointer=None):
                                             └── LOCATION → END
 
     Args:
-        checkpointer: Checkpointer for conversation memory.
-                      Defaults to MemorySaver if not provided.
+        checkpointer: Checkpointer for conversation memory (required).
 
     Returns:
         Compiled LangGraph workflow with memory
@@ -126,10 +122,6 @@ def _build_conversational_graph(checkpointer=None):
 
     # Location path: location → END
     workflow.add_edge("location", END)
-
-    # Use default checkpointer if not provided
-    if checkpointer is None:
-        checkpointer = MemorySaver()
 
     print("[Graph Builder] Building conversational RAG graph with memory and reformulation")
     return workflow.compile(checkpointer=checkpointer)

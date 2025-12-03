@@ -140,7 +140,8 @@ class TestConversationalMode:
             "Expected reformulation of 'what about 5' to include family context."
         )
         # Additional check: response should not be the "I don't have information" fallback
-        fallback_indicators = ["don't have", "cannot find", "no information", "unable to"]
+        # Use specific phrases to avoid false positives (e.g., "families don't have to pay")
+        fallback_indicators = ["i don't have information", "i cannot find", "no information available", "i'm unable to"]
         answer_lower = data2["answer"].lower()
         is_fallback = any(indicator in answer_lower for indicator in fallback_indicators)
         assert not is_fallback, (
