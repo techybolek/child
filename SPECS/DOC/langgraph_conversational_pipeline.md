@@ -88,6 +88,13 @@ class ConversationalRAGState(TypedDict):
     query: str                              # Original user query
     reformulated_query: str | None          # History-aware standalone query
 
+    # Overrides (per-request, takes precedence over config)
+    llm_model_override: str | None
+    reranker_model_override: str | None
+    intent_model_override: str | None
+    provider_override: str | None
+    retrieval_mode_override: str | None     # 'dense', 'hybrid', or 'kendra'
+
     # Routing
     intent: Literal["information", "location_search"] | None
 
@@ -158,8 +165,16 @@ flowchart LR
 Defined in `chatbot/graph/edges.py`:
 
 ```python
-def route_by_intent(state: ConversationalRAGState) -> str:
-    """Route based on classified intent."""
+def route_by_intent(state: dict) -> Literal["retrieve", "location"]:
+    """Route to appropriate path based on classified intent.
+
+    Args:
+        state: RAGState with 'intent' field
+
+    Returns:
+        "retrieve" for information queries (RAG path)
+        "location" for location search queries (template path)
+    """
     intent = state.get("intent")
 
     if intent == "location_search":
