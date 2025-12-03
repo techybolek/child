@@ -11,53 +11,122 @@ Thread ID: test_test_2
 What percentage of SMI determines income eligibility for childcare assistance?
 
 [Turn 1] Assistant:
-Income eligibility for Texas childcare assistance is limited to families whose income does not exceed **85 % of the state median income (SMI)**.  
+Income eligibility for Texas childcare assistance is capped at **85 % of the State Median Income (SMI)**. This percentage is used to determine whether a family’s income allows them to qualify for low‑income child‑care benefits.  [Doc 3]
 
-- This threshold is set in the Child Care Services Guide (D‑200/D‑201) and reiterated in the Child Care Workforce Strategic Plan 2023‑2025.  
-
-[Citation: Doc 1; Doc 5]
-
-(Response time: 5.62s)
+(Response time: 5.69s)
+Sources: 1 chunks
 ----------------------------------------
 
 [Turn 2] User:
 What is the current SMI dollar amount for a family of 4?
 
 [Turn 2] Assistant:
-The current State Median Income (SMI) for a family of four in Texas is **$92,041** per year [Doc 1].
+The current State Median Income (SMI) dollar amount for a family of four in Texas is **$92,041**【Doc 1】.
 
-(Response time: 3.9s)
-Sources: 1 chunks
+(Response time: 5.36s)
 ----------------------------------------
 
 [Turn 3] User:
 Based on what you told me, calculate the exact income cutoff for that family.
 
 [Turn 3] Assistant:
-I don’t have enough information to calculate the income cutoff for that family.
+The income cutoff for a family of four is 85 % of the current State Median Income (SMI):
 
-(Response time: 5.2s)
+**$92,041 × 85 % = $78,235.85 (≈ $78,236)**
+
+So the exact income cutoff for that family is **$78,236**.  
+[Doc 1] [Doc 3]
+
+(Response time: 5.66s)
+Sources: 2 chunks
 ----------------------------------------
 
 [Turn 4] User:
 If a family of 4 makes $4,500 per month, do they qualify?
 
 [Turn 4] Reformulated:
-Does a family of four making $4,500 per month qualify for Texas childcare assistance?
+Does a family of four earning $4,500 per month qualify for Texas childcare assistance?
 
 [Turn 4] Assistant:
 Yes.  
-For a family of four the 2026 Texas Child Care Development Fund (CCDF) board‑contract year income limit is **$7,670 per month** (85 % of the state median income for that family size). A monthly income of **$4,500** is below this threshold, so the family meets the income eligibility requirement for Texas childcare assistance【Doc 2】.  
 
-The eligibility rule is further defined in the Child Care Services Guide, where a family’s income must not exceed 85 % of the state median income (SMI) for the relevant family size【Doc 3】.
+A family of four earning $4,500 per month ($54,000 per year) is below the 2026 income eligibility limit for a family of four, which is $7,670 per month (or $92,041 per year) for the Texas Child Care Development Fund (CCDF) program. Because the family’s income is under this threshold, they meet the income requirement for Texas childcare assistance.  
 
-(Response time: 6.22s)
+**Citations**  
+- Monthly income limit for a family of four: $7,670 (Doc 2).  
+- Eligibility rule that income must not exceed 85 % of the SMI: D‑200/D‑201 (Doc 4).
+
+(Response time: 5.79s)
 ----------------------------------------
 
 Success Criteria:
   - Retrieves SMI percentage from vector store
   - Retrieves SMI dollar amount for family of 4
   - Calculates cutoff by applying percentage to SMI (no re-retrieval needed)
+  - Applies calculated cutoff to specific scenario and gives yes/no answer
+
+============================================================
+
+TEST: Multi-Hop Reasoning (Direct)
+Description: Tests synthesis without explicit 'based on what you told me' phrase
+Thread ID: test_test_2b
+----------------------------------------
+
+[Turn 1] User:
+What percentage of SMI determines income eligibility for childcare assistance?
+
+[Turn 1] Assistant:
+Income eligibility for Texas child‑care assistance is limited to **85 % of the state‑wide median income (SMI)**. This cap is applied when determining eligibility for both the Child Care Development Fund (CCDF) and the Child Care Services (CCS) subsidy program.  
+
+Sources: [Doc 3] and [Doc 4]
+
+(Response time: 4.61s)
+Sources: 2 chunks
+----------------------------------------
+
+[Turn 2] User:
+What is the current SMI dollar amount for a family of 4?
+
+[Turn 2] Assistant:
+The state‑wide median income (SMI) for a family of four in the 2026 board contract year is **$92,041** annually [Doc 1].
+
+(Response time: 4.57s)
+Sources: 1 chunks
+----------------------------------------
+
+[Turn 3] User:
+Calculate the exact income cutoff for that family.
+
+[Turn 3] Assistant:
+The income cutoff for a family of four is 85 % of the 2026 state‑wide median income (SMI).  
+SMI for a family of four (2026 board contract year) = **$92,041** [Doc 1].
+
+85 % of $92,041 = **$78,235.85** (rounded to the nearest dollar, $78,236).
+
+So the annual income cutoff for that family is **$78,236**.
+
+(Response time: 6.06s)
+Sources: 1 chunks
+----------------------------------------
+
+[Turn 4] User:
+If a family of 4 makes $4,500 per month, do they qualify?
+
+[Turn 4] Reformulated:
+Does a family of four earning $4,500 per month qualify for Texas childcare assistance?
+
+[Turn 4] Assistant:
+Yes.  
+The 2026 board contract year (BCY) income limits for a family of four are $92,041 annually or $7,670 per month. A family earning $4,500 per month is below the $7,670 monthly cap, so it meets the income eligibility requirement for Texas childcare assistance programs such as the Child Care Development Fund (CCDF) and Child Care Services (CCS) [Doc 2].
+
+(Response time: 5.34s)
+Sources: 1 chunks
+----------------------------------------
+
+Success Criteria:
+  - Retrieves SMI percentage from vector store
+  - Retrieves SMI dollar amount for family of 4
+  - Calculates cutoff by applying percentage to SMI (85% × $92,041 = $78,235)
   - Applies calculated cutoff to specific scenario and gives yes/no answer
 
 ============================================================
@@ -71,63 +140,57 @@ Thread ID: test_test_5
 How do I apply for CCS?
 
 [Turn 1] Assistant:
-**Steps to apply for Texas Child Care Services (CCS)**  
+**How to apply for Texas Child Care Services (CCS)**  
 
-1. **Locate your local Workforce Development Board (WDB) office**  
-   * Your local WDB office is the primary point of contact for CCS applications.  You can find the office that serves your area on the Texas Workforce Commission website.  [Doc 1]  
+1. **Locate your local Workforce Development Board (WDB) office** – the WDB administers CCS in your area.  
+   *Use the TWC website to find the office that serves your county.*  
+   *[Doc 1]*  
 
-2. **Obtain the enrollment application**  
-   * **Online:** Use the Texas 3‑Center (TX3C) Parent Central portal to download and complete the digital CCS enrollment form.  
-   * **Paper:** If you cannot complete the online form, ask the WDB office for the TWC‑provided paper application.  The office may also help you fill it out or enter the data into the system on your behalf.  [Doc 2]  
+2. **Obtain the enrollment application** – you can apply in one of two ways:  
+   * • **Online** – use the TX3C Parent Central portal, which is the statewide online application system.  
+   * • **Paper** – if you cannot use the online portal, the local Board will provide a paper form that you can fill out.  
+   *[Doc 2]*  
 
-3. **Complete the full application (D‑1002)**  
-   * Provide all required personal and household information.  
-   * Upload or submit supporting documents (e.g., proof of income, ID, residency).  If you need assistance, the WDB staff can key the information directly into the case‑management system.  [Doc 3]  
+3. **Complete the full application (form D‑1002)** – include all required information and documentation (income statements, family data, etc.). The application must be thorough before it is accepted.  
+   *[Doc 5]*  
 
-4. **Submit the application to your local child‑care Board**  
-   * Hand the completed paper form to a Board staff member or upload the online application through TX3C Parent Central.  
+4. **Submit the application to your WDB** – hand the completed paper form to the Board, or upload the completed online application through TX3C Parent Central. If you need help, the Board may have staff who can enter the information for you.  
+   *[Doc 2]*  
 
-5. **Eligibility verification**  
-   * The Board must verify your eligibility within **20 calendar days** of receiving the application.  They will review all required documents before deciding on eligibility.  [Doc 2]  
+5. **Wait for eligibility verification** – the Board must verify all eligibility criteria within **20 calendar days** of receiving a complete application and all required documents.  
+   *[Doc 2], [Doc 4]*  
 
-6. **Receive a Notice of Eligibility (if approved)**  
-   * Once your eligibility is confirmed, the Board issues a Notice of Eligibility, which authorizes you to receive CCS subsidies.  [Doc 2]  
+6. **Receive a Notice of Eligibility** – once the Board confirms your eligibility, it will issue a Notice of Eligibility, authorizing your child to receive CCS benefits.  
+   *[Doc 2]*  
 
-7. **Follow up if needed**  
-   * If any documents are missing or additional information is required, the Board will contact you.  Ensure timely response to avoid delays.  
+> *If you are reapplying or recertifying, the same steps apply, and the Board will again verify eligibility within 20 days.*  
 
-*If you have trouble completing the online application, the WDB office can provide a paper form and assist with the process.*  
+These steps provide the complete, ordered process for applying for CCS under Texas Workforce Commission rules.
 
-**Summary**  
-- Find your local WDB office → obtain online or paper application → complete and submit → Board verifies within 20 days → Notice of Eligibility is issued.  
-
-[Citations: [Doc 1], [Doc 2], [Doc 3]]
-
-(Response time: 6.25s)
-Sources: 3 chunks
+(Response time: 5.36s)
+Sources: 4 chunks
 ----------------------------------------
 
 [Turn 2] User:
 Wait, first tell me about Texas Rising Star
 
 [Turn 2] Assistant:
-**Texas Rising Star (TRS)**  
-The Texas Rising Star program is a Texas Workforce Commission (TWC) initiative that certifies child‑care and early‑learning providers for quality performance. Its goal is to raise the standard of care for families that rely on subsidized child‑care services and to give providers a financial incentive to improve quality.
+**Texas Rising Star** is Texas’ statewide quality‑improvement program for child‑care providers that links higher‑quality care to enhanced reimbursement rates and provider support.  
 
-| Feature | Detail | Source |
+| What it does | Key facts | Source |
 |---|---|---|
-| **Purpose** | Quality‑improvement certification for providers that receive TWC‑funded Child Care Services (CCS). | [Doc 1] |
-| **Certification Levels** | Two‑Star (meets some standards), Three‑Star (meets most standards), Four‑Star (meets nearly all standards). | [Doc 2] |
-| **Reimbursement Incentives** | Enhanced reimbursement rates are set at least 5 % higher than base rates for Two‑Star, 7 % higher for Three‑Star, and 9 % higher for Four‑Star certified providers. | [Doc 1] |
-| **Entry‑Level Designation** | Non‑certified providers were given 24 months to reach at least a Two‑Star certification. This was applied to 4,476 providers in 2022. | [Doc 3] |
-| **Program Growth** | As of September 2022, 2,008 child‑care and early‑learning programs were Texas Rising Star‑certified, representing a 56 % increase since 2015 and about 31 % of all programs that accept subsidized children. | [Doc 3] |
-| **Benefits to Families** | • Smaller class sizes and more teachers<br>• Positive, patient teachers<br>• Age‑appropriate activities and quality curriculum<br>• Support for learning at home<br>• Access to community resources | [Doc 5] |
-| **How to Find a Certified Program** | Parents can visit the Texas Rising Star website (www.TexasRisingStar.org) or contact their local Workforce Development Board to locate and tour certified sites. | [Doc 4] |
-| **Key Actors** | Texas Rising Star program (certifying agency) and the local Workforce Development Board (contact agency). | [Doc 2] |
+| **Certification levels** | • Two‑Star: meets some quality standards<br>• Three‑Star: meets most quality standards<br>• Four‑Star: meets nearly all quality standards | [Doc 2, Doc 3] |
+| **Benefits to families** | • Smaller class sizes and more teachers<br>• Positive and patient teachers<br>• Age‑appropriate activities and quality curriculum<br>• Support for learning at home<br>• Community resources for families | [Doc 2, Doc 3] |
+| **Benefits to providers** | • Enhanced reimbursement rates: at least 5 %, 7 %, or 9 % higher than base rates for Two‑Star, Three‑Star, and Four‑Star providers, respectively (per § 2308.315) | [Doc 1] |
+| **Support for providers** | • Assessors conduct on‑site compliance assessments.<br>• Mentors provide technical assistance to providers seeking certification or moving to higher levels. | [Doc 1] |
+| **Entry‑Level designation** | • Under HB 2607, 4,476 non‑certified child‑care providers were given 24 months to reach at least a Two‑Star certification. | [Doc 4] |
+| **Funding for support staff** | • FY 2023: $22 million distributed to Boards for mentors (29 % increase).<br>• FY 2024: $27 million distributed (23 % increase). | [Doc 5] |
+| **Program growth** | • 2,008 certified sites in September 2022 (≈31 % of subsidized‑child programs).<br>• 3,303 certified sites in September 2024 (≈48.5 % of subsidized programs).<br>• 139 % increase since 2017. | [Doc 4], [Doc 6], [Doc 7] |
+| **Reimbursement policy** | • Minimum reimbursement rates are set at the 75th percentile of local market rates for each age group and type of care, with enhanced rates for certified providers. | [Doc 7] |
 
-In short, Texas Rising Star is a TWC‑backed quality certification that rewards providers with higher reimbursement rates, mandates participation for all regulated CCS providers, and offers families access to higher‑quality early‑learning environments.
+In short, Texas Rising Star incentivizes providers to meet higher quality standards by offering higher pay and technical assistance, while helping families find high‑quality, certified early‑learning programs.
 
-(Response time: 5.75s)
+(Response time: 4.98s)
 Sources: 5 chunks
 ----------------------------------------
 
@@ -135,35 +198,33 @@ Sources: 5 chunks
 Ok back to my application question
 
 [Turn 3] Reformulated:
-How do I apply for CCS?
+How do I apply for Texas Child Care Services (CCS)?
 
 [Turn 3] Assistant:
 **How to apply for Texas Child Care Services (CCS)**  
 
-1. **Find your local Workforce Development Board office** – The CCS program is administered by local Workforce Development Boards. You can locate the office that serves you at the TWC website.  
-   *[Doc 1]*  
+1. **Locate your local Workforce Development Board (WDB) office** – the WDB administers CCS in your area.  
+   *Use the TWC website to find the office that serves your county.* [Doc 2]  
 
-2. **Obtain the enrollment application** –  
-   * If you can use the online portal, submit the full application through TX3C Parent Central, Texas’ statewide online system.  
-   * If you are unable to use the online system, request the TWC‑provided paper application from the board. Boards may also key the information directly into the case‑management system for you.  
-   *[Doc 2]* *[Doc 3]*  
+2. **Obtain the enrollment application** – you can apply in two ways:  
+   * **Online** – use the TX3C Parent Central portal, which is the statewide online application system.  
+   * **Paper** – if you cannot use the online portal, the WDB may provide a TWC‑developed paper application. [Doc 1]  
 
-3. **Complete the full Enrollment Application (D‑1002)** – Provide all required personal, household, and childcare‑related information and upload any supporting documentation (e.g., proof of income, child’s birth certificate, etc.).  
-   *[Doc 2]* *[Doc 3]*  
+3. **Complete the application** – provide all required information and submit the form to the WDB. [Doc 1]  
 
-4. **Submit the application and documents to the board’s child‑care contractor** – The board’s contractor will receive your application and all supporting materials.  
-   *[Doc 5]*  
+4. **Eligibility verification** – the WDB must verify your eligibility within 20 calendar days of receiving the completed enrollment application before issuing a Notice of Eligibility. [Doc 1]  
 
-5. **Board verifies eligibility** – The board must complete verification of eligibility within 20 calendar days of receiving the completed application and required documents.  
-   *[Doc 2]*  
+5. **Wait for the Notice of Eligibility** – once verified, you’ll receive a Notice of Eligibility confirming your eligibility for CCS.  
 
-6. **Receive a Notice of Eligibility (NOE)** – If you meet all eligibility criteria, the board will issue a Notice of Eligibility, authorizing you to receive CCS subsidy payments.  
-   *[Doc 2]*  
+6. **Select a child‑care provider** – research providers that accept CCS, visit them if desired, and fill out a Provider Selection Form.  
+   *The provider selection form can be found on the TWC website.* [Doc 3]  
 
-Follow these steps in the order listed to apply for Texas Child Care Services.
+7. **Submit the Provider Selection Form** – submit this form to the WDB to notify them of your chosen provider. [Doc 3]  
 
-(Response time: 6.17s)
-Sources: 4 chunks
+Once all these steps are completed, the WDB will process payments to the approved provider on your behalf.
+
+(Response time: 6.03s)
+Sources: 3 chunks
 ----------------------------------------
 
 Success Criteria:
@@ -181,17 +242,19 @@ Thread ID: test_test_3
 What childcare programs require employment to qualify?
 
 [Turn 1] Assistant:
-**Child‑care programs that require the parent(s) to be employed (or actively seeking employment) to qualify:**
+**Child‑care programs in Texas that require parents to be employed (or in employment‑related training/education) to qualify**
 
-| Program | Employment requirement |
-|---------|-------------------------|
-| **Initial Job Search child‑care assistance** (a component of the Texas Workforce Commission’s Child Care Development Fund) | • A single‑parent family must have at least 12 hours of employment per week, and a dual‑parent family must have a combined 25 hours of employment per week.  <br>• Parents must be registered with the state’s labor‑exchange system and must maintain these activity hours for three months to keep the program active.  <br>• The case‑management system must record the need reason “Initial Job Search” and later “Working” if the activity requirements are met.  <br>• *Source:* Doc 1 and Doc 5. |
-| **TANF applicant child‑care** (TANF – Temporary Assistance for Needy Families) | • The parent must be working (or have increased earnings) at least 25 hours per week within 30 days of the referral from HHSC.  <br>• Child care is authorized only when the parent is actively employed.  <br>• *Source:* Doc 2. |
-| **Low‑Income child‑care** (under the CCDF) | • Child care is required for a parent to work or attend a job‑training or educational program, or the parent must be engaged in job search registration.  <br>• Income must not exceed 85 % of the SMI.  <br>• *Source:* Doc 4. |
+| Program | Employment‑related requirement | Source |
+|---------|--------------------------------|---------|
+| **Initial Job Search child care** | *Single‑parent families* must have at least 12 hrs of employment each week (plus 25 hrs of total activity); *dual‑parent families* must have at least 25 hrs of combined employment each week (plus 50 hrs of total activity).  Boards also must register parents with the state labor‑exchange system. | [Doc 1] |
+| **TANF Applicant child care** | Parent must be working **at least 25 hrs/week** within 30 days of receiving a Workforce Orientation for Applicants (WOA) referral and must not have voluntarily terminated employment for a non‑good‑cause reason. | [Doc 2] |
+| **Low‑Income child care (D‑200/D‑201)** | Parent must be (a) working, or (b) attending a job‑training or educational program that leads to employment, for an average of **25 hrs/week** (single‑parent) or **50 hrs/week** (two‑parent). Alternatively, a parent engaged in job search (registered in Work‑in‑Texas.com) also meets the activity requirement. | [Doc 4] |
+| **General TWC subsidized child care** | Parents must be **employed, in training, or participating in education activities that lead to employment** to receive subsidized child care. | [Doc 3] |
 
-These are the only programs in the provided documents that explicitly state an employment (or job‑search) requirement as part of the eligibility criteria.
+These are the only programs documented that explicitly require employment (or training/education that leads to employment) as part of the eligibility criteria.
 
-(Response time: 6.4s)
+(Response time: 5.55s)
+Sources: 4 chunks
 ----------------------------------------
 
 [Turn 2] User:
@@ -201,15 +264,9 @@ Which ones don't require employment?
 Which Texas childcare programs do NOT require employment to qualify?
 
 [Turn 2] Assistant:
-**Child Care Programs in Texas that Do NOT Require Employment to Qualify**
+The Texas Workforce Commission’s Child Care Services Guide identifies **Initial Job Search child‑care (D‑204)** as the program that **does not require parents to be employed** in order to qualify. Parents who are actively looking for work may self‑attest that they do not meet the minimum participation requirements for Low‑Income child care and that their income does not exceed 85 % of the State Median Income, and Boards are not required to collect income or activity hour data for these parents [Doc 1].
 
-| Program | Eligibility Feature |
-|---------|---------------------|
-| **Child Care during Initial Job Search** (D‑204) | Parents who are actively searching for a job can self‑attest that they do not meet the minimum participation requirements for Low‑Income child care and that their family income does not exceed 85 % of the State Median Income. Boards are instructed *not to collect income information or activity hours* for these parents, meaning employment status is **not required** for eligibility. | [Doc 1] |
-
-No other Texas childcare assistance programs listed in the provided documents are specified as not requiring employment for qualification.
-
-(Response time: 6.59s)
+(Response time: 6.06s)
 Sources: 1 chunks
 ----------------------------------------
 
@@ -217,27 +274,20 @@ Sources: 1 chunks
 Of those, which have the highest income limits?
 
 [Turn 3] Reformulated:
-Which Texas childcare programs that do NOT require employment have the highest income limits?
+Among the Texas childcare programs that do NOT require employment, which have the highest income limits?
 
 [Turn 3] Assistant:
-**Child‑care assistance program with the highest income limits (and that does not require the participant to be employed)**  
+**Program with the highest income limits among Texas childcare programs that do NOT require employment**
 
-| Program | Highest income limit (2026 board‑contract year) | Family size for that limit | Source |
-|---------|----------------------------------------------|----------------------------|--------|
-| Child Care Development Fund (CCDF) | **$146,346** (annual income for a family of 15 members) | 15‑member family | [Doc 2] |
+| Program | Income eligibility limit (annual) |
+|---------|-----------------------------------|
+| **Initial Job Search child‑care (D‑204)** | 85 % of the Texas State Median Income (SMIG) – $78,235 for a family of 4 in 2026 |  
 
-**Why CCDF is the highest‑limit program**
+*The 85 % threshold is the income limit used by the program for parents who are actively looking for work but are not yet employed. The SMIG for Texas in 2026 is $92,041, so 85 % equals $78,235.*  
 
-* The CCDF table lists the annual, monthly, weekly, bi‑monthly, and bi‑weekly income eligibility limits for families of 1–15 members. The highest figure appears in the row for a 15‑member family, which is **$146,346** for the 2026 board contract year.  
-* The CCDF is a subsidized childcare assistance program that provides financial help to families regardless of whether the parents or caregivers are employed. The program’s purpose is to help families afford licensed childcare; it does not mandate employment as a condition of eligibility.
+[Doc 2] (provides the SMIG of $92,041 for 2026)
 
-**Other programs**
-
-* Provider Services Operational Consultation (PSOC) is a provider‑support program, not a family‑benefit program, so its income limits are not relevant to the question.  
-
-Thus, among the Texas childcare assistance programs that do not require employment, the **Child Care Development Fund (CCDF)** has the highest income limits.
-
-(Response time: 6.6s)
+(Response time: 6.92s)
 Sources: 1 chunks
 ----------------------------------------
 
@@ -257,20 +307,20 @@ Thread ID: test_test_4
 What are the income limits for a family of 4?
 
 [Turn 1] Assistant:
-**2026 Texas Child Care Development Fund (CCDF) income eligibility limits for a family of 4**
+**Income limits for a family of 4 in the Texas Child Care Development Fund (CCDF) 2026 board contract year**
 
-| Period | Income limit |
-|--------|--------------|
+| Frequency | Amount |
+|-----------|--------|
 | Annual | **$92,041** |
 | Monthly | **$7,670** |
 | Weekly | **$1,770** |
 | Bi‑Monthly | **$3,835** |
 | Bi‑Weekly | **$3,540** |
 
-These limits are set by the Texas Department of Family and Protective Services for the 2026 board contract year and are used to determine eligibility for CCDF assistance.  
+These figures are the income‑eligibility limits published by the Texas Department of Family and Protective Services for CCDF 2026.  
 [Doc 2]
 
-(Response time: 5.26s)
+(Response time: 5.9s)
 Sources: 1 chunks
 ----------------------------------------
 
@@ -281,47 +331,40 @@ Sorry, I meant family of 6
 What are the income limits for a family of 6?
 
 [Turn 2] Assistant:
-**2026 Texas Child Care Development Fund (CCDF) – Income Eligibility Limits (family of 6)**  
+**Income limits for a family of 6 in the Texas Child Care Development Fund (CCDF) 2026 board contract year**
 
-| Measurement | Amount |
-|-------------|--------|
-| Annual | $8,505 |
-| Monthly | $709 |
-| Weekly | $164 |
-| Bi‑Monthly | $354 |
-| Bi‑Weekly | $327 |
+| Frequency | Amount |
+|-----------|--------|
+| Annual | **$121,495** |
+| Monthly | **$10,125** |
+| Weekly | **$2,336** |
+| Bi‑Monthly | **$5,062** |
+| Bi‑Weekly | **$4,673** |
 
-These figures represent the income limits families must meet to qualify for CCDF assistance in the 2026 board contract year.  
+These thresholds are published by the Texas Department of Family and Protective Services (DFPS) for CCDF 2026. [Doc 2]
 
-*Source: Texas Department of Family and Protective Services (DFPS) – CCDF 2026 Income Eligibility Table (Doc 1).*
-
-(Response time: 6.03s)
+(Response time: 4.51s)
+Sources: 1 chunks
 ----------------------------------------
 
 [Turn 3] User:
 And what documents do I need to prove that income?
 
 [Turn 3] Reformulated:
-What documents are required to verify income for a family of 6 applying for Texas Child Care Development Fund (CCDF) assistance?
+What documents are required to prove income for a family of six applying for Texas Child Care Development Fund (CCDF) assistance?
 
 [Turn 3] Assistant:
-**Documents required to verify income for each family member in a 6‑person household applying for CCDF assistance**
+**Documents needed to verify a family’s income for Texas CCDF assistance**
 
-| Step | What the Board (child‑care committee) must collect | When it is required | Source |
-|------|--------------------------------------------------|----------------------|--------|
-| 1 | **Pay‑history documentation** – pay stubs (or other proof of wages) that cover the **most recent three months** (or 12 weeks if the member is paid biweekly). The pay information must be for **consecutive pay periods**. | For any family member who is an employee of the same employer for the entire three‑month period. | [Doc 2] |
-| 2 | **Employment/Income Verification Form** (or a Board‑defined employer verification) | • If a family member is paid in cash. <br>• If the family member started a new job or experienced a substantial earnings change and does **not** have pay documents from that job. <br>• If the family member cannot provide three full months of pay documents and the year‑to‑date information does not cover the period being reviewed. | [Doc 3], [Doc 4] |
+| Source | Income type | Required documents |
+|--------|-------------|--------------------|
+| **Doc 2** (child‑care‑services‑guide‑twc.pdf, Page 71) | **Wage‑earning family members** | • Pay stubs covering the past three months if the member is paid monthly, or the past 12 weeks if paid weekly/bi‑weekly. The stubs must be consecutive.<br>• If the member is paid in cash, the employer must complete an **Employment/Income Verification Form** (or other Board‑defined employer verification). |
+| **Doc 1** (child‑care‑services‑guide‑twc.pdf, Page 74) | **Self‑employed family members** | • Recent business bank statement.<br>• Recent business phone, utility, or insurance bill.<br>• Recent state sales tax return.<br>• Business records that prove income and expenses (e.g., copies of money orders or checks received, lists of customers served, or personal wage records with third‑party signed verification).<br>• Business registration or license (e.g., DBA license or Assumed Name Certificate). |
+| **Doc 3 / Doc 4** (child‑care‑services‑guide‑twc.pdf, Pages 70‑71) | **New job or substantial earnings change** | • If a family member has started a new job or experienced a large earnings change and lacks pay documents, the **Employment/Income Verification Form** must be completed by the employer or provided by the Board. |
 
-**Key points**
+These documents are required for all family members who provide income that will be considered in determining CCDF eligibility. The family’s total income—calculated using the methods described in the guide—must then be compared to the income limits for a family of six (annual limit: $121,495) to determine eligibility.
 
-* The verification must be done for **every** family member who is employed (the entire household of six).  
-* The pay‑history documents must be recent (within the past three months) and show consecutive pay periods.  
-* If any member lacks such pay stubs, the Board must use the **Employment/Income Verification Form** to confirm the member’s earnings.  
-
-These requirements apply only to the **family’s income**; they do not address provider‑side documentation.
-
-(Response time: 6.76s)
-Sources: 3 chunks
+(Response time: 5.53s)
 ----------------------------------------
 
 Success Criteria:
@@ -340,39 +383,25 @@ Thread ID: test_test_6
 What's the difference between CCS and CCMS?
 
 [Turn 1] Assistant:
-**CCS (Child Care Services)** is the Texas Workforce Commission program that provides childcare subsidies, sets eligibility rules, and manages payments to providers for families that qualify for the **CCS scholarship**. The program sets income limits, copay guidelines, and outlines parents’ rights and responsibilities when they apply for and receive subsidies [Doc 1].
+**CCS (Child Care Services)** is the Texas Workforce Commission’s (TWC) actual childcare‑subsidy program.  It is a public assistance program that provides financial support (subsidies) to families and is administered through local Workforce Development Boards and TWC staff.  The program has its own rules, eligibility criteria, income limits, payment procedures, and provider regulations.  
 
-**CCMS (Child Care Case Management System)** is the electronic system used by local child‑care Boards to enter, track, and update all authorization and eligibility information for families participating in CCS. CCMS is where Boards record authorization begin/end dates, income changes, and attendance records, and where they coordinate updates with TWC staff when parents report temporary changes [Doc 3][Doc 4].
+**CCMS (Child Care Management System)** is the computer system that boards and TWC use to track and manage each customer’s case.  The system holds the customer’s eligibility data, schedules, waiting‑list status, and any temporary changes to eligibility.  Boards use the CCMS to update a customer’s records and to perform case‑management functions such as contacting parents on the waiting list.  
 
-In short:
+In short: **CCS = the subsidy program; CCMS = the case‑management database that records and updates information for customers in the CCS program**.  
+[Doc 1]
 
-|                     | CCS | CCMS |
-|---------------------|-----|------|
-| Purpose             | Subsidy program for families | System that Boards use to manage and record CCS authorizations |
-| Function             | Sets eligibility, income limits, copays, and provider rules | Records authorizations, income changes, attendance, and updates for CCS customers |
-| Who manages it      | Texas Workforce Commission (TWC) | Local child‑care Boards via the CCMS platform |
-| Interaction          | Families apply and receive subsidies | Boards input and update data in the system |
-
-Thus, CCS is the **program** that provides childcare assistance, while CCMS is the **case‑management tool** that local Boards use to administer that program.
-
-(Response time: 4.86s)
-Sources: 3 chunks
+(Response time: 3.87s)
+Sources: 1 chunks
 ----------------------------------------
 
 [Turn 2] User:
 Which one is better for a single mom working part-time?
 
 [Turn 2] Assistant:
-For a single mother who works part‑time, the Texas subsidized child‑care program is the most supportive option available.  The evaluation report shows that:
+I don’t have information on which child‑care arrangement is “better” for a single mom working part‑time. The documents only list the available options that families could choose in the TECIDS survey and do not provide any evaluation or recommendation for specific household situations. [Doc 1] [Doc 2]
 
-* **Employment outcomes:** 88 % of TANF parents and 87 % of non‑TANF parents secured or maintained jobs within 12 months of receiving subsidized child care.  In 2022 the rate for TANF parents was 92.70 % (Table 1A) and for non‑TANF parents the overall rate is 87 % [Doc 4, Doc 5].
-
-* **Wage impact:** Non‑TANF parents experienced an average quarterly wage gain of $1,871 (≈$7,484 annually) after receiving child care, indicating a direct monetary benefit [Doc 5].
-
-Because subsidized child‑care enables parents to remain employed and even increase earnings, it is the most effective support for a single mom working part‑time.  No other option in the documents provides comparable employment‑ or wage‑related evidence.
-
-(Response time: 4.92s)
-Sources: 1 chunks
+(Response time: 5.33s)
+Sources: 2 chunks
 ----------------------------------------
 
 [Turn 3] User:
@@ -382,29 +411,27 @@ What if she's also a student?
 What if the single mom working part-time is also a student?
 
 [Turn 3] Assistant:
-**How a single‑mom who works part‑time and is a post‑secondary student can qualify for Texas child‑care assistance**
+**Eligibility for a single‑mom, part‑time student**
 
-| Step | What the Board must do | Why it matters | Source |
-|------|------------------------|----------------|--------|
-| 1 | Verify that the parent is a **full‑time undergraduate student** (not a secondary‑school student). | Full‑time enrollment qualifies the parent for the *education‑based* child‑care eligibility rules, which allow the parent to meet the required hours through coursework. | [Doc 1] |
-| 2 | Calculate the parent’s *education hours* by converting credit hours to weekly hours. | Each undergraduate credit hour equals **3 hours per week** (or 6 hours for condensed courses). These hours count toward the 25 hrs/week needed for single‑parent families. | [Doc 3] |
-| 3 | Confirm the parent’s **income** is ≤ 85 % of the State Median Income (SMI). | The 85 % SMI cap is the income threshold for all low‑income child‑care programs. | [Doc 4] |
-| 4 | Ensure the parent meets the **activity requirement**: at least 25 hrs/week of total activity (education + employment + other). | The Child Care Services Guide requires a single‑parent family to have a combined 25 hrs/week of activity; for *education* this is satisfied by the calculated hours. | [Doc 4] |
-| 5 | If the parent also has **part‑time employment**, add those hours to the total activity. | Even part‑time work contributes to the 25‑hr minimum, but the *employment* requirement for initial job‑search child care (12 hrs/week) applies only to the *initial job‑search* program, not to the education‑based program. | [Doc 5] |
-| 6 | Apply the **60‑month cumulative limit** for full‑time undergraduate education. | Boards must enforce a cumulative limit of 60 months (5 years) of education‑based assistance. Once the limit is reached, the parent reverts to standard eligibility (based on employment/education hours). | [Doc 1] |
-| 7 | Treat any **temporary interruption** (e.g., family leave, sick leave, or a three‑month break) as an *eligible* period so long as income remains ≤ 85 % SMI. | The Board is instructed to consider children eligible during such interruptions, preventing a loss of benefits. | [Doc 2] |
+| Item | What the policy says | How it applies to this mom |
+|------|----------------------|----------------------------|
+| **Income limit** | Family income must not exceed **85 % of the SMI**. | She must calculate her household income and show it is ≤ 85 % of SMI. |
+| **Hours requirement** | Child care is required **if the parent works OR attends a job‑training/educational program** for **at least an average of 25 hrs/week** (for single‑parent families). | Her part‑time job *and/or* her student status can be used to meet the 25‑hr threshold. For each **credit hour** of post‑secondary undergraduate coursework she can count **3 hrs/week** (6 hrs/week for condensed courses). |
+| **Cumulative limit** | Parents enrolled **full‑time** in a post‑secondary undergraduate program have a **cumulative 60‑month** limit on subsidy eligibility. Parents who are **both working and attending an educational program** are **not subject** to that limit. | Since she is **part‑time** in school and also works, she is *not* subject to the 60‑month cap. She can receive subsidy continuously as long as she keeps meeting the income and hours requirements. |
 
-### What happens if the mom’s part‑time work hours fall short of the required 12 hrs/week?
+**Practical steps**
 
-- **Education‑based program**: The parent can still qualify as long as the *combined* education and work hours reach 25 hrs/week and income ≤ 85 % SMI. The education hours are counted even if the parent is not meeting the 12 hrs employment requirement for the *initial job‑search* program.  
-- **Initial Job‑Search program**: If the parent is seeking the *initial job‑search* child‑care subsidy, she must meet the 12 hrs/week employment requirement. If she cannot, she would need to enroll in a different program or seek additional employment hours.
+1. **Verify income** – provide recent pay stubs, tax returns, or self‑employment income documentation; calculate income as a percentage of SMI.  
+2. **Document activity hours** – submit school transcripts or enrollment verification that show credit hours; convert those to hours per week using the 3‑hr/credit rule. Add any work hours.  
+3. **Submit application** – complete the CCS application with the Board, including all required documentation.  
+4. **Maintain eligibility** – keep records of any changes in work or school hours and report them at the 12‑month eligibility redetermination.  
 
-### Bottom line
+**Bottom line**  
+A single‑mom who is part‑time working **and** studying can qualify for Texas Child Care Services (CCS) as long as she meets the income cap and can demonstrate at least 25 hrs/week of required care (using school credit hours or work hours). She is not restricted by the 60‑month cumulative limit that applies only to full‑time undergraduate students.  
 
-A single‑mom who works part‑time **and** attends full‑time undergraduate courses can qualify for child‑care assistance through the education‑based eligibility pathway. She must (1) prove her full‑time status, (2) convert credit hours into weekly hours, (3) show her income is ≤ 85 % SMI, and (4) satisfy the 25‑hour total activity rule. The 60‑month cumulative limit and rules for temporary interruptions are applied as described above.
+*Citations: Doc 2 (D‑200/D‑201 – income and hours rules), Doc 5 (D‑202 – credit‑hour conversion), Doc 1 (D‑101.c – 60‑month limit and dual‑role exception).*
 
-(Response time: 6.63s)
-Sources: 5 chunks
+(Response time: 6.23s)
 ----------------------------------------
 
 Success Criteria:
@@ -423,23 +450,37 @@ Thread ID: test_test_7
 I'm a single parent with 2 kids, making $35,000/year
 
 [Turn 1] Assistant:
-**Eligibility:**  
-- The 2026 Child Care Development Fund (CCDF) income limit for a family of **2** is **$62,588 per year**.  
-- Your annual income of **$35,000** is well below that threshold, so you are **eligible** for CCDF assistance. [Doc 1]
+**Eligibility**
 
-**Parent Share of Cost (PSoC):**  
-- Your monthly income is $35,000 ÷ 12 ≈ $2,916.67.  
-- In the 2026 sliding‑fee scale, a monthly income between **$2,762 and $3,375** (family size 2) places you in the *6th* bracket.  
-- For **2 children**, the table lists a **monthly PSoC of $268** and a **weekly PSoC of $61** for that bracket. [Doc 4]
+- For a family of 2 (one adult, two children) the 2026 Texas Child Care Development Fund (CCDF) income eligibility limit is **$62,588 per year**.  
+- Your annual income of **$35,000** is below that limit, so you are **eligible for CCDF assistance** in 2026.  [Doc 2]
 
-| Metric | Amount |
-|--------|--------|
-| Monthly PSoC (2 kids) | **$268** |
-| Weekly PSoC (2 kids) | **$61** |
+**Parent Share of Cost (PSoC)**  
 
-So, as a single parent with two children earning $35,000 a year, you qualify for CCDF assistance and would be expected to pay about $268 per month (≈ $61 per week) toward your childcare costs.
+| Income bracket | Monthly income (USD) | Monthly PSoC (1 child) | Monthly PSoC (2 children) | Weekly PSoC (1 child) | Weekly PSoC (2 children) |
+|----------------|----------------------|------------------------|----------------------------|-----------------------|--------------------------|
+| 35 % of SMI    | $2,148               | $92                    | $127                       | $21                   | $29                      |
+| 45 % of SMI    | $2,762               | $136                   | $191                       | $31                   | $43                      |
 
-(Response time: 6.25s)
+Your monthly income of **$35,000 / 12 ≈ $2,917** falls between the 35 % and 45 % brackets.  CCDF policy uses the **upper bracket that the income is equal to or exceeds**, so your PSoC is calculated at the 45 % level.
+
+**Result**
+
+- **Monthly PSoC for 2 children:** **$191** (about **$2,292 per year**)  
+- **Weekly PSoC for 2 children:** **$43**  
+
+These amounts are well below the maximum parent share of cost for a family of 2, which is **$4,381 per year** (the upper limit shown in the first table).  [Doc 1]  
+
+**Next steps**
+
+1. **Verify your income** (e.g., provide W‑2s, pay stubs, or tax returns).  
+2. **Complete a CCDF application** through your county’s child‑care assistance office or online portal.  
+3. **Use the PSoC Calculator** or the chart above to confirm the exact monthly/weekly payment.  
+4. **Submit the application** and await approval; once approved, you’ll receive a voucher to use at approved childcare providers.  
+
+If you need help with the application or locating an approved provider, contact your local Department of Family and Protective Services office.
+
+(Response time: 6.21s)
 Sources: 2 chunks
 ----------------------------------------
 
@@ -447,104 +488,46 @@ Sources: 2 chunks
 Do I qualify for childcare assistance?
 
 [Turn 2] Assistant:
-**Short answer**  
-I can’t say for certain whether you qualify because I don’t have your income, family size, child‑care hours, or employment status.  To determine eligibility you must compare your situation against the criteria shown below.  
+Yes – you meet the criteria to receive childcare assistance.
 
----
+**Why you qualify**
 
-## 1.  Income limit  
+1. **Income eligibility** – The Texas Workforce Commission’s Child Care Services Guide states that a family must have an annual income that does not exceed **85 % of the state median income (SMI)** to qualify for low‑income child care.  In the 2026 Texas Child Care Development Fund (CCDF) the 85 % SMI limit for a family of two (one adult + two children) is **$62,588 per year**.  Your reported income of **$35,000** is well below that threshold, so you satisfy the income test.  
+   *Source: [Doc 1] (D‑200/D‑201 eligibility) and the provided context stating the $62,588 limit.*
 
-| Program | Income ceiling | Reference |
-|---------|----------------|-----------|
-| Low‑income child‑care (standard “Low‑Income Child Care” and “Initial Job Search” programs) | **85 % of the State Median Income (SMI)** | [Doc 2] |
-| TANF applicant child‑care | Same 85 % SMI rule (plus the additional employment requirements below) | [Doc 5] |
+2. **Activity / hours requirement** – As a single‑parent family, the guide requires **at least 25 hours per week of child care** so that the parent can work, attend training, or conduct a job search.  Since you are a single parent, you meet this requirement.  
+   *Source: [Doc 1] (D‑200/D‑201).*
 
-*The exact dollar amount depends on the SMI for the current year and your household size; the guide only specifies the percentage (85 % of SMI).*
+Because you meet both the income limit (85 % SMI) and the activity/hours requirement for a single‑parent family, you qualify for Texas childcare assistance under the CCDF program.
 
----
-
-## 2.  Child‑care hours required  
-
-| Family type | Minimum total child‑care hours per week | Minimum employment/training hours per week | Reference |
-|-------------|----------------------------------------|------------------------------------------|-----------|
-| Single‑parent | 25 hrs (or 12 hrs of employment) | 12 hrs | [Doc 1] |
-| Dual‑parent | 50 hrs (or 25 hrs of combined employment) | 25 hrs combined | [Doc 1] |
-| Any family (standard low‑income) | 25 hrs (single‑parent) or 50 hrs (two‑parent) | Not specified | [Doc 2] |
-
-*If you are engaged in a job search, the family must be registered with the state labor‑exchange system (Work‑in‑Texas.com) and the child‑care hours must support that registration.*  
-
----
-
-## 3.  Employment / job‑search requirements  
-
-| Situation | Requirement | Reference |
-|-----------|-------------|-----------|
-| Initial Job Search program | Parent(s) must be registered with Work‑in‑Texas.com; family must meet the hour requirements above | [Doc 1] |
-| TANF applicant child‑care | Parent must receive an HHSC referral to a Workforce Orientation for Applicants (WOA), must have secured employment or increased earnings before the referral, and must be working at least 25 hrs per week within 30 days prior to the referral | [Doc 5] |
-| General low‑income program | Not explicitly required, but the child must need care so the parent can work or attend training | [Doc 2] |
-
----
-
-## 4.  Child eligibility criteria  
-
-| Condition | Details | Reference |
-|-----------|---------|-----------|
-| Age or disability | Child must be <13 years or <19 years with a disability | [Doc 4] |
-| Residence | Child must live with a family whose income ≤ 85 % SMI and with a parent who needs care to work or train | [Doc 4] |
-
----
-
-## 5.  Other considerations  
-
-* **Income sources excluded** from the family’s monthly income calculation include Medicare, Medicaid, SNAP, school meals, housing assistance, certain educational scholarships, tax refunds, etc. (See [Doc 3]).  
-* **Termination**: If a family fails to meet the hour or employment requirements within three months, child‑care benefits must be terminated and the family must receive written notice. (See [Doc 1]).  
-
----
-
-## 6.  How to check your eligibility  
-
-1. **Calculate your family’s monthly income** and compare it to 85 % of the SMI for your household size.  
-2. **Count the child‑care hours you need** per week (25 hrs for single‑parent, 50 hrs for dual‑parent).  
-3. **Confirm your employment or training status**:  
-   * If you’re in a job‑search program, register with Work‑in‑Texas.com.  
-   * If you’re a TANF applicant, obtain the HHSC referral to WOA and meet the 25 hrs/30‑day work requirement.  
-4. **Verify the child’s eligibility** (age <13 or <19 with disability, living with the qualifying family).  
-5. **Submit the required documentation** (income statements, employment verification, WOA referral, etc.) to your local child‑care committee (Board).  
-6. **Receive written confirmation** of eligibility or denial.  
-
-If any of the steps above are not met, you would not qualify for childcare assistance under the current Texas Workforce Commission (TWC) guidelines.  
-
----  
-
-**Bottom line:**  
-You qualify only if **all** the criteria above are satisfied.  If any one of them is missing—such as income exceeding 85 % of SMI, insufficient child‑care hours, lack of employment/training registration, or the child not meeting age/disability rules—you would not be eligible for childcare assistance.  To be sure, compare your personal facts to the table and steps above.
-
-(Response time: 6.22s)
-Sources: 5 chunks
+(Response time: 5.84s)
+Sources: 1 chunks
 ----------------------------------------
 
 [Turn 3] User:
 What if I get a raise to $45,000?
 
 [Turn 3] Reformulated:
-Would a single parent with 2 children making $45,000 per year still qualify for Texas childcare assistance?
+Would a single parent with 2 children earning $45,000 per year qualify for Texas childcare assistance?
 
 [Turn 3] Assistant:
-**Eligibility Determination**
+**Yes.**  
+A single parent with two children earning $45,000 per year meets both of the key eligibility thresholds for Texas childcare assistance:
 
-| Step | Requirement | Source | Outcome |
-|------|-------------|--------|---------|
-| 1 | **Income cap** – Family income must not exceed 85 % of the State Median Income (SMI) for the appropriate family size. | Doc 4 – Child‑Care Workforce Strategic Plan 2023‑2025 (p. 17) | The SMI for a family of three (parent + 2 children) in FY 2023 is **$63,391**. 85 % of that amount equals **$53,876.35**. The single‑parent family’s annual income of **$45,000** is below the $53,876.35 threshold → **income‑eligible**. |
-| 2 | **Child‑care hours** – At least an average of **25 hours per week** of child care is required for single‑parent families (or 50 hours for two‑parent families), or the parent must be engaged in job search or job training. | Doc 5 – Child‑Care Services Guide (D‑200/D‑201) | The question does not specify hours or job‑search status. If the family can provide the required 25 hours/week (or meet the job‑search criterion), the family would satisfy the hours requirement → **eligible**. If not, the family would **not** meet the full eligibility criteria. |
+| Eligibility requirement | Calculation | Result |
+|------------------------|-------------|--------|
+| **Income cap (85 % of the State Median Income)** | 85 % × SMI for a family of 3 ( $63,391 ) = **$53,831** | $45,000 ≤ $53,831 – *within limit* |
+| **Annual income eligibility limit for CCDF (2026)** | **$77,315** for a family of 3 (adult + 2 children) | $45,000 ≤ $77,315 – *within limit* |
 
-**Bottom line**
+Both criteria are satisfied, and the parent also meets the required child‑care hours (at least 25 hrs/week for a single‑parent family, as defined in D‑200).  
 
-- **Income‑wise:** The family’s $45,000 income is below the 85 % SMI limit for a family of three in FY 2023, so they **qualify** on the income side.  
-- **Hours‑wise:** They must also meet the 25‑hour/week requirement (or be in active job search/job training) to be fully eligible for Texas childcare assistance. If that requirement is met, the family would qualify for assistance; if not, they would not.  
+**Citations**  
+- Income limit: *Texas Child Care Development Fund (CCDF) 2026* table, “Annual” column for family size 3 – $77,315 [Doc 2].  
+- 85 % SMI threshold: *Child Care Services Guide* D‑200, 85 % of the SMI for a family of 3 – $53,831 [Doc 5].  
+- SMI figure: *Child Care Workforce Strategic Plan* (FY 2023) – $63,391 for a family of 3 [Doc 3].
 
-*I don’t have information on whether the family meets the 25‑hour/week child‑care requirement.*
-
-(Response time: 6.43s)
+(Response time: 6.57s)
+Sources: 3 chunks
 ----------------------------------------
 
 Success Criteria:
@@ -563,43 +546,36 @@ Thread ID: test_test_8
 What happens after I submit my CCS application?
 
 [Turn 1] Assistant:
-After you submit a Texas Child Care Services (CCS) application, the following sequence of actions takes place:
+After you submit your Child Care Services (CCS) application, the following steps occur:
 
-1. **Receipt and initial review** – The local Workforce Development Board (WDB) and its child‑care contractor receive your completed enrollment application (online or paper) and any required supporting documents.  
-   *Cited: [Doc 1, Page 0] – “When will I find out if I am eligible?” and the 20‑day timeline.*
+1. **Eligibility verification** – Your local Workforce Development Board (with its child‑care contractor) reviews your completed application and all supporting documents. This verification must be completed within **20 calendar days** of receiving your application.  
+   *[Doc 3]*
 
-2. **Verification of eligibility** – Within 20 calendar days of receiving the complete application, the WDB verifies all eligibility criteria.  
-   *Cited: [Doc 2, Page 113] – “Boards must ensure that verification of eligibility is completed within 20 calendar days.”*
+2. **Outcome notification** –  
+   * **If you are not eligible**, the Board issues an ineligibility determination through the child‑care case management system and the process ends.  
+   * **If you are eligible**, the Board issues a Notice of Eligibility from the case‑management system.  
+   *[Doc 2]*
 
-3. **Issuance of a determination** –  
-   * If you **are not eligible**, the Board issues a written determination of ineligibility and the process ends.  
-   * If you **are eligible**, the Board issues an eligibility notification (a Notice of Eligibility) that authorizes you to use CCS benefits.  
-   *Cited: [Doc 2, Page 113] – “If not eligible, Board issues determination … If eligible, Board issues eligibility notification.”*
+3. **Provider selection and program start** – Once you receive the Notice of Eligibility, you select a qualified provider. After you and the provider finalize the contract, your 12‑month CCS service period begins.  
+   *[Doc 2]*  
 
-4. **Selection of a provider and service start** – Once you have received the eligibility notification, you select an approved childcare provider. The selected provider then schedules you for services, and the first 12‑month period of subsidized childcare begins.  
-   *Cited: [Doc 2, Page 113] – “Customer selects provider and 12 months of services begins.”*
+In short: after submission, the Board verifies your application within 20 days, informs you of your eligibility status, and if eligible, you can then choose a provider and begin receiving childcare assistance.
 
-5. **Ongoing compliance** – You must continue to provide any requested documentation for the next 12‑month redetermination period; otherwise, services can be denied or terminated.  
-   *Cited: [Doc 4, Page 124] – “A parent’s failure to submit eligibility documentation will result in denial of CCS or termination of services.”*
-
-In summary, after submitting your application, the local WDB will verify your eligibility within 20 days, issue a determination, and if you qualify, you will select a provider and begin receiving subsidized childcare services.
-
-(Response time: 5.17s)
+(Response time: 5.4s)
+Sources: 2 chunks
 ----------------------------------------
 
 [Turn 2] User:
 How long does that take?
 
 [Turn 2] Reformulated:
-How long does it take to process a Texas Child Care Services (CCS) application after submission?
+How long does the eligibility verification and outcome notification process take after I submit a Child Care Services (CCS) application?
 
 [Turn 2] Assistant:
-The Texas Workforce Commission (TWC) requires that a local Workforce Development Board verify a child‑care application and issue a Notice of Eligibility within **20 calendar days** of receiving the completed enrollment application and all required supporting documents. This timeline applies to both first‑time and re‑application or recertification cases.  
+The local Workforce Development Board must complete the eligibility verification within **20 calendar days** of receiving your completed application. After that verification, the Board issues the outcome notification (notice of eligibility or ineligibility).  
+[Doc 1] [Doc 2]
 
-- [Doc 1] states, “You will hear from us if you are eligible within 20 calendar days from when we received all your documents.”  
-- [Doc 2] confirms that Boards must complete verification “within 20 calendar days of receipt of the completed Enrollment Application for CCS.”
-
-(Response time: 5.4s)
+(Response time: 5.52s)
 Sources: 2 chunks
 ----------------------------------------
 
@@ -607,43 +583,54 @@ Sources: 2 chunks
 What if they need more documents from me?
 
 [Turn 3] Reformulated:
-What if the local Workforce Development Board needs additional documents from me after I submit my CCS application?
+What if the local Workforce Development Board requires additional documents from me?
 
 [Turn 3] Assistant:
-If a local Workforce Development Board (the child‑care **Board**) determines that your Child Care Services (CCS) application is missing information, it will formally request the additional documents. Here’s what happens next and what you need to do:
+If a local Workforce Development Board (the “Board”) asks you to submit additional paperwork, you should provide the documents the Board has indicated are acceptable for verifying the requested data.  
+The Board’s procedure is:
 
-| Step | What the Board Does | What You Must Do | Timeframe | Key Doc(s) |
-|------|---------------------|------------------|-----------|-----------|
-| **1. Request** | The Board sends you a written request for the missing documentation. | Receive the request and review what is needed. | Within the 12‑month eligibility redetermination period. | [Doc 1, Page 81] |
-| **2. Submit** | You provide the requested documents (e.g., proof of identity, income statements, etc.). | Submit the documents either online, by mail, or in person, following the methods outlined in the application instructions. | As soon as possible; the Board will not issue a Notice of Eligibility until all required documents are received. | [Doc 2, Page 114] |
-| **3. Verification** | The Board verifies the documentation and ensures that your eligibility criteria are met. | If your identity information (SSN, name, DOB, gender) is incorrect, the Board may ask for proof from the list of acceptable documents (passport, driver’s license, birth certificate, etc.). | Verification must be completed within 20 calendar days of receiving the completed application. | [Doc 3, Page 80] |
-| **4. Decision** | If all documents are accepted, the Board issues a Notice of Eligibility. If you fail to provide the needed documents, the Board may determine you are ineligible for CCS. | If you do not submit the documents, you risk an ineligibility determination. | No specific deadline beyond the 20‑day verification window; however, missing documents can lead to ineligibility. | [Doc 1, Page 81] |
-| **5. Fraud fact‑finding (if needed)** | If the Board suspects misuse of an SSN or identity data, it can initiate fraud fact‑finding during the 12‑month eligibility period or during the redetermination period and must report it to TWC’s Office of Investigations. | Provide any additional evidence if requested. | Within five business days of discovering the discrepancy. | [Doc 1, Page 81] |
+1. **Request for documentation** – The Board will ask you to supply proof of the correct SSN, name, date‑of‑birth, or gender (or any other missing or incorrect information) using one of the documents listed in the Child Care Services Guide.  
+2. **Submit acceptable identity documents** – You may provide any of the following (the list is not exhaustive; other “government‑issued identification” may be accepted as well):  
+   * U.S. passport*  
+   * State driver’s license*  
+   * Government‑issued ID card*  
+   * School ID card*  
+   * Birth certificate  
+   * Military or U.S. Coast Guard ID*  
+   * Tribal document/card*  
+   * Adoption papers or records*  
+   * Employee ID card*  
+   * Signed Medicaid application*  
+   * Other documents such as TANF, SNAP, or foreign passport* (see [Doc 1] and [Doc 2]).
 
-**Bottom line:** After you submit your CCS application, the Board will let you know if anything is missing. You must submit the additional documents promptly; otherwise, the Board can withhold a Notice of Eligibility or even determine you are ineligible. Make sure the documents you provide match the acceptable identity documents listed in the Guide.
+3. **Verification and system update** – Upon receipt, the Board verifies the documents, corrects the case‑management record, and enters the new data into the system.  
+4. **If you do not respond** – The Board must still ensure the documentation is requested and submitted by you during the 12‑month eligibility redetermination process. They may also initiate fraud fact‑finding during this period if the discrepancy persists (see [Doc 3]).
 
-(Response time: 6.39s)
+So, simply provide one of the acceptable documents listed above, and the Board will verify and update your records accordingly. If you fail to submit the requested documents, the Board may take additional steps as described.
+
+(Response time: 6.1s)
+Sources: 3 chunks
 ----------------------------------------
 
 [Turn 4] User:
 And after that?
 
 [Turn 4] Reformulated:
-What happens after I submit the additional documents requested for my CCS application?
+What happens after I submit the additional documents requested by the local Workforce Development Board?
 
 [Turn 4] Assistant:
-After you send the extra documents that the Board asked for, the local child‑care Board will:
+After you send the additional paperwork that the local Workforce Development Board (the “Board”) requested, the Board will review that documentation as part of the eligibility‑verification process.  
 
-1. **Verify the documents** – they check that what you sent meets the eligibility criteria.  
-2. **Complete the eligibility determination** – the Board must make a determination within 20 calendar days of receiving the completed application and all required documents [Doc 2].  
-3. **Issue a result** –  
-   * If you meet the eligibility rules, the Board sends you a **Notice of Eligibility** from the case‑management system.  
-   * If you do not meet the criteria, the Board issues a **determinination of ineligibility** and the process ends [Doc 3].  
+1. **Verification of the supplied documents** – The Board must complete the eligibility verification within 20 calendar days of receiving your full application and any additional documents. The verification includes checking that the documents meet the Board’s acceptable‑document list and that they support the eligibility criteria you meet. [Doc 2]
 
-4. **Proceed to provider selection** – once you have a Notice of Eligibility, you choose a licensed provider and the 12‑month Child Care Services period begins [Doc 3].
+2. **Issuing the outcome notice** – Once the Board finishes verification, it issues a Notice of Eligibility if you meet all requirements, or a Notice of Ineligibility if any required document is still missing or if you do not meet the eligibility thresholds. The Notice is the formal determination of whether you will receive Child Care Services (CCS). [Doc 2]
 
-(Response time: 5.99s)
-Sources: 2 chunks
+3. **Follow‑up actions** – If your eligibility is denied, the Board may notify you of the specific reasons and give you the opportunity to correct any issues. If the Board identifies any potential fraud (e.g., multiple uses of an SSN) during the review, it may initiate fraud‑fact‑finding and report the incident to the TWC Office of Investigations within five business days. [Doc 1]
+
+4. **Continuity of service** – If you are found eligible, the Board will coordinate with the child‑care contractor to authorize and begin your CCS subsidy, and you can then enroll with a provider. If you are ineligible, the Board will provide information on how to appeal or seek assistance through other programs. [Doc 3]
+
+(Response time: 6.32s)
+Sources: 3 chunks
 ----------------------------------------
 
 Success Criteria:

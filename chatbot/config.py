@@ -92,3 +92,7 @@ OPENAI_AGENT_MODEL = os.getenv('OPENAI_AGENT_MODEL', 'gpt-5-nano')
 # When True (default): Enables conversation memory with query reformulation
 # When False: Uses LangGraph with stateless behavior (no memory between turns)
 CONVERSATIONAL_MODE = os.getenv("CONVERSATIONAL_MODE", "true").lower() == "true"
+
+# Generator history injection for multi-hop reasoning
+# Number of recent Q&A pairs to inject into generator prompt for entity reference resolution
+GENERATOR_HISTORY_TURNS = 3

@@ -1,8 +1,53 @@
 """Generation node for LangGraph RAG pipeline"""
 
 import re
+from langchain_core.messages import HumanMessage, AIMessage
 from ... import config
 from ...generator import ResponseGenerator
+
+
+def _format_recent_history(messages: list, max_turns: int) -> str:
+    """Format last N Q&A pairs from conversation history.
+
+    Extracts the most recent Q&A pairs (excluding the current query) for
+    entity reference resolution and multi-hop reasoning.
+
+    Args:
+        messages: List of LangChain message objects (HumanMessage, AIMessage)
+        max_turns: Maximum number of Q&A pairs to include
+
+    Returns:
+        Formatted string of recent Q&A pairs, or empty string if no history
+    """
+    if not messages or len(messages) < 2:
+        return ""
+
+    # Skip the last message (current query) and work backwards
+    # We want completed Q&A pairs only
+    history_messages = messages[:-1]
+
+    # Extract pairs: we need HumanMessage followed by AIMessage
+    pairs = []
+    i = 0
+    while i < len(history_messages) - 1:
+        if isinstance(history_messages[i], HumanMessage) and isinstance(history_messages[i + 1], AIMessage):
+            human_content = history_messages[i].content
+            ai_content = history_messages[i + 1].content
+            # Truncate long responses to avoid token bloat
+            if len(ai_content) > 500:
+                ai_content = ai_content[:500] + "..."
+            pairs.append(f"Q: {human_content}\nA: {ai_content}")
+            i += 2
+        else:
+            i += 1
+
+    if not pairs:
+        return ""
+
+    # Take last N pairs
+    recent_pairs = pairs[-max_turns:]
+
+    return "\n\n".join(recent_pairs)
 
 
 def generate_node(state: dict) -> dict:
@@ -47,8 +92,18 @@ def generate_node(state: dict) -> dict:
 
     print(f"[Generate Node] Generating answer with {model}")
 
+    # Extract recent history for conversational mode (for multi-hop reasoning)
+    recent_history = None
+    if "messages" in state and state["messages"]:
+        recent_history = _format_recent_history(
+            state["messages"],
+            config.GENERATOR_HISTORY_TURNS
+        )
+        if recent_history:
+            print(f"[Generate Node] Injecting {len(recent_history)} chars of conversation history")
+
     # Generate response
-    result = generator.generate(query, reranked_chunks)
+    result = generator.generate(query, reranked_chunks, recent_history=recent_history)
     answer = result['answer']
 
     # Extract cited sources (same logic as RAGHandler._extract_cited_sources)

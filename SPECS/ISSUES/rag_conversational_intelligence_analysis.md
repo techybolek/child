@@ -56,33 +56,57 @@ Strong coreference resolution throughout 4-turn process sequence.
 
 ## Remaining Issue: Multi-Hop Reasoning (95 → 75) ⬇️ REGRESSED
 
-### The Specific Failure: Test 2, Turn 3
+### The Specific Failure: Test 2 & Test 2b, Turn 3
 
-| Turn | User Query | Reformulated | Response |
-|------|------------|--------------|----------|
-| 1 | "What percentage of SMI determines eligibility?" | (unchanged) | **85%** ✅ |
-| 2 | "What is the current SMI for family of 4?" | (unchanged) | **$92,041** ✅ |
-| 3 | "Based on what you told me, calculate the exact income cutoff" | (unchanged) | **"I don't have enough information"** ❌ |
-| 4 | "If family of 4 makes $4,500/month, do they qualify?" | Reformulated well | **Yes** ✅ |
+**Test 2b** was added to isolate whether the phrase "based on what you told me" caused the failure.
+
+| Test | Turn 3 Query | Reformulated | Response | Result |
+|------|--------------|--------------|----------|--------|
+| **test_2** | "Based on what you told me, calculate the exact income cutoff for that family." | (unchanged) | "I don't have enough information... you would need to know the family's size" | ❌ Ignores prior context |
+| **test_2b** | "Calculate the exact income cutoff for that family." | (unchanged) | "The annual income eligibility limit for a **one-member family** is $47,862" | ❌ Wrong family size! |
+
+### Key Finding
+
+**Both tests fail, but for different reasons:**
+
+| Test | Failure Mode |
+|------|--------------|
+| test_2 | Claims insufficient information (ignores conversation history) |
+| test_2b | Retrieves data but **wrong family size** - returns family of 1 instead of family of 4 |
 
 ### Root Cause Analysis
 
-The reformulator doesn't inject prior **retrieved facts** into synthesis requests. It handles:
-- ✅ Anaphoric references ("it", "that", "back to my question")
-- ✅ Topic switching and return
-- ✅ Corrections ("I meant X")
-- ✅ Scenario modifications ("what if X")
-- ❌ **Computational synthesis** ("based on what you told me", "calculate from above")
+The issue is **NOT** the phrase "based on what you told me". Both phrasings fail.
 
-### Expected Behavior
+**test_2b reveals the real problem:**
+- The reformulator passed through "Calculate the exact income cutoff for that family" unchanged
+- **"that family"** should resolve to **"family of 4"** from Turn 2
+- Instead, retrieval grabbed data for family of 1 (first row in income table)
 
-Turn 3 should either:
-1. **Reformulate with context:** "Calculate 85% of $92,041 for a family of 4 income cutoff"
-2. **Or** the generator should synthesize: 85% × $92,041 = **$78,235**
+**The actual bug:** The reformulator doesn't resolve entity references like **"that family" → "family of 4"**
+
+### What Should Happen
+
+Turn 3 reformulation should be either:
+> "Calculate the exact income cutoff for a family of 4 based on 85% of $92,041 SMI"
+
+Or at minimum:
+> "Calculate the exact income cutoff for a family of 4"
+
+### Why Other Anaphoric References Work
+
+| Pattern | Example | Works? |
+|---------|---------|--------|
+| Topic return | "back to my application question" → "How do I apply for CCS?" | ✅ |
+| Corrections | "Sorry, I meant family of 6" → "income limits for family of 6" | ✅ |
+| Pronouns with clear referent | "What if she's also a student?" → "What if the single mom..." | ✅ |
+| **Entity reference to prior data** | "that family" → "family of 4" | ❌ |
+
+The reformulator handles **conversational anaphora** but not **data-level entity references** from prior retrieved facts.
 
 ### Why Turn 4 Recovered
 
-User rephrased with explicit numbers ("$4,500 per month"), triggering fresh retrieval that found the $7,670/month threshold directly in the documents.
+User rephrased with explicit numbers ("family of 4 makes $4,500 per month"), bypassing the need for coreference resolution.
 
 ---
 
@@ -183,49 +207,63 @@ User rephrased with explicit numbers ("$4,500 per month"), triggering fresh retr
 | Scenario updates ("what if X") | ❌ | ✅ | ✅ | Fixed |
 | Negation ("which don't") | ⚠️ | ⚠️ | ✅ | Fixed |
 | Elliptical follow-ups ("What if she's also...") | ⚠️ | ❌ | ✅ | Fixed |
-| **Implicit synthesis ("based on what you told me")** | ✅ | ❌ | ❌ | **Still broken** |
+| **Entity references ("that family" → "family of 4")** | ❌ | ❌ | ❌ | **Still broken** |
 
 ---
 
 ## Single Remaining Issue
 
-### Multi-Hop Synthesis Failure
+### Entity Reference Resolution Failure
 
-**Pattern:** "Based on what you told me, calculate X"
+**Pattern:** "that family", "those programs", "the cutoff" - references to data from prior turns
 
-**Problem:** The reformulator doesn't inject prior retrieved facts into computational synthesis requests.
+**Problem:** The reformulator doesn't resolve entity references that point to specific data values mentioned in prior assistant responses.
 
-**Example:**
-- Turn 1: "What percentage of SMI?" → 85%
-- Turn 2: "What is SMI for family of 4?" → $92,041
-- Turn 3: "Calculate the cutoff" → ❌ "I don't have enough information"
+**Example (test_2b):**
+- Turn 2: "What is SMI for **family of 4**?" → $92,041
+- Turn 3: "Calculate the exact income cutoff for **that family**"
+- Reformulated: (unchanged - "that family" not resolved)
+- Result: Retrieves data for family of 1 instead of family of 4 ❌
 
-**Expected:** Either reformulate to "Calculate 85% of $92,041" or generator synthesizes from conversation history.
+**Why test_2 and test_2b both fail:**
+
+| Test | Turn 3 | Failure Mode |
+|------|--------|--------------|
+| test_2 | "Based on what you told me, calculate..." | Generator claims insufficient info |
+| test_2b | "Calculate the exact income cutoff for that family" | Wrong family size retrieved (1 instead of 4) |
+
+**The phrase "based on what you told me" is not the cause** - test_2b proves the issue is unresolved "that family" reference.
 
 **Why this is hard:**
-- Reformulator only sees message history, not retrieved chunks
-- Generator has context but doesn't recognize synthesis request pattern
-- RAG pipeline is optimized for retrieval, not in-context reasoning
+- Reformulator handles conversational anaphora ("back to my question") but not data-level entity references
+- "that family" requires parsing prior Q&A to extract "family of 4"
+- Different from pronoun resolution - requires entity extraction from structured data in responses
 
 ---
 
 ## Potential Fixes
 
-### Option 1: Synthesis Detection in Reformulator
-Add heuristic to detect synthesis patterns:
-- "based on what you told me"
-- "calculate from above"
-- "using the numbers you mentioned"
+### Option 1: Entity Reference Resolution in Reformulator
+Enhance reformulator to resolve data-level entity references:
+- "that family" → extract family size from prior turns
+- "those programs" → extract program names from prior turns
+- "the cutoff" → extract specific values mentioned
 
-When detected, inject key facts from prior assistant messages into reformulated query.
+**Implementation:** Parse prior assistant messages for key entities (family size, income amounts, program names) and inject into reformulated query.
 
-### Option 2: Generator Prompt Enhancement
-Add instruction to generator: "If user asks to calculate or synthesize from prior conversation, use information from previous responses before retrieving new documents."
+### Option 2: Explicit Coreference Patterns
+Add heuristic patterns to reformulator prompt:
+- "that family" + prior mention of "family of N" → substitute "family of N"
+- "that amount" + prior mention of "$X" → substitute "$X"
+- "those programs" + prior list → substitute program names
 
-### Option 3: Hybrid Approach
-1. Detect synthesis request
-2. Skip retrieval
-3. Pass conversation history directly to generator with synthesis instruction
+### Option 3: Two-Pass Reformulation
+1. First pass: Resolve conversational anaphora (pronouns, topic references)
+2. Second pass: Resolve data-level entity references from conversation history
+
+### Option 4: Generator Context Injection
+Instead of fixing reformulator, inject prior Q&A pairs into generator prompt when calculation/synthesis keywords detected:
+- "calculate", "compute", "what is the cutoff", "apply the percentage"
 
 ---
 

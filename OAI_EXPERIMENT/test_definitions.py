@@ -26,6 +26,23 @@ TESTS = [
         ]
     },
     {
+        "id": "test_2b",
+        "name": "Multi-Hop Reasoning (Direct)",
+        "description": "Tests synthesis without explicit 'based on what you told me' phrase",
+        "turns": [
+            "What percentage of SMI determines income eligibility for childcare assistance?",
+            "What is the current SMI dollar amount for a family of 4?",
+            "Calculate the exact income cutoff for that family.",
+            "If a family of 4 makes $4,500 per month, do they qualify?",
+        ],
+        "success_criteria": [
+            "Retrieves SMI percentage from vector store",
+            "Retrieves SMI dollar amount for family of 4",
+            "Calculates cutoff by applying percentage to SMI (85% × $92,041 = $78,235)",
+            "Applies calculated cutoff to specific scenario and gives yes/no answer",
+        ]
+    },
+    {
         "id": "test_5",
         "name": "Topic Switch & Return",
         "description": "Tests context stack management when switching topics and returning",

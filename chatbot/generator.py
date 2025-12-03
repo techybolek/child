@@ -2,7 +2,7 @@ import re
 from openai import OpenAI
 from groq import Groq
 from . import config
-from .prompts import RESPONSE_GENERATION_PROMPT
+from .prompts import RESPONSE_GENERATION_PROMPT, CONVERSATIONAL_RESPONSE_PROMPT
 from .prompts.abbreviations import ABBREVIATIONS
 
 
@@ -24,14 +24,27 @@ class ResponseGenerator:
         else:
             self.client = OpenAI(api_key=api_key)
 
-    def generate(self, query: str, context_chunks: list):
-        """Generate response with citations"""
+    def generate(self, query: str, context_chunks: list, recent_history: str = None):
+        """Generate response with citations.
+
+        Args:
+            query: The user's question (reformulated if in conversational mode)
+            context_chunks: List of reranked chunks with text, filename, page, etc.
+            recent_history: Optional formatted conversation history for multi-hop reasoning
+        """
 
         # Format context with citations
         context = self._format_context(context_chunks)
 
-        # Build prompt
-        prompt = RESPONSE_GENERATION_PROMPT.format(context=context, query=query)
+        # Build prompt - use conversational prompt if history is provided
+        if recent_history:
+            prompt = CONVERSATIONAL_RESPONSE_PROMPT.format(
+                history=recent_history,
+                context=context,
+                query=query
+            )
+        else:
+            prompt = RESPONSE_GENERATION_PROMPT.format(context=context, query=query)
 
         # Use the model passed in constructor (required)
         model = self.model

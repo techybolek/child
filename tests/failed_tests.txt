@@ -1,0 +1,9 @@
+============================= short test summary info ==============================
+FAILED tests/test_backend_api.py::TestRetrievalMode::test_dense_mode_returns_200 - assert 500 == 200
+FAILED tests/test_backend_api.py::TestRetrievalMode::test_hybrid_mode_returns_200 - assert 500 == 200
+FAILED tests/test_conversational_scenarios.py::TestConversationalScenarios::test_psoc_payment_calculation - AssertionError: Context resolution too low: 25.0%
+FAILED tests/test_conversational_scenarios.py::TestConversationalScenarios::test_attendance_error_resolution - AssertionError: Context resolution too low: 0.0%
+FAILED tests/test_conversational_scenarios.py::TestConversationalScenarios::test_absence_policy - AssertionError: Context resolution too low: 0.0%
+FAILED tests/test_conversational_scenarios.py::TestConversationalScenarios::test_implicit_context_heavy - AssertionError: Context resolution too low for implicit context test: 25.0%
+FAILED tests/test_conversational_scenarios.py::TestScenarioAggregates::test_all_scenarios_average_context_resolution - AssertionError: Average context resolution 33.3% below 90% target
+============== 7 fail

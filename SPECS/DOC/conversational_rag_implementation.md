@@ -336,8 +336,38 @@ tests/
 
 ---
 
+# Generator History Injection
+
+For multi-hop reasoning (e.g., "Calculate the income cutoff for that family"), the generator receives recent conversation history to resolve entity references.
+
+**Configuration:**
+```python
+# chatbot/config.py
+GENERATOR_HISTORY_TURNS = 3  # Number of Q&A pairs to inject
+```
+
+**Flow:**
+```
+Generate Node:
+  1. Extract last 3 Q&A pairs from state["messages"]
+  2. Format as: "Q: ... A: ..." (responses truncated to 500 chars)
+  3. Inject into CONVERSATIONAL_RESPONSE_PROMPT
+  4. Generator resolves "that family" → "family of 4" from history
+```
+
+**Example:**
+| Turn | Query | Resolution |
+|------|-------|------------|
+| 1 | "What is SMI for family of 4?" | ✓ $92,041 |
+| 2 | "Calculate the cutoff for that family" | Generator sees Turn 1 → resolves to family of 4 |
+
+See: `SPECS/DOC/generator_history_injection.md`
+
+---
+
 # Design References
 
 - Original spec: `SPECS/conversational_rag_design.md`
 - Prompts spec: `SPECS/conversational_prompts_design.md`
 - LangGraph pipeline: `SPECS/DOC/langgraph_conversational_pipeline.md`
+- Generator history injection: `SPECS/DOC/generator_history_injection.md`
