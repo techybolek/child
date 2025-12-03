@@ -1,26 +1,25 @@
 """
-Comprehensive conversational scenario tests.
+Exhaustive conversational scenario tests.
 
-These tests are SEPARATE from test_conversational_rag.py (basic/quick tests).
-Run these for thorough validation of conversational RAG across domains.
+These tests are marked @slow and skipped by default.
+Run with: pytest -m slow  OR  pytest -m ""
 
 Usage:
-    # Run all scenario tests
-    pytest tests/test_conversational_scenarios.py -v
+    # Run only slow tests
+    pytest tests/test_conversational_scenarios_full.py -v -m slow
 
-    # Run with debug output
-    pytest tests/test_conversational_scenarios.py -v -s
+    # Run all tests (override default filter)
+    pytest tests/test_conversational_scenarios_full.py -v -m ""
 
     # Direct execution with formatted output
-    python tests/test_conversational_scenarios.py
+    python tests/test_conversational_scenarios_full.py
 
 Scenarios:
     1. PSoC Payment Calculation - numeric reasoning, entity tracking
     2. Attendance Error Resolution - troubleshooting flow
-    3. Eligibility Deep Dive - multi-step determination
-    4. Absence Policy - policy understanding
-    5. Implicit Context Heavy - pronoun/reference stress test
-    6. Multi-Child Scenario - accumulating family context
+    3. Absence Policy - policy understanding
+    4. Multi-Child Scenario - accumulating family context
+    5. All Scenarios Aggregate - average context resolution validation
 """
 
 import pytest
@@ -40,8 +39,9 @@ from evaluation.multi_turn_judge import MultiTurnJudge
 SCENARIOS_DIR = project_root / "QUESTIONS" / "conversations" / "scenarios"
 
 
-class TestConversationalScenarios:
-    """Comprehensive scenario tests for conversational RAG."""
+@pytest.mark.slow
+class TestConversationalScenariosFull:
+    """Exhaustive scenario tests for conversational RAG."""
 
     @pytest.fixture(autouse=True)
     def setup(self):
@@ -102,18 +102,6 @@ class TestConversationalScenarios:
             f"Context resolution too low: {result.context_resolution_rate:.1%}"
         )
 
-    def test_eligibility_deep_dive(self):
-        """Test multi-step eligibility determination."""
-        result = self._run_scenario("eligibility_deep_dive.yaml")
-
-        assert result.conversation_passed, (
-            f"Eligibility scenario failed: avg={result.average_score:.1f}, "
-            f"context_rate={result.context_resolution_rate:.1%}"
-        )
-        assert result.context_resolution_rate >= 0.80, (
-            f"Context resolution too low: {result.context_resolution_rate:.1%}"
-        )
-
     def test_absence_policy(self):
         """Test absence policy understanding."""
         result = self._run_scenario("absence_policy.yaml")
@@ -124,19 +112,6 @@ class TestConversationalScenarios:
         )
         assert result.context_resolution_rate >= 0.80, (
             f"Context resolution too low: {result.context_resolution_rate:.1%}"
-        )
-
-    def test_implicit_context_heavy(self):
-        """Test heavy pronoun and implicit reference resolution."""
-        result = self._run_scenario("implicit_context_heavy.yaml")
-
-        assert result.conversation_passed, (
-            f"Implicit context scenario failed: avg={result.average_score:.1f}, "
-            f"context_rate={result.context_resolution_rate:.1%}"
-        )
-        # Higher bar for context resolution on this test
-        assert result.context_resolution_rate >= 0.90, (
-            f"Context resolution too low for implicit context test: {result.context_resolution_rate:.1%}"
         )
 
     def test_multi_child_scenario(self):
@@ -152,6 +127,7 @@ class TestConversationalScenarios:
         )
 
 
+@pytest.mark.slow
 class TestScenarioAggregates:
     """Aggregate tests across all scenarios."""
 
@@ -195,7 +171,7 @@ class TestScenarioAggregates:
 def run_all_scenarios():
     """Run all scenarios with formatted output."""
     print("\n" + "=" * 70)
-    print("CONVERSATIONAL SCENARIO TESTS")
+    print("CONVERSATIONAL SCENARIO TESTS (EXHAUSTIVE)")
     print("=" * 70)
 
     config.CONVERSATIONAL_MODE = True

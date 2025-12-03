@@ -1,11 +1,13 @@
 """
-End-to-end test for the evaluation framework.
+End-to-end test for the OpenAI Agent evaluation mode.
 
 Runs a minimal evaluation ONCE and validates all artifacts are created correctly.
 
 Usage:
-    pytest tests/test_evaluation_e2e.py -v
-    python tests/test_evaluation_e2e.py  # Direct execution
+    pytest tests/test_evaluation_e2e_openai.py -v
+    python tests/test_evaluation_e2e_openai.py  # Direct execution
+
+Note: OpenAI mode has higher latency (~5-8s per question) so timeout is extended.
 """
 
 import json
@@ -15,10 +17,11 @@ from pathlib import Path
 
 # Test configuration
 SANITY_QA_FILE = "test-sanity-qa.md"
-MODE = "hybrid"
-RUN_NAME = "TEST_BASIC"
+MODE = "openai"
+RUN_NAME = "TEST_OPENAI"
 MIN_EXPECTED_QUESTIONS = 3
 MIN_PASS_SCORE = 60.0
+TIMEOUT = 600  # Extended timeout for OpenAI's higher latency
 
 
 class EvaluationResult:
@@ -53,7 +56,7 @@ class EvaluationResult:
             cmd,
             capture_output=True,
             text=True,
-            timeout=300
+            timeout=TIMEOUT
         )
 
         self._has_run = True
@@ -215,7 +218,7 @@ def run_all_tests():
     ]
 
     print("=" * 70)
-    print("EVALUATION FRAMEWORK END-TO-END TEST")
+    print(f"EVALUATION FRAMEWORK END-TO-END TEST ({MODE.upper()} MODE)")
     print("=" * 70)
     print()
 
