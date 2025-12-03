@@ -2,6 +2,7 @@
 
 import asyncio
 import re
+import uuid
 
 from agents import Agent, FileSearchTool, ModelSettings, Runner, RunConfig, TResponseInputItem
 from openai.types.shared.reasoning import Reasoning
@@ -32,6 +33,9 @@ class OpenAIAgentHandler(BaseHandler):
                 reasoning=Reasoning(effort="low", summary="auto")
             )
         )
+
+        # Thread-scoped conversation storage
+        self._conversations: dict[str, list[TResponseInputItem]] = {}
 
     def _get_instructions(self, run_context, _agent) -> str:
         """Dynamic instructions with query injected"""
@@ -97,26 +101,33 @@ User query: {query}"""
 
         return answer, sources
 
-    async def _run_agent(self, query: str) -> dict:
+    async def _run_agent(self, query: str, thread_id: str | None = None) -> dict:
         """Run the agent asynchronously
 
         Args:
             query: User's question
+            thread_id: Optional thread ID for conversation continuity
 
         Returns:
-            Agent result dictionary with output_text
+            Agent result dictionary with output_text, thread_id, turn_count
         """
         # Create context object for dynamic instructions
         class QueryContext:
             def __init__(self, q: str):
                 self.query = q
 
-        conversation_history: list[TResponseInputItem] = [
-            {
-                "role": "user",
-                "content": [{"type": "input_text", "text": query}]
-            }
-        ]
+        # Generate thread_id if not provided
+        if thread_id is None:
+            thread_id = str(uuid.uuid4())
+
+        # Load existing conversation history or start fresh
+        conversation_history = self._conversations.get(thread_id, [])
+
+        # Add user message to history
+        conversation_history.append({
+            "role": "user",
+            "content": [{"type": "input_text", "text": query}]
+        })
 
         result = await Runner.run(
             self.agent,
@@ -125,21 +136,35 @@ User query: {query}"""
             context=QueryContext(query)
         )
 
-        return {"output_text": result.final_output_as(str)}
+        # Accumulate agent response into history (KEY for multi-turn)
+        conversation_history.extend([item.to_input_item() for item in result.new_items])
 
-    def handle(self, query: str, debug: bool = False) -> dict:
+        # Save updated history
+        self._conversations[thread_id] = conversation_history
+
+        # Count user turns
+        turn_count = sum(1 for item in conversation_history if item.get("role") == "user")
+
+        return {
+            "output_text": result.final_output_as(str),
+            "thread_id": thread_id,
+            "turn_count": turn_count
+        }
+
+    def handle(self, query: str, thread_id: str | None = None, debug: bool = False) -> dict:
         """Run OpenAI Agent pipeline
 
         Args:
             query: User's question
+            thread_id: Optional thread ID for conversation continuity
             debug: Whether to include debug information
 
         Returns:
-            Response dict with answer, sources, response_type, action_items
+            Response dict with answer, sources, response_type, action_items, thread_id, turn_count
         """
         try:
             # Run async workflow from sync context
-            result = asyncio.run(self._run_agent(query))
+            result = asyncio.run(self._run_agent(query, thread_id))
 
             # Parse structured response
             answer, sources = self._parse_response(result['output_text'])
@@ -148,7 +173,9 @@ User query: {query}"""
                 'answer': answer,
                 'sources': sources,
                 'response_type': 'information',
-                'action_items': []
+                'action_items': [],
+                'thread_id': result['thread_id'],
+                'turn_count': result['turn_count']
             }
 
             if debug:
@@ -167,3 +194,41 @@ User query: {query}"""
                 'response_type': 'error',
                 'action_items': []
             }
+
+    # --- Conversation management helpers ---
+
+    def new_conversation(self) -> str:
+        """Start a new conversation and return its thread_id"""
+        return str(uuid.uuid4())
+
+    def get_history(self, thread_id: str) -> list[dict]:
+        """Get conversation history in simplified format
+
+        Args:
+            thread_id: Thread ID to retrieve history for
+
+        Returns:
+            List of {role, content} dicts
+        """
+        history = self._conversations.get(thread_id, [])
+        result = []
+        for item in history:
+            role = item.get("role", "unknown")
+            content_list = item.get("content", [])
+            # Extract text content, handling various formats
+            if isinstance(content_list, list) and content_list:
+                first_content = content_list[0]
+                if isinstance(first_content, dict):
+                    text = first_content.get("text", "")
+                else:
+                    text = str(first_content)
+            elif isinstance(content_list, str):
+                text = content_list
+            else:
+                text = ""
+            result.append({"role": role, "content": text})
+        return result
+
+    def clear_conversation(self, thread_id: str) -> None:
+        """Clear conversation history for a thread"""
+        self._conversations.pop(thread_id, None)
