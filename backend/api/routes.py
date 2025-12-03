@@ -2,8 +2,10 @@
 API route definitions for Texas Childcare Chatbot
 """
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from datetime import datetime
 import uuid
+import json
 from typing import Dict, Any, List
 import os
 from groq import Groq
@@ -272,3 +274,86 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
                 "error_type": type(e).__name__
             }
         )
+
+
+@router.post("/chat/stream")
+async def chat_stream(request: ChatRequest):
+    """
+    Streaming chat endpoint - returns SSE stream of tokens
+
+    Args:
+        request: ChatRequest with question and optional session_id
+
+    Returns:
+        StreamingResponse with SSE events: 'token', 'done', or 'error'
+    """
+    import sys
+    from pathlib import Path
+
+    # Add parent directory to path to import chatbot module
+    parent_dir = Path(__file__).resolve().parent.parent.parent
+    sys.path.insert(0, str(parent_dir))
+    from chatbot.chatbot import TexasChildcareChatbot
+
+    # Log the incoming query
+    print(f"[Chat Stream] Query: {request.question}")
+
+    # Generate session ID if not provided
+    session_id = request.session_id or str(uuid.uuid4())
+
+    # Validate retrieval_mode if provided
+    if request.retrieval_mode and request.retrieval_mode not in ('dense', 'hybrid', 'kendra'):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid retrieval_mode. Must be: dense, hybrid, kendra"
+        )
+
+    def event_generator():
+        """Generate SSE events from chatbot streaming response."""
+        try:
+            # Get or create chatbot instance
+            if request.conversational_mode:
+                if session_id in _conversational_chatbots:
+                    chatbot = _conversational_chatbots[session_id]
+                    print(f"[Chat Stream] Reusing cached chatbot for session: {session_id}")
+                else:
+                    chatbot = TexasChildcareChatbot(
+                        llm_model=request.llm_model,
+                        reranker_model=request.reranker_model,
+                        intent_model=request.intent_model,
+                        provider=request.provider,
+                        retrieval_mode=request.retrieval_mode,
+                        conversational_mode=True
+                    )
+                    _conversational_chatbots[session_id] = chatbot
+                    print(f"[Chat Stream] Created new chatbot for session: {session_id}")
+            else:
+                chatbot = TexasChildcareChatbot(
+                    llm_model=request.llm_model,
+                    reranker_model=request.reranker_model,
+                    intent_model=request.intent_model,
+                    provider=request.provider,
+                    retrieval_mode=request.retrieval_mode,
+                    conversational_mode=False
+                )
+
+            # Stream response
+            for event_type, data in chatbot.ask_stream(request.question, thread_id=session_id):
+                # Format as SSE
+                event_data = json.dumps(data)
+                yield f"event: {event_type}\ndata: {event_data}\n\n"
+
+        except Exception as e:
+            print(f"[Chat Stream] Error: {str(e)}")
+            error_data = json.dumps({"message": str(e), "partial": True})
+            yield f"event: error\ndata: {error_data}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # Disable nginx buffering
+        }
+    )

@@ -13,9 +13,10 @@ import ReactMarkdown from 'react-markdown'
 
 interface MessageBubbleProps {
   message: Message
+  isStreaming?: boolean
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, isStreaming = false }: MessageBubbleProps) {
   const isUser = message.role === 'user'
 
   return (
@@ -62,6 +63,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               >
                 {message.content}
               </ReactMarkdown>
+              {isStreaming && (
+                <span className="inline-block w-2 h-4 ml-1 bg-gray-600 animate-pulse" />
+              )}
             </div>
           )}
 

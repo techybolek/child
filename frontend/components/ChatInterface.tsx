@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import { Message, ModelsResponse, RetrievalMode } from '@/lib/types'
-import { askQuestion, fetchAvailableModels } from '@/lib/api'
+import { askQuestion, askQuestionStream, fetchAvailableModels } from '@/lib/api'
 import { generateId } from '@/lib/utils'
 import { MessageList } from './MessageList'
 import { InputBar } from './InputBar'
@@ -33,6 +33,8 @@ export function ChatInterface() {
   })
   const [conversationalMode, setConversationalMode] = useState<boolean>(false)
   const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>('dense')
+  const [streamingMode, setStreamingMode] = useState<boolean>(false)
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
 
   // Fetch available models on mount and when provider changes
   useEffect(() => {
@@ -90,40 +92,99 @@ export function ChatInterface() {
     // Set loading state
     setIsLoading(true)
 
-    try {
-      // Call API with selected provider, models, retrieval mode, and conversational mode
-      const response = await askQuestion(
-        question,
-        sessionId,
-        {
-          provider: selectedProvider,
-          llm_model: selectedModels.generator || undefined,
-          reranker_model: selectedModels.reranker || undefined,
-          intent_model: selectedModels.classifier || undefined,
-          retrieval_mode: retrievalMode,
-        },
-        conversationalMode
-      )
+    const modelOptions = {
+      provider: selectedProvider,
+      llm_model: selectedModels.generator || undefined,
+      reranker_model: selectedModels.reranker || undefined,
+      intent_model: selectedModels.classifier || undefined,
+      retrieval_mode: retrievalMode,
+    }
 
-      // Add assistant message
+    if (streamingMode) {
+      // Streaming mode
+      const assistantMessageId = generateId()
+      setStreamingMessageId(assistantMessageId)
+
+      // Add empty assistant message that will be updated with streamed tokens
       const assistantMessage: Message = {
-        id: generateId(),
+        id: assistantMessageId,
         role: 'assistant',
-        content: response.answer,
-        sources: response.sources,
-        action_items: response.action_items,
-        response_type: response.response_type,
-        timestamp: response.timestamp,
-        processing_time: response.processing_time,
+        content: '',
+        timestamp: new Date().toISOString(),
       }
       setMessages((prev) => [...prev, assistantMessage])
-    } catch (err) {
-      // Set error state
-      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
-      setError(errorMessage)
-      console.error('Chat error:', err)
-    } finally {
-      setIsLoading(false)
+
+      await askQuestionStream(
+        question,
+        sessionId,
+        modelOptions,
+        conversationalMode,
+        // onToken
+        (token: string) => {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? { ...msg, content: msg.content + token }
+                : msg
+            )
+          )
+        },
+        // onDone
+        (response) => {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? {
+                    ...msg,
+                    content: response.answer,
+                    sources: response.sources,
+                    action_items: response.action_items,
+                    response_type: response.response_type,
+                    processing_time: response.processing_time,
+                  }
+                : msg
+            )
+          )
+          setIsLoading(false)
+          setStreamingMessageId(null)
+        },
+        // onError
+        (errorMsg: string) => {
+          setError(errorMsg)
+          setIsLoading(false)
+          setStreamingMessageId(null)
+        }
+      )
+    } else {
+      // Non-streaming mode
+      try {
+        const response = await askQuestion(
+          question,
+          sessionId,
+          modelOptions,
+          conversationalMode
+        )
+
+        // Add assistant message
+        const assistantMessage: Message = {
+          id: generateId(),
+          role: 'assistant',
+          content: response.answer,
+          sources: response.sources,
+          action_items: response.action_items,
+          response_type: response.response_type,
+          timestamp: response.timestamp,
+          processing_time: response.processing_time,
+        }
+        setMessages((prev) => [...prev, assistantMessage])
+      } catch (err) {
+        // Set error state
+        const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
+        setError(errorMessage)
+        console.error('Chat error:', err)
+      } finally {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -170,6 +231,8 @@ export function ChatInterface() {
               onRetrievalModeChange={setRetrievalMode}
               conversationalMode={conversationalMode}
               onConversationalModeChange={setConversationalMode}
+              streamingMode={streamingMode}
+              onStreamingModeChange={setStreamingMode}
             />
             {messages.length > 0 && (
               <button
@@ -197,7 +260,7 @@ export function ChatInterface() {
       )}
 
       {/* Messages */}
-      <MessageList messages={messages} isLoading={isLoading} />
+      <MessageList messages={messages} isLoading={isLoading} streamingMessageId={streamingMessageId} />
 
       {/* Input */}
       <InputBar onSubmit={handleSubmit} isLoading={isLoading} />

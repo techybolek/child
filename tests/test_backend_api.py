@@ -252,3 +252,123 @@ class TestResponseHeaders:
             json={"question": RELIABLE_QUESTION}
         )
         assert "x-process-time" in r.headers
+
+
+def parse_sse_events(response_text: str) -> list:
+    """Parse SSE events from response text."""
+    import json
+    events = []
+    current_event = {}
+    for line in response_text.split('\n'):
+        if line.startswith('event: '):
+            current_event['type'] = line[7:].strip()
+        elif line.startswith('data: '):
+            current_event['data'] = json.loads(line[6:])
+            events.append(current_event)
+            current_event = {}
+    return events
+
+
+class TestChatStreamEndpoint:
+    def test_stream_returns_200_with_sse_content_type(self, backend_server):
+        """Streaming endpoint should return SSE content type."""
+        r = requests.post(
+            f"{backend_server}/api/chat/stream",
+            json={"question": RELIABLE_QUESTION},
+            stream=True
+        )
+        assert r.status_code == 200
+        assert "text/event-stream" in r.headers.get("Content-Type", "")
+
+    def test_stream_yields_token_events(self, backend_server):
+        """Streaming should yield token events with content."""
+        r = requests.post(
+            f"{backend_server}/api/chat/stream",
+            json={"question": RELIABLE_QUESTION},
+            stream=True
+        )
+        assert r.status_code == 200
+
+        events = parse_sse_events(r.text)
+        token_events = [e for e in events if e.get('type') == 'token']
+
+        assert len(token_events) > 0, "Expected at least one token event"
+        for event in token_events:
+            assert 'content' in event['data'], "Token event should have content field"
+
+    def test_stream_yields_done_event_with_metadata(self, backend_server):
+        """Streaming should end with done event containing metadata."""
+        r = requests.post(
+            f"{backend_server}/api/chat/stream",
+            json={"question": RELIABLE_QUESTION},
+            stream=True
+        )
+        assert r.status_code == 200
+
+        events = parse_sse_events(r.text)
+        done_events = [e for e in events if e.get('type') == 'done']
+
+        assert len(done_events) == 1, "Expected exactly one done event"
+        done_data = done_events[0]['data']
+
+        assert 'answer' in done_data
+        assert 'sources' in done_data
+        assert 'response_type' in done_data
+        assert 'session_id' in done_data
+        assert 'processing_time' in done_data
+        assert done_data['processing_time'] > 0
+
+    def test_stream_session_id_preserved(self, backend_server):
+        """Session ID should be preserved in done event."""
+        r = requests.post(
+            f"{backend_server}/api/chat/stream",
+            json={"question": RELIABLE_QUESTION, "session_id": "stream-test-123"},
+            stream=True
+        )
+        assert r.status_code == 200
+
+        events = parse_sse_events(r.text)
+        done_events = [e for e in events if e.get('type') == 'done']
+
+        assert len(done_events) == 1
+        assert done_events[0]['data']['session_id'] == "stream-test-123"
+
+    def test_stream_conversational_mode_works(self, backend_server):
+        """Streaming with conversational mode should work."""
+        import uuid
+        session_id = f"stream-conv-test-{uuid.uuid4()}"
+
+        r = requests.post(
+            f"{backend_server}/api/chat/stream",
+            json={
+                "question": RELIABLE_QUESTION,
+                "session_id": session_id,
+                "conversational_mode": True
+            },
+            stream=True
+        )
+        assert r.status_code == 200
+
+        events = parse_sse_events(r.text)
+        done_events = [e for e in events if e.get('type') == 'done']
+
+        assert len(done_events) == 1, "Expected done event"
+        assert done_events[0]['data']['session_id'] == session_id
+
+    def test_stream_location_search_returns_done_immediately(self, backend_server):
+        """Location search should return done event without token streaming."""
+        r = requests.post(
+            f"{backend_server}/api/chat/stream",
+            json={"question": "where is the nearest daycare in Austin"},
+            stream=True
+        )
+        assert r.status_code == 200
+
+        events = parse_sse_events(r.text)
+        token_events = [e for e in events if e.get('type') == 'token']
+        done_events = [e for e in events if e.get('type') == 'done']
+
+        # Location search should skip token streaming
+        assert len(token_events) == 0, "Location search should not yield token events"
+        assert len(done_events) == 1, "Expected done event"
+        assert done_events[0]['data']['response_type'] == "location_search"

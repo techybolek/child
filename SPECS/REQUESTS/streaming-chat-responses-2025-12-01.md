@@ -99,8 +99,10 @@ data: {"message": "Response interrupted", "partial": true}
 
 ### Backend Components
 - **`ResponseGenerator.generate_stream()`**: New method using `stream=True` on LLM client
+- **`TexasChildcareChatbot.ask_stream()`**: New generator method yielding `(event_type, data)` tuples
 - **`/api/chat/stream` route**: FastAPI `StreamingResponse` with SSE formatting
-- **Streaming flow**: Bypass LangGraph graph execution, call retriever → reranker → streaming generator directly
+- **Streaming flow (stateless)**: Call classify → retrieve → rerank nodes directly, then stream generation
+- **Streaming flow (conversational)**: Run graph nodes up to rerank with checkpointer, stream generation, then finalize history by adding AIMessage to state
 
 ### Frontend Components
 - **Streaming toggle**: Checkbox/switch in UI to enable/disable streaming
@@ -141,13 +143,16 @@ data: {"message": "Response interrupted", "partial": true}
 
 ## Implementation Notes
 
-### Why Bypass LangGraph for Streaming?
-The current LangGraph pipeline returns complete responses from nodes. Rather than refactoring the graph for streaming support, the streaming endpoint will:
-1. Reuse existing components (classifier, retriever, reranker) directly
-2. Call a new `generate_stream()` method that yields tokens
-3. Keep the existing non-streaming LangGraph flow intact
+### Streaming with Conversational Mode
+For conversational mode, we must interact with the LangGraph checkpointer to preserve history. The approach is:
+1. Run graph nodes up to (but not including) generate: reformulate → classify → retrieve → rerank
+2. Stream generation separately via `generate_stream()`
+3. After streaming completes, manually add AIMessage to conversation history
 
-This is simpler for a prototype and avoids touching the working non-streaming path.
+This preserves query reformulation (e.g., "What about infants?" resolves correctly) while enabling token streaming.
+
+### Stateless Mode
+Simpler flow - call nodes directly without checkpointer involvement, then stream generation.
 
 ### SSE vs WebSocket
 - SSE is unidirectional (server → client) which is sufficient for this use case

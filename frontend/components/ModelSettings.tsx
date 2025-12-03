@@ -31,6 +31,8 @@ interface ModelSettingsProps {
   onRetrievalModeChange: (mode: RetrievalMode) => void
   conversationalMode: boolean
   onConversationalModeChange: (enabled: boolean) => void
+  streamingMode: boolean
+  onStreamingModeChange: (enabled: boolean) => void
 }
 
 export function ModelSettings({
@@ -42,7 +44,9 @@ export function ModelSettings({
   retrievalMode,
   onRetrievalModeChange,
   conversationalMode,
-  onConversationalModeChange
+  onConversationalModeChange,
+  streamingMode,
+  onStreamingModeChange
 }: ModelSettingsProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -221,6 +225,30 @@ export function ModelSettings({
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                     conversationalMode ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Streaming Mode Toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-xs font-medium text-gray-700">
+                  Streaming Responses
+                </label>
+                <p className="text-xs text-gray-500">
+                  Show tokens as they generate
+                </p>
+              </div>
+              <button
+                onClick={() => onStreamingModeChange(!streamingMode)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  streamingMode ? 'bg-blue-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    streamingMode ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
               </button>

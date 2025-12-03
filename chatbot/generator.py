@@ -93,6 +93,59 @@ class ResponseGenerator:
                 'usage': None
             }
 
+    def generate_stream(self, query: str, context_chunks: list, recent_history: str = None):
+        """Generate response with streaming - yields tokens as they arrive.
+
+        Args:
+            query: The user's question (reformulated if in conversational mode)
+            context_chunks: List of reranked chunks with text, filename, page, etc.
+            recent_history: Optional formatted conversation history for multi-hop reasoning
+
+        Yields:
+            str: Individual tokens as they are generated
+        """
+        # Format context with citations
+        context = self._format_context(context_chunks)
+
+        # Build prompt - use conversational prompt if history is provided
+        if recent_history:
+            prompt = CONVERSATIONAL_RESPONSE_PROMPT.format(
+                history=recent_history,
+                context=context,
+                query=query
+            )
+        else:
+            prompt = RESPONSE_GENERATION_PROMPT.format(context=context, query=query)
+
+        model = self.model
+        print(f"[Generator] Streaming with model: {model}")
+
+        # Build API parameters
+        params = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0,
+            "seed": config.SEED,
+            "stream": True,
+        }
+
+        # Reasoning models use reasoning tokens which count against limit
+        if model.startswith('gpt-5') or model.startswith('openai/gpt-oss'):
+            params['max_completion_tokens'] = 5000
+        else:
+            params['max_tokens'] = 1000
+
+        try:
+            stream = self.client.chat.completions.create(**params)
+
+            for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+
+        except Exception as e:
+            print(f"[Generator] STREAM ERROR: {type(e).__name__}: {str(e)}")
+            yield f"\n\n[Error: {str(e)}]"
+
     def _format_context(self, chunks: list):
         """Format chunks with citation markers and injected contexts"""
         parts = []

@@ -13,9 +13,10 @@ import { LoadingIndicator } from './LoadingIndicator'
 interface MessageListProps {
   messages: Message[]
   isLoading: boolean
+  streamingMessageId?: string | null
 }
 
-export function MessageList({ messages, isLoading }: MessageListProps) {
+export function MessageList({ messages, isLoading, streamingMessageId }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Auto-scroll to bottom when new messages arrive
@@ -56,11 +57,15 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
 
         {/* Messages */}
         {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+          <MessageBubble
+            key={message.id}
+            message={message}
+            isStreaming={message.id === streamingMessageId}
+          />
         ))}
 
-        {/* Loading indicator */}
-        {isLoading && (
+        {/* Loading indicator - only show if not streaming */}
+        {isLoading && !streamingMessageId && (
           <div className="flex justify-start">
             <div className="max-w-[80%]">
               <div className="rounded-lg bg-gray-100 px-4 py-3">

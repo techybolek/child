@@ -86,3 +86,108 @@ export async function fetchAvailableModels(provider: string = 'groq'): Promise<M
   console.log('[API] Received models data:', data)
   return data
 }
+
+/**
+ * Stream chat response via SSE
+ *
+ * @param question - The question to ask
+ * @param sessionId - Optional session ID for conversation tracking
+ * @param models - Optional model selection, provider, and retrieval mode
+ * @param conversationalMode - Enable conversational memory
+ * @param onToken - Callback for each token received
+ * @param onDone - Callback when streaming completes with final response
+ * @param onError - Callback for errors
+ */
+export async function askQuestionStream(
+  question: string,
+  sessionId: string | undefined,
+  models: {
+    provider?: string
+    llm_model?: string
+    reranker_model?: string
+    intent_model?: string
+    retrieval_mode?: string
+  } | undefined,
+  conversationalMode: boolean | undefined,
+  onToken: (token: string) => void,
+  onDone: (response: ChatResponse) => void,
+  onError: (error: string) => void
+): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question,
+        session_id: sessionId,
+        ...models,
+        conversational_mode: conversationalMode,
+      } as ChatRequest),
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null)
+      const errorMessage = error?.detail?.message || error?.detail || 'Failed to get streaming response'
+      throw new Error(errorMessage)
+    }
+
+    const reader = response.body?.getReader()
+    if (!reader) {
+      throw new Error('No response body')
+    }
+
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+
+      // Parse SSE events from buffer
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || '' // Keep incomplete line in buffer
+
+      let eventType = ''
+      for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          eventType = line.slice(7).trim()
+        } else if (line.startsWith('data: ')) {
+          const data = line.slice(6)
+          try {
+            const parsed = JSON.parse(data)
+
+            if (eventType === 'token') {
+              onToken(parsed.content)
+            } else if (eventType === 'done') {
+              // Convert to ChatResponse format
+              const chatResponse: ChatResponse = {
+                answer: parsed.answer,
+                sources: parsed.sources.map((s: { doc: string; page: string; url: string }) => ({
+                  doc: s.doc,
+                  page: s.page,
+                  url: s.url,
+                })),
+                response_type: parsed.response_type,
+                action_items: parsed.action_items || [],
+                processing_time: parsed.processing_time,
+                session_id: parsed.session_id,
+                timestamp: new Date().toISOString(),
+              }
+              onDone(chatResponse)
+            } else if (eventType === 'error') {
+              onError(parsed.message)
+            }
+          } catch {
+            // Ignore JSON parse errors for incomplete data
+          }
+        }
+      }
+    }
+  } catch (error) {
+    onError(error instanceof Error ? error.message : 'Unknown error')
+  }
+}
