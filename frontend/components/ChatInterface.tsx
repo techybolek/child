@@ -31,9 +31,9 @@ export function ChatInterface() {
     reranker: null,
     classifier: null,
   })
-  const [conversationalMode, setConversationalMode] = useState<boolean>(false)
+  const [conversationalMode, setConversationalMode] = useState<boolean>(true)
   const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>('dense')
-  const [streamingMode, setStreamingMode] = useState<boolean>(false)
+  const [streamingMode, setStreamingMode] = useState<boolean>(true)
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
   const [chatMode, setChatMode] = useState<ChatMode>('rag_pipeline')
   const [openaiAgentModel, setOpenaiAgentModel] = useState<string>(OPENAI_AGENT_MODELS[2].id) // gpt-5-nano default
