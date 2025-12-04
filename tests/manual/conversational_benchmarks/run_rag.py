@@ -10,8 +10,8 @@ from pathlib import Path
 # Force conversational mode
 os.environ["CONVERSATIONAL_MODE"] = "true"
 
-# Add parent directory to path for chatbot imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add project root to path for chatbot imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from chatbot.chatbot import TexasChildcareChatbot
 from test_definitions import TESTS, save_results, write_report
@@ -83,8 +83,8 @@ def main():
         test_result = run_conversation(chatbot, test, thread_id)
         results["tests"].append(test_result)
 
-    json_path = save_results(results, "conversational_test_rag")
-    report_path = write_report(results, "conversational_test_rag", "Custom RAG (LangGraph + Qdrant)")
+    json_path = save_results(results, "rag")
+    report_path = write_report(results, "rag", "Custom RAG (LangGraph + Qdrant)")
 
     print(f"\n{'='*60}")
     print(f"Results saved to: {json_path}")

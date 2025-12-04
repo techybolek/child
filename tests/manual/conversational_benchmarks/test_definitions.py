@@ -4,6 +4,7 @@ Used by both OAI agent and Custom RAG test runners.
 """
 
 import json
+from datetime import datetime
 from pathlib import Path
 
 # Test definitions
@@ -38,7 +39,7 @@ TESTS = [
         "success_criteria": [
             "Retrieves SMI percentage from vector store",
             "Retrieves SMI dollar amount for family of 4",
-            "Calculates cutoff by applying percentage to SMI (85% × $92,041 = $78,235)",
+            "Calculates cutoff by applying percentage to SMI (85% x $92,041 = $78,235)",
             "Applies calculated cutoff to specific scenario and gives yes/no answer",
         ]
     },
@@ -136,17 +137,28 @@ TESTS = [
 ]
 
 
-def get_output_dir() -> Path:
-    """Get the test results output directory."""
-    output_dir = Path(__file__).parent / "test_results"
-    output_dir.mkdir(exist_ok=True)
+def get_output_dir(system: str) -> Path:
+    """Get timestamped output directory for a system.
+
+    Args:
+        system: 'rag' or 'openai'
+
+    Returns:
+        Path to results/conversational_benchmarks/{system}/RUN_{timestamp}/
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Navigate from tests/manual/conversational_benchmarks/ to project root
+    base = Path(__file__).parent.parent.parent.parent / "results" / "conversational_benchmarks"
+    output_dir = base / system / f"RUN_{timestamp}"
+    output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir
 
 
-def save_results(results: dict, prefix: str) -> Path:
+def save_results(results: dict, system: str) -> Path:
     """Save JSON results. Returns the output path."""
-    output_dir = get_output_dir()
-    output_file = output_dir / f"{prefix}.json"
+    output_dir = get_output_dir(system)
+    output_file = output_dir / "results.json"
 
     with open(output_file, "w") as f:
         json.dump(results, f, indent=2)
@@ -154,10 +166,11 @@ def save_results(results: dict, prefix: str) -> Path:
     return output_file
 
 
-def write_report(results: dict, prefix: str, system_name: str) -> Path:
+def write_report(results: dict, system: str, system_name: str) -> Path:
     """Write human-readable report. Returns the report path."""
-    output_dir = get_output_dir()
-    report_file = output_dir / f"{prefix}.txt"
+    # Use same directory as results.json (get from parent of results file)
+    output_dir = get_output_dir(system)
+    report_file = output_dir / "report.txt"
 
     with open(report_file, "w") as f:
         f.write(f"CONVERSATIONAL INTELLIGENCE TEST REPORT - {system_name.upper()}\n")
