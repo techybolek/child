@@ -88,6 +88,13 @@ KENDRA_TOP_K = 7
 OPENAI_VECTOR_STORE_ID = os.getenv('OPENAI_VECTOR_STORE_ID', 'vs_69210129c50c81919a906d0576237ff5')
 OPENAI_AGENT_MODEL = os.getenv('OPENAI_AGENT_MODEL', 'gpt-5-nano')
 
+# ===== VERTEX AI AGENT SETTINGS =====
+VERTEX_PROJECT_ID = os.getenv('VERTEX_PROJECT_ID', 'docker-app-20250605')
+VERTEX_LOCATION = os.getenv('VERTEX_LOCATION', 'us-west1')
+VERTEX_CORPUS_NAME = os.getenv('VERTEX_CORPUS_NAME', 'projects/112470053465/locations/us-west1/ragCorpora/2305843009213693952')
+VERTEX_AGENT_MODEL = os.getenv('VERTEX_AGENT_MODEL', 'gemini-2.5-flash')
+VERTEX_SIMILARITY_TOP_K = 10
+
 # ===== LANGGRAPH SETTINGS =====
 # When True (default): Enables conversation memory with query reformulation
 # When False: Uses LangGraph with stateless behavior (no memory between turns)

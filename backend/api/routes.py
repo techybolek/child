@@ -159,6 +159,25 @@ async def get_openai_agent_models() -> Dict[str, Any]:
     }
 
 
+@router.get("/models/vertex-agent")
+async def get_vertex_agent_models() -> Dict[str, Any]:
+    """
+    Get available models for Vertex AI Agent mode
+
+    Returns:
+        List of models available for Vertex Agent and the default
+    """
+    chatbot_config = _get_chatbot_config()
+    return {
+        "models": [
+            {"id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash"},
+            {"id": "gemini-2.5-pro", "name": "Gemini 2.5 Pro"},
+            {"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash"},
+        ],
+        "default": chatbot_config.VERTEX_AGENT_MODEL
+    }
+
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> Dict[str, Any]:
     """
@@ -203,6 +222,25 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
                 handler = OpenAIAgentHandler(model=request.openai_agent_model)
                 _conversational_chatbots[cache_key] = handler
                 print(f"[Chat] Created new OpenAI Agent for session: {session_id}")
+
+            result = await handler.handle_async(request.question, thread_id=session_id)
+            result['processing_time'] = round(time.time() - start_time, 2)
+
+        # --- Vertex AI Agent Mode ---
+        elif request.mode == 'vertex_agent':
+            from chatbot.handlers.vertex_agent_handler import VertexAgentHandler
+
+            start_time = time.time()
+
+            # Cache handler per session for conversation continuity
+            cache_key = f"vertex_{session_id}"
+            if cache_key in _conversational_chatbots:
+                handler = _conversational_chatbots[cache_key]
+                print(f"[Chat] Reusing cached Vertex Agent for session: {session_id}")
+            else:
+                handler = VertexAgentHandler(model=request.vertex_agent_model)
+                _conversational_chatbots[cache_key] = handler
+                print(f"[Chat] Created new Vertex Agent for session: {session_id}")
 
             result = await handler.handle_async(request.question, thread_id=session_id)
             result['processing_time'] = round(time.time() - start_time, 2)

@@ -6,7 +6,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Model, RetrievalMode, ChatMode, OPENAI_AGENT_MODELS } from '@/lib/types'
+import { Model, RetrievalMode, ChatMode, OPENAI_AGENT_MODELS, VERTEX_AGENT_MODELS } from '@/lib/types'
 
 interface ModelSettingsProps {
   availableModels: {
@@ -37,6 +37,8 @@ interface ModelSettingsProps {
   onChatModeChange: (mode: ChatMode) => void
   openaiAgentModel: string
   onOpenaiAgentModelChange: (model: string) => void
+  vertexAgentModel: string
+  onVertexAgentModelChange: (model: string) => void
 }
 
 export function ModelSettings({
@@ -54,14 +56,16 @@ export function ModelSettings({
   chatMode,
   onChatModeChange,
   openaiAgentModel,
-  onOpenaiAgentModelChange
+  onOpenaiAgentModelChange,
+  vertexAgentModel,
+  onVertexAgentModelChange
 }: ModelSettingsProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   console.log('[ModelSettings] Rendering with provider:', selectedProvider)
   console.log('[ModelSettings] Available models:', availableModels)
 
-  // For RAG Pipeline mode, we need availableModels. For OpenAI Agent mode, we don't.
+  // For RAG Pipeline mode, we need availableModels. For OpenAI/Vertex Agent modes, we don't.
   if (chatMode === 'rag_pipeline' && !availableModels) {
     return null
   }
@@ -119,7 +123,7 @@ export function ModelSettings({
               <div className="flex rounded-md border border-gray-300">
                 <button
                   onClick={() => onChatModeChange('rag_pipeline')}
-                  className={`flex-1 px-3 py-2 text-sm rounded-l-md ${
+                  className={`flex-1 px-2 py-2 text-xs rounded-l-md ${
                     chatMode === 'rag_pipeline'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -130,7 +134,7 @@ export function ModelSettings({
                 </button>
                 <button
                   onClick={() => onChatModeChange('openai_agent')}
-                  className={`flex-1 px-3 py-2 text-sm rounded-r-md ${
+                  className={`flex-1 px-2 py-2 text-xs ${
                     chatMode === 'openai_agent'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -139,11 +143,24 @@ export function ModelSettings({
                 >
                   OpenAI Agent
                 </button>
+                <button
+                  onClick={() => onChatModeChange('vertex_agent')}
+                  className={`flex-1 px-2 py-2 text-xs rounded-r-md ${
+                    chatMode === 'vertex_agent'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  title="Google Vertex AI with Gemini + RAG"
+                >
+                  Vertex Agent
+                </button>
               </div>
               <p className="mt-1 text-xs text-gray-500">
                 {chatMode === 'rag_pipeline'
                   ? 'Custom retrieval with hybrid search + reranking'
-                  : 'OpenAI Agents SDK with native FileSearch'}
+                  : chatMode === 'openai_agent'
+                    ? 'OpenAI Agents SDK with native FileSearch'
+                    : 'Google Vertex AI with Gemini + RAG'}
               </p>
             </div>
 
@@ -169,6 +186,33 @@ export function ModelSettings({
                 <div className="rounded-md bg-blue-50 p-2">
                   <p className="text-xs text-blue-700">
                     OpenAI Agent mode is always conversational and uses OpenAI&apos;s native FileSearch for retrieval.
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* Vertex Agent Settings */}
+            {chatMode === 'vertex_agent' && (
+              <>
+                <div className="border-t border-gray-200 pt-3">
+                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                    Gemini Model
+                  </label>
+                  <select
+                    value={vertexAgentModel}
+                    onChange={(e) => onVertexAgentModelChange(e.target.value)}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    {VERTEX_AGENT_MODELS.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="rounded-md bg-green-50 p-2">
+                  <p className="text-xs text-green-700">
+                    Vertex Agent mode is always conversational and uses Google&apos;s RAG retrieval with Gemini.
                   </p>
                 </div>
               </>

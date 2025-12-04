@@ -6,7 +6,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Message, ModelsResponse, RetrievalMode, ChatMode, OPENAI_AGENT_MODELS } from '@/lib/types'
+import { Message, ModelsResponse, RetrievalMode, ChatMode, OPENAI_AGENT_MODELS, VERTEX_AGENT_MODELS } from '@/lib/types'
 import { askQuestion, askQuestionStream, fetchAvailableModels } from '@/lib/api'
 import { generateId } from '@/lib/utils'
 import { MessageList } from './MessageList'
@@ -37,6 +37,7 @@ export function ChatInterface() {
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
   const [chatMode, setChatMode] = useState<ChatMode>('rag_pipeline')
   const [openaiAgentModel, setOpenaiAgentModel] = useState<string>(OPENAI_AGENT_MODELS[2].id) // gpt-5-nano default
+  const [vertexAgentModel, setVertexAgentModel] = useState<string>(VERTEX_AGENT_MODELS[0].id) // gemini-2.5-flash default
 
   // Fetch available models on mount and when provider changes
   useEffect(() => {
@@ -178,7 +179,8 @@ export function ChatInterface() {
           modelOptions,
           chatMode === 'rag_pipeline' ? conversationalMode : undefined,
           chatMode,
-          chatMode === 'openai_agent' ? openaiAgentModel : undefined
+          chatMode === 'openai_agent' ? openaiAgentModel : undefined,
+          chatMode === 'vertex_agent' ? vertexAgentModel : undefined
         )
 
         // Add assistant message
@@ -253,6 +255,8 @@ export function ChatInterface() {
               onChatModeChange={handleModeChange}
               openaiAgentModel={openaiAgentModel}
               onOpenaiAgentModelChange={setOpenaiAgentModel}
+              vertexAgentModel={vertexAgentModel}
+              onVertexAgentModelChange={setVertexAgentModel}
             />
             {messages.length > 0 && (
               <button

@@ -41,13 +41,17 @@ class ChatRequest(BaseModel):
         False,
         description="Enable conversational memory for multi-turn conversations"
     )
-    mode: Optional[Literal['rag_pipeline', 'openai_agent']] = Field(
+    mode: Optional[Literal['rag_pipeline', 'openai_agent', 'vertex_agent']] = Field(
         None,
-        description="Chat mode: 'rag_pipeline' (default) or 'openai_agent'"
+        description="Chat mode: 'rag_pipeline' (default), 'openai_agent', or 'vertex_agent'"
     )
     openai_agent_model: Optional[str] = Field(
         None,
         description="Model for OpenAI Agent mode (e.g., 'gpt-4o-mini', 'gpt-4o')"
+    )
+    vertex_agent_model: Optional[str] = Field(
+        None,
+        description="Model for Vertex Agent mode (e.g., 'gemini-2.5-flash', 'gemini-2.5-pro')"
     )
 
     model_config = {

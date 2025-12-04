@@ -13,8 +13,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
  * @param sessionId - Optional session ID for conversation tracking
  * @param models - Optional model selection, provider, and retrieval mode
  * @param conversationalMode - Enable conversational memory
- * @param mode - Chat mode: 'rag_pipeline' or 'openai_agent'
+ * @param mode - Chat mode: 'rag_pipeline', 'openai_agent', or 'vertex_agent'
  * @param openaiAgentModel - Model for OpenAI Agent mode
+ * @param vertexAgentModel - Model for Vertex Agent mode
  * @returns Promise with the chatbot response
  * @throws Error if the request fails
  */
@@ -30,7 +31,8 @@ export async function askQuestion(
   },
   conversationalMode?: boolean,
   mode?: ChatMode,
-  openaiAgentModel?: string
+  openaiAgentModel?: string,
+  vertexAgentModel?: string
 ): Promise<ChatResponse> {
   const response = await fetch(`${API_BASE_URL}/api/chat`, {
     method: 'POST',
@@ -44,6 +46,7 @@ export async function askQuestion(
       conversational_mode: conversationalMode,
       mode,
       openai_agent_model: openaiAgentModel,
+      vertex_agent_model: vertexAgentModel,
     } as ChatRequest),
   })
 
@@ -90,6 +93,26 @@ export async function fetchAvailableModels(provider: string = 'groq'): Promise<M
 
   const data = await response.json()
   console.log('[API] Received models data:', data)
+  return data
+}
+
+/**
+ * Fetch available models for Vertex Agent mode
+ *
+ * @returns Promise with available Vertex Agent models and default
+ * @throws Error if the request fails
+ */
+export async function fetchVertexAgentModels(): Promise<{ models: { id: string; name: string }[]; default: string }> {
+  console.log('[API] Fetching Vertex Agent models from:', `${API_BASE_URL}/api/models/vertex-agent`)
+  const response = await fetch(`${API_BASE_URL}/api/models/vertex-agent`)
+
+  if (!response.ok) {
+    console.error('[API] Failed to fetch Vertex Agent models, status:', response.status)
+    throw new Error('Failed to fetch Vertex Agent models')
+  }
+
+  const data = await response.json()
+  console.log('[API] Received Vertex Agent models data:', data)
   return data
 }
 

@@ -1,27 +1,43 @@
 """
-End-to-end test for the OpenAI Agent evaluation mode.
+End-to-end test for the Vertex AI Agent evaluation mode.
 
 Runs a minimal evaluation ONCE and validates all artifacts are created correctly.
 
 Usage:
-    pytest tests/test_evaluation_e2e_openai.py -v
-    python tests/test_evaluation_e2e_openai.py  # Direct execution
+    pytest tests/test_evaluation_e2e_vertex.py -v
+    python tests/test_evaluation_e2e_vertex.py  # Direct execution
 
-Note: OpenAI mode has higher latency (~5-8s per question) so timeout is extended.
+Note: Vertex AI mode has moderate latency (~3-8s per question) so timeout is extended.
 """
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 # Test configuration
 SANITY_QA_FILE = "test-sanity-qa.md"
-MODE = "openai"
-RUN_NAME = "TEST_OPENAI"
+MODE = "vertex"
+RUN_NAME = "TEST_VERTEX"
 MIN_EXPECTED_QUESTIONS = 3
-MIN_PASS_SCORE = 54.0
-TIMEOUT = 600  # Extended timeout for OpenAI's higher latency
+MIN_PASS_SCORE = 50.0  # Lower threshold for Vertex Agent (new evaluator)
+TIMEOUT = 600  # Extended timeout for API latency
+
+
+def vertex_configured():
+    """Check if Google Cloud credentials are configured.
+
+    Checks for:
+    1. GOOGLE_APPLICATION_CREDENTIALS env var (service account JSON)
+    2. Application Default Credentials (gcloud auth)
+    """
+    # Check explicit service account credentials
+    if os.getenv('GOOGLE_APPLICATION_CREDENTIALS'):
+        return True
+    # Check for ADC credentials (gcloud auth application-default login)
+    adc_path = Path.home() / ".config" / "gcloud" / "application_default_credentials.json"
+    return adc_path.exists()
 
 
 class EvaluationResult:
@@ -39,6 +55,13 @@ class EvaluationResult:
         if self._has_run:
             return self
 
+        # Skip if credentials not configured
+        if not vertex_configured():
+            self.process_result = None
+            self.run_dir = None
+            self._has_run = True
+            return self
+
         # Clear any existing checkpoint
         checkpoint_path = Path(f"results/{MODE}/checkpoint.json")
         if checkpoint_path.exists():
@@ -49,7 +72,8 @@ class EvaluationResult:
             "--mode", MODE,
             "--file", SANITY_QA_FILE,
             "--run-name", RUN_NAME,
-            "--clear-checkpoint"
+            "--clear-checkpoint",
+            "--no-stop-on-fail"  # Don't stop on low scores for E2E test
         ]
 
         self.process_result = subprocess.run(
@@ -83,6 +107,10 @@ def get_eval_result():
 
 def test_evaluation_completes_successfully():
     """Test that evaluation runs without errors."""
+    if not vertex_configured():
+        import pytest
+        pytest.skip("GOOGLE_APPLICATION_CREDENTIALS not configured")
+
     result = get_eval_result()
 
     assert result.process_result.returncode == 0, (
@@ -99,6 +127,10 @@ def test_evaluation_completes_successfully():
 
 def test_artifacts_created():
     """Test that all expected output files are created."""
+    if not vertex_configured():
+        import pytest
+        pytest.skip("GOOGLE_APPLICATION_CREDENTIALS not configured")
+
     result = get_eval_result()
     assert result.run_dir is not None, "No run directory found"
 
@@ -117,6 +149,10 @@ def test_artifacts_created():
 
 def test_detailed_results_format():
     """Test that detailed_results.jsonl has correct structure."""
+    if not vertex_configured():
+        import pytest
+        pytest.skip("GOOGLE_APPLICATION_CREDENTIALS not configured")
+
     result = get_eval_result()
     assert result.run_dir is not None, "No run directory found"
 
@@ -150,6 +186,10 @@ def test_detailed_results_format():
 
 def test_summary_statistics():
     """Test that evaluation_summary.json has valid statistics."""
+    if not vertex_configured():
+        import pytest
+        pytest.skip("GOOGLE_APPLICATION_CREDENTIALS not configured")
+
     result = get_eval_result()
     assert result.run_dir is not None, "No run directory found"
 
@@ -174,6 +214,10 @@ def test_summary_statistics():
 
 def test_pass_rate_acceptable():
     """Test that the sanity questions achieve minimum pass rate."""
+    if not vertex_configured():
+        import pytest
+        pytest.skip("GOOGLE_APPLICATION_CREDENTIALS not configured")
+
     result = get_eval_result()
     assert result.run_dir is not None, "No run directory found"
 
@@ -192,6 +236,10 @@ def test_pass_rate_acceptable():
 
 def test_no_checkpoint_left_on_success():
     """Test that checkpoint is cleared after successful completion."""
+    if not vertex_configured():
+        import pytest
+        pytest.skip("GOOGLE_APPLICATION_CREDENTIALS not configured")
+
     result = get_eval_result()
     assert result.process_result.returncode == 0, "Evaluation failed"
 
@@ -222,14 +270,18 @@ def run_all_tests():
     print("=" * 70)
     print()
 
+    if not vertex_configured():
+        print("SKIPPED: GOOGLE_APPLICATION_CREDENTIALS not configured")
+        return True
+
     # Run evaluation once upfront
     print("Running evaluation (once)...", flush=True)
     result = get_eval_result()
     if result.process_result.returncode == 0:
-        print(f"✓ Evaluation completed successfully")
+        print(f"  Evaluation completed successfully")
         print(f"  Run directory: {result.run_dir}")
     else:
-        print(f"✗ Evaluation failed")
+        print(f"  Evaluation failed")
         print(f"  STDERR: {result.process_result.stderr[:500]}")
     print()
 
@@ -240,14 +292,14 @@ def run_all_tests():
         try:
             print(f"Validating: {name}...", end=" ", flush=True)
             test_func()
-            print("✓ PASSED")
+            print("PASSED")
             passed += 1
         except AssertionError as e:
-            print(f"✗ FAILED")
+            print(f"FAILED")
             print(f"  Error: {e}")
             failed += 1
         except Exception as e:
-            print(f"✗ ERROR")
+            print(f"ERROR")
             print(f"  {type(e).__name__}: {e}")
             failed += 1
 

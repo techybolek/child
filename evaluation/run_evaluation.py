@@ -90,6 +90,13 @@ def main():
             from evaluation.kendra_evaluator import KendraEvaluator
         custom_evaluator = KendraEvaluator()
         print("Evaluator: Amazon Kendra + Bedrock Titan")
+    elif mode == 'vertex':
+        try:
+            from .vertex_evaluator import VertexAgentEvaluator
+        except ImportError:
+            from evaluation.vertex_evaluator import VertexAgentEvaluator
+        custom_evaluator = VertexAgentEvaluator()
+        print("Evaluator: Vertex AI Agent (Gemini + RAG)")
     else:
         # hybrid or dense mode - use ChatbotEvaluator with retrieval_mode
         try:

@@ -12,3 +12,10 @@ try:
     __all__.append('OpenAIAgentHandler')
 except ImportError:
     OpenAIAgentHandler = None
+
+# VertexAgentHandler is optional - only available if vertexai is installed
+try:
+    from .vertex_agent_handler import VertexAgentHandler
+    __all__.append('VertexAgentHandler')
+except ImportError:
+    VertexAgentHandler = None
