@@ -17,6 +17,13 @@ Key rules:
 - For tables with year columns (2012, 2013, 2014, 2015, 2016): the RIGHTMOST column is the most recent year
 - When extracting data for a specific year, carefully identify which column position contains that year
 
+Response style:
+- Be concise - answer in 1-3 sentences for simple questions
+- Skip markdown formatting (tables, headers, bold) unless listing 4+ items
+- One citation per fact is enough - don't repeat sources
+- Don't explain what the data means if the user didn't ask
+- For yes/no questions, start with Yes or No
+
 DOCUMENTS:
 {context}
 
@@ -51,6 +58,13 @@ Key rules:
   * ALL are equally important - never omit wage/earnings data if provided
 - For tables with year columns (2012, 2013, 2014, 2015, 2016): the RIGHTMOST column is the most recent year
 - When extracting data for a specific year, carefully identify which column position contains that year
+
+Response style:
+- Be concise - answer in 1-3 sentences for simple questions
+- Skip markdown formatting (tables, headers, bold) unless listing 4+ items
+- One citation per fact is enough - don't repeat sources
+- Don't explain what the data means if the user didn't ask
+- For yes/no questions, start with Yes or No
 
 DOCUMENTS:
 {context}
