@@ -82,6 +82,51 @@ class TestKendraInPipeline:
         assert len(result['answer']) > 10, "Answer too short"
         print(f"✓ retrieval_mode override works ({len(result['answer'])} chars)")
 
+    def test_kendra_skips_reranking(self):
+        """Verify reranking is skipped for Kendra mode (Kendra has built-in ranking)."""
+        from chatbot.chatbot import TexasChildcareChatbot
+
+        chatbot = TexasChildcareChatbot(retrieval_mode='kendra')
+        result = chatbot.ask("What is CCS?", debug=True)
+
+        assert 'answer' in result
+        debug_info = result.get('debug_info', {})
+
+        # Verify reranking was skipped
+        assert debug_info.get('reranker_skipped') is True, \
+            "Expected reranker to be skipped for Kendra mode"
+        assert 'built-in' in debug_info.get('reranker_skip_reason', '').lower(), \
+            "Expected skip reason to mention built-in ranking"
+
+        print("✓ Kendra correctly skips LLM reranking")
+
+    def test_kendra_with_conversational_mode(self):
+        """Verify Kendra works with conversational mode (reformulation + memory)."""
+        from chatbot.chatbot import TexasChildcareChatbot
+
+        chatbot = TexasChildcareChatbot(
+            retrieval_mode='kendra',
+            conversational_mode=True
+        )
+        thread_id = chatbot.new_conversation()
+
+        # Turn 1: Establish context
+        r1 = chatbot.ask("What is CCS?", thread_id=thread_id)
+        assert 'answer' in r1
+        assert r1['turn_count'] == 1
+
+        # Turn 2: Follow-up with pronoun
+        r2 = chatbot.ask("How do I apply for it?", thread_id=thread_id)
+        assert 'answer' in r2
+        assert r2['turn_count'] == 2
+
+        # Reformulated query should reference CCS
+        reformulated = r2.get('reformulated_query', '')
+        assert 'CCS' in reformulated or 'Child Care' in reformulated, \
+            f"Expected CCS in reformulated query, got: {reformulated}"
+
+        print("✓ Kendra + conversational mode works correctly")
+
 
 class TestRetrievalModeRouting:
     """Tests for retrieval mode routing in retrieve_node."""
@@ -130,6 +175,41 @@ class TestRetrievalModeRouting:
         assert 'retrieved_chunks' in result
         assert isinstance(result['retrieved_chunks'], list)
         print(f"✓ Kendra mode returned {len(result['retrieved_chunks'])} chunks")
+
+    def test_hybrid_does_not_skip_reranking(self):
+        """Verify reranking is NOT skipped for hybrid mode."""
+        from chatbot.chatbot import TexasChildcareChatbot
+
+        chatbot = TexasChildcareChatbot(retrieval_mode='hybrid')
+        result = chatbot.ask("What is CCS?", debug=True)
+
+        assert 'answer' in result
+        debug_info = result.get('debug_info', {})
+
+        # Verify reranking was NOT skipped
+        assert debug_info.get('reranker_skipped') is not True, \
+            "Reranking should NOT be skipped for hybrid mode"
+        # Should have reranker scores
+        assert 'reranker_scores' in debug_info or 'final_chunks' in debug_info, \
+            "Expected reranker output in debug info"
+
+        print("✓ Hybrid mode correctly applies LLM reranking")
+
+    def test_dense_does_not_skip_reranking(self):
+        """Verify reranking is NOT skipped for dense mode."""
+        from chatbot.chatbot import TexasChildcareChatbot
+
+        chatbot = TexasChildcareChatbot(retrieval_mode='dense')
+        result = chatbot.ask("What is CCS?", debug=True)
+
+        assert 'answer' in result
+        debug_info = result.get('debug_info', {})
+
+        # Verify reranking was NOT skipped
+        assert debug_info.get('reranker_skipped') is not True, \
+            "Reranking should NOT be skipped for dense mode"
+
+        print("✓ Dense mode correctly applies LLM reranking")
 
 
 if __name__ == "__main__":

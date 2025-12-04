@@ -1,19 +1,22 @@
-"""Kendra evaluator wrapper for evaluation framework"""
+"""Kendra evaluator using unified LangGraph pipeline"""
 
 import time
-from chatbot.handlers.kendra_handler import KendraHandler
+from chatbot.chatbot import TexasChildcareChatbot
 
 
 class KendraEvaluator:
-    """Evaluator that uses KendraHandler for retrieval and generation"""
+    """Evaluator that uses Kendra retrieval through LangGraph pipeline"""
 
     def __init__(self):
-        self.handler = KendraHandler()
+        self.chatbot = TexasChildcareChatbot(
+            retrieval_mode='kendra',
+            conversational_mode=False
+        )
 
     def query(self, question: str, debug: bool = False) -> dict:
-        """Query Kendra-based handler and return response with timing"""
+        """Query Kendra-based chatbot and return response with timing"""
         start_time = time.time()
-        response = self.handler.handle(question, debug=debug)
+        response = self.chatbot.ask(question, debug=debug)
         response_time = time.time() - start_time
 
         result = {
@@ -23,7 +26,6 @@ class KendraEvaluator:
             'response_time': response_time
         }
 
-        # Include debug info if present
         if debug and 'debug_info' in response:
             result['debug_info'] = response['debug_info']
 

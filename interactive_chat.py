@@ -6,15 +6,15 @@ import sys
 
 
 def get_handler(mode: str):
-    """Get appropriate handler based on mode"""
-    if mode == 'kendra':
-        from chatbot.handlers.kendra_handler import KendraHandler
-        return KendraHandler()
-    elif mode == 'openai':
+    """Get appropriate handler based on mode.
+
+    Only OpenAI mode uses a separate handler. All other modes (hybrid, dense, kendra)
+    use TexasChildcareChatbot with the appropriate retrieval_mode.
+    """
+    if mode == 'openai':
         from chatbot.handlers.openai_agent_handler import OpenAIAgentHandler
         return OpenAIAgentHandler()
     else:
-        # For hybrid/dense, use the standard chatbot which handles mode internally
         return None
 
 
@@ -35,11 +35,12 @@ def main():
     print("Initializing chatbot...")
 
     try:
-        if mode in ('kendra', 'openai'):
+        if mode == 'openai':
             handler = get_handler(mode)
             chatbot = None
         else:
-            chatbot = TexasChildcareChatbot()
+            # Use TexasChildcareChatbot for hybrid, dense, AND kendra
+            chatbot = TexasChildcareChatbot(retrieval_mode=mode)
             handler = None
     except Exception as e:
         print(f"Error initializing chatbot: {e}")

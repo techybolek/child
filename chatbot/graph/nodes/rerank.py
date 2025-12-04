@@ -11,6 +11,8 @@ def rerank_node(state: dict) -> dict:
     Uses reformulated_query if available (conversational mode),
     otherwise falls back to original query.
 
+    Skips reranking for Kendra mode (Kendra has built-in semantic ranking).
+
     Args:
         state: RAGState with 'query', optional 'reformulated_query', 'retrieved_chunks', and 'debug' fields
 
@@ -26,6 +28,30 @@ def rerank_node(state: dict) -> dict:
     if not retrieved_chunks:
         print("[Rerank Node] No chunks to rerank")
         return {"reranked_chunks": []}
+
+    # Skip reranking for Kendra - it has built-in semantic ranking
+    mode = state.get("retrieval_mode_override") or config.RETRIEVAL_MODE
+    if mode == 'kendra':
+        print(f"[Rerank Node] Skipping reranking for Kendra (built-in ranking)")
+        reranked_chunks = retrieved_chunks[:config.RERANK_TOP_K]
+        result = {"reranked_chunks": reranked_chunks}
+        if debug:
+            debug_info = state.get("debug_info") or {}
+            debug_info['reranker_skipped'] = True
+            debug_info['reranker_skip_reason'] = 'Kendra has built-in semantic ranking'
+            debug_info['final_chunks'] = [
+                {
+                    'doc': c.get('filename', ''),
+                    'page': c.get('page', ''),
+                    'text': c.get('text', ''),
+                    'source_url': c.get('source_url', ''),
+                    'final_score': c.get('score', 0)
+                }
+                for c in reranked_chunks
+            ]
+            result["debug_info"] = debug_info
+        print(f"[Rerank Node] Passed through {len(reranked_chunks)} chunks (Kendra ranking preserved)")
+        return result
 
     # Check for overrides in state, fall back to config
     provider = state.get("provider_override") or config.LLM_PROVIDER
