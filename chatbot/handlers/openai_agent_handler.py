@@ -14,10 +14,17 @@ from .. import config
 class OpenAIAgentHandler(BaseHandler):
     """Handles queries using OpenAI Agents SDK with FileSearchTool for RAG"""
 
-    def __init__(self):
-        """Initialize FileSearchTool and Agent"""
+    def __init__(self, model: str | None = None):
+        """Initialize FileSearchTool and Agent
+
+        Args:
+            model: Optional model override (defaults to config.OPENAI_AGENT_MODEL)
+        """
         if not config.OPENAI_VECTOR_STORE_ID:
             raise ValueError("OPENAI_VECTOR_STORE_ID environment variable is required")
+
+        # Use provided model or fall back to config
+        self.model = model or config.OPENAI_AGENT_MODEL
 
         self.file_search = FileSearchTool(
             vector_store_ids=[config.OPENAI_VECTOR_STORE_ID]
@@ -26,7 +33,7 @@ class OpenAIAgentHandler(BaseHandler):
         self.agent = Agent(
             name="Tx Childcare RAG",
             instructions=self._get_instructions,
-            model=config.OPENAI_AGENT_MODEL,
+            model=self.model,
             tools=[self.file_search],
             model_settings=ModelSettings(
                 store=True,
@@ -151,8 +158,52 @@ User query: {query}"""
             "turn_count": turn_count
         }
 
+    async def handle_async(self, query: str, thread_id: str | None = None, debug: bool = False) -> dict:
+        """Run OpenAI Agent pipeline (async version for FastAPI)
+
+        Args:
+            query: User's question
+            thread_id: Optional thread ID for conversation continuity
+            debug: Whether to include debug information
+
+        Returns:
+            Response dict with answer, sources, response_type, action_items, thread_id, turn_count
+        """
+        try:
+            # Run async workflow directly
+            result = await self._run_agent(query, thread_id)
+
+            # Parse structured response
+            answer, sources = self._parse_response(result['output_text'])
+
+            response = {
+                'answer': answer,
+                'sources': sources,
+                'response_type': 'information',
+                'action_items': [],
+                'thread_id': result['thread_id'],
+                'turn_count': result['turn_count']
+            }
+
+            if debug:
+                response['debug_info'] = {
+                    'raw_output': result['output_text'],
+                    'model': self.model,
+                    'vector_store_id': config.OPENAI_VECTOR_STORE_ID
+                }
+
+            return response
+
+        except Exception as e:
+            return {
+                'answer': f"I encountered an error processing your question. Please try again or call 1-800-862-5252 for assistance. Error: {str(e)}",
+                'sources': [],
+                'response_type': 'error',
+                'action_items': []
+            }
+
     def handle(self, query: str, thread_id: str | None = None, debug: bool = False) -> dict:
-        """Run OpenAI Agent pipeline
+        """Run OpenAI Agent pipeline (sync version - for CLI/evaluation use)
 
         Args:
             query: User's question
@@ -181,7 +232,7 @@ User query: {query}"""
             if debug:
                 response['debug_info'] = {
                     'raw_output': result['output_text'],
-                    'model': config.OPENAI_AGENT_MODEL,
+                    'model': self.model,
                     'vector_store_id': config.OPENAI_VECTOR_STORE_ID
                 }
 

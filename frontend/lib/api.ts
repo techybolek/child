@@ -2,7 +2,7 @@
  * API client for communicating with the FastAPI backend
  */
 
-import { ChatRequest, ChatResponse, HealthResponse, ModelsResponse } from './types'
+import { ChatRequest, ChatResponse, HealthResponse, ModelsResponse, ChatMode } from './types'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -13,6 +13,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
  * @param sessionId - Optional session ID for conversation tracking
  * @param models - Optional model selection, provider, and retrieval mode
  * @param conversationalMode - Enable conversational memory
+ * @param mode - Chat mode: 'rag_pipeline' or 'openai_agent'
+ * @param openaiAgentModel - Model for OpenAI Agent mode
  * @returns Promise with the chatbot response
  * @throws Error if the request fails
  */
@@ -26,7 +28,9 @@ export async function askQuestion(
     intent_model?: string
     retrieval_mode?: string
   },
-  conversationalMode?: boolean
+  conversationalMode?: boolean,
+  mode?: ChatMode,
+  openaiAgentModel?: string
 ): Promise<ChatResponse> {
   const response = await fetch(`${API_BASE_URL}/api/chat`, {
     method: 'POST',
@@ -38,6 +42,8 @@ export async function askQuestion(
       session_id: sessionId,
       ...models,
       conversational_mode: conversationalMode,
+      mode,
+      openai_agent_model: openaiAgentModel,
     } as ChatRequest),
   })
 

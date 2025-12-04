@@ -6,7 +6,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Message, ModelsResponse, RetrievalMode } from '@/lib/types'
+import { Message, ModelsResponse, RetrievalMode, ChatMode, OPENAI_AGENT_MODELS } from '@/lib/types'
 import { askQuestion, askQuestionStream, fetchAvailableModels } from '@/lib/api'
 import { generateId } from '@/lib/utils'
 import { MessageList } from './MessageList'
@@ -35,6 +35,8 @@ export function ChatInterface() {
   const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>('dense')
   const [streamingMode, setStreamingMode] = useState<boolean>(false)
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
+  const [chatMode, setChatMode] = useState<ChatMode>('rag_pipeline')
+  const [openaiAgentModel, setOpenaiAgentModel] = useState<string>(OPENAI_AGENT_MODELS[2].id) // gpt-5-nano default
 
   // Fetch available models on mount and when provider changes
   useEffect(() => {
@@ -73,6 +75,15 @@ export function ChatInterface() {
     }))
   }
 
+  const handleModeChange = (mode: ChatMode) => {
+    setChatMode(mode)
+    // Clear conversation and start fresh session on mode switch
+    setMessages([])
+    setError(null)
+    setLastQuestion('')
+    setSessionId(generateId())
+  }
+
   const handleSubmit = async (question: string) => {
     // Clear any previous errors
     setError(null)
@@ -92,15 +103,18 @@ export function ChatInterface() {
     // Set loading state
     setIsLoading(true)
 
-    const modelOptions = {
+    // For OpenAI Agent mode, we only need the model selection
+    // For RAG Pipeline mode, we need all the model options
+    const modelOptions = chatMode === 'rag_pipeline' ? {
       provider: selectedProvider,
       llm_model: selectedModels.generator || undefined,
       reranker_model: selectedModels.reranker || undefined,
       intent_model: selectedModels.classifier || undefined,
       retrieval_mode: retrievalMode,
-    }
+    } : {}
 
-    if (streamingMode) {
+    // OpenAI Agent mode doesn't support streaming
+    if (streamingMode && chatMode === 'rag_pipeline') {
       // Streaming mode
       const assistantMessageId = generateId()
       setStreamingMessageId(assistantMessageId)
@@ -156,13 +170,15 @@ export function ChatInterface() {
         }
       )
     } else {
-      // Non-streaming mode
+      // Non-streaming mode (or OpenAI Agent mode which doesn't support streaming)
       try {
         const response = await askQuestion(
           question,
           sessionId,
           modelOptions,
-          conversationalMode
+          chatMode === 'rag_pipeline' ? conversationalMode : undefined,
+          chatMode,
+          chatMode === 'openai_agent' ? openaiAgentModel : undefined
         )
 
         // Add assistant message
@@ -233,6 +249,10 @@ export function ChatInterface() {
               onConversationalModeChange={setConversationalMode}
               streamingMode={streamingMode}
               onStreamingModeChange={setStreamingMode}
+              chatMode={chatMode}
+              onChatModeChange={handleModeChange}
+              openaiAgentModel={openaiAgentModel}
+              onOpenaiAgentModelChange={setOpenaiAgentModel}
             />
             {messages.length > 0 && (
               <button

@@ -6,7 +6,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Model, RetrievalMode } from '@/lib/types'
+import { Model, RetrievalMode, ChatMode, OPENAI_AGENT_MODELS } from '@/lib/types'
 
 interface ModelSettingsProps {
   availableModels: {
@@ -33,6 +33,10 @@ interface ModelSettingsProps {
   onConversationalModeChange: (enabled: boolean) => void
   streamingMode: boolean
   onStreamingModeChange: (enabled: boolean) => void
+  chatMode: ChatMode
+  onChatModeChange: (mode: ChatMode) => void
+  openaiAgentModel: string
+  onOpenaiAgentModelChange: (model: string) => void
 }
 
 export function ModelSettings({
@@ -46,14 +50,19 @@ export function ModelSettings({
   conversationalMode,
   onConversationalModeChange,
   streamingMode,
-  onStreamingModeChange
+  onStreamingModeChange,
+  chatMode,
+  onChatModeChange,
+  openaiAgentModel,
+  onOpenaiAgentModelChange
 }: ModelSettingsProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   console.log('[ModelSettings] Rendering with provider:', selectedProvider)
   console.log('[ModelSettings] Available models:', availableModels)
 
-  if (!availableModels) {
+  // For RAG Pipeline mode, we need availableModels. For OpenAI Agent mode, we don't.
+  if (chatMode === 'rag_pipeline' && !availableModels) {
     return null
   }
 
@@ -102,169 +111,237 @@ export function ModelSettings({
           </div>
 
           <div className="space-y-3">
-            {/* Retrieval Mode selector */}
+            {/* Chat Mode selector */}
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-700">
-                Retrieval Mode
+                Chat Mode
               </label>
               <div className="flex rounded-md border border-gray-300">
-                {(['dense', 'hybrid', 'kendra'] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    onClick={() => onRetrievalModeChange(mode)}
-                    className={`flex-1 px-3 py-2 text-sm capitalize ${
-                      retrievalMode === mode
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    } ${mode === 'dense' ? 'rounded-l-md' : ''} ${mode === 'kendra' ? 'rounded-r-md' : ''}`}
-                    title={
-                      mode === 'dense'
-                        ? 'Semantic search using embeddings'
-                        : mode === 'hybrid'
-                          ? 'Combines semantic + keyword search'
-                          : 'AWS Kendra managed search'
-                    }
+                <button
+                  onClick={() => onChatModeChange('rag_pipeline')}
+                  className={`flex-1 px-3 py-2 text-sm rounded-l-md ${
+                    chatMode === 'rag_pipeline'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  title="Custom RAG pipeline with Qdrant + GROQ/OpenAI"
+                >
+                  RAG Pipeline
+                </button>
+                <button
+                  onClick={() => onChatModeChange('openai_agent')}
+                  className={`flex-1 px-3 py-2 text-sm rounded-r-md ${
+                    chatMode === 'openai_agent'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  title="OpenAI Agents SDK with FileSearchTool"
+                >
+                  OpenAI Agent
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                {chatMode === 'rag_pipeline'
+                  ? 'Custom retrieval with hybrid search + reranking'
+                  : 'OpenAI Agents SDK with native FileSearch'}
+              </p>
+            </div>
+
+            {/* OpenAI Agent Settings */}
+            {chatMode === 'openai_agent' && (
+              <>
+                <div className="border-t border-gray-200 pt-3">
+                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                    OpenAI Model
+                  </label>
+                  <select
+                    value={openaiAgentModel}
+                    onChange={(e) => onOpenaiAgentModelChange(e.target.value)}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
-                    {mode}
+                    {OPENAI_AGENT_MODELS.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="rounded-md bg-blue-50 p-2">
+                  <p className="text-xs text-blue-700">
+                    OpenAI Agent mode is always conversational and uses OpenAI&apos;s native FileSearch for retrieval.
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* RAG Pipeline Settings */}
+            {chatMode === 'rag_pipeline' && availableModels && (
+              <>
+                {/* Retrieval Mode selector */}
+                <div className="border-t border-gray-200 pt-3">
+                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                    Retrieval Mode
+                  </label>
+                  <div className="flex rounded-md border border-gray-300">
+                    {(['dense', 'hybrid', 'kendra'] as const).map((mode) => (
+                      <button
+                        key={mode}
+                        onClick={() => onRetrievalModeChange(mode)}
+                        className={`flex-1 px-3 py-2 text-sm capitalize ${
+                          retrievalMode === mode
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        } ${mode === 'dense' ? 'rounded-l-md' : ''} ${mode === 'kendra' ? 'rounded-r-md' : ''}`}
+                        title={
+                          mode === 'dense'
+                            ? 'Semantic search using embeddings'
+                            : mode === 'hybrid'
+                              ? 'Combines semantic + keyword search'
+                              : 'AWS Kendra managed search'
+                        }
+                      >
+                        {mode}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Provider selector */}
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                    Provider
+                  </label>
+                  <select
+                    value={selectedProvider}
+                    onChange={(e) => {
+                      console.log('[ModelSettings] Provider dropdown changed to:', e.target.value)
+                      onProviderChange(e.target.value)
+                    }}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="groq">Groq</option>
+                    <option value="openai">OpenAI</option>
+                  </select>
+                </div>
+
+                {/* Generator model */}
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                    Generator Model
+                  </label>
+                  <select
+                    value={selectedModels.generator || ''}
+                    onChange={(e) => onModelChange('generator', e.target.value || null)}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Default ({availableModels.defaults.generator})</option>
+                    {availableModels.generators.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Reranker model */}
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                    Reranker Model
+                  </label>
+                  <select
+                    value={selectedModels.reranker || ''}
+                    onChange={(e) => onModelChange('reranker', e.target.value || null)}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Default ({availableModels.defaults.reranker})</option>
+                    {availableModels.rerankers.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Intent classifier model */}
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                    Intent Classifier Model
+                  </label>
+                  <select
+                    value={selectedModels.classifier || ''}
+                    onChange={(e) => onModelChange('classifier', e.target.value || null)}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Default ({availableModels.defaults.classifier})</option>
+                    {availableModels.classifiers.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Conversational Mode Toggle */}
+                <div className="flex items-center justify-between border-t border-gray-200 pt-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">
+                      Conversational Memory
+                    </label>
+                    <p className="text-xs text-gray-500">
+                      Remember context across messages
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => onConversationalModeChange(!conversationalMode)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      conversationalMode ? 'bg-blue-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        conversationalMode ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
                   </button>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            {/* Provider selector */}
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                Provider
-              </label>
-              <select
-                value={selectedProvider}
-                onChange={(e) => {
-                  console.log('[ModelSettings] Provider dropdown changed to:', e.target.value)
-                  onProviderChange(e.target.value)
-                }}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="groq">Groq</option>
-                <option value="openai">OpenAI</option>
-              </select>
-            </div>
+                {/* Streaming Mode Toggle */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">
+                      Streaming Responses
+                    </label>
+                    <p className="text-xs text-gray-500">
+                      Show tokens as they generate
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => onStreamingModeChange(!streamingMode)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      streamingMode ? 'bg-blue-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        streamingMode ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
 
-            {/* Generator model */}
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                Generator Model
-              </label>
-              <select
-                value={selectedModels.generator || ''}
-                onChange={(e) => onModelChange('generator', e.target.value || null)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="">Default ({availableModels.defaults.generator})</option>
-                {availableModels.generators.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Reranker model */}
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                Reranker Model
-              </label>
-              <select
-                value={selectedModels.reranker || ''}
-                onChange={(e) => onModelChange('reranker', e.target.value || null)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="">Default ({availableModels.defaults.reranker})</option>
-                {availableModels.rerankers.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Intent classifier model */}
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                Intent Classifier Model
-              </label>
-              <select
-                value={selectedModels.classifier || ''}
-                onChange={(e) => onModelChange('classifier', e.target.value || null)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="">Default ({availableModels.defaults.classifier})</option>
-                {availableModels.classifiers.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Conversational Mode Toggle */}
-            <div className="flex items-center justify-between border-t border-gray-200 pt-3">
-              <div>
-                <label className="text-xs font-medium text-gray-700">
-                  Conversational Memory
-                </label>
-                <p className="text-xs text-gray-500">
-                  Remember context across messages
-                </p>
-              </div>
-              <button
-                onClick={() => onConversationalModeChange(!conversationalMode)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  conversationalMode ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    conversationalMode ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Streaming Mode Toggle */}
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-xs font-medium text-gray-700">
-                  Streaming Responses
-                </label>
-                <p className="text-xs text-gray-500">
-                  Show tokens as they generate
-                </p>
-              </div>
-              <button
-                onClick={() => onStreamingModeChange(!streamingMode)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  streamingMode ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    streamingMode ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Reset button */}
-            <button
-              onClick={() => {
-                onModelChange('generator', null)
-                onModelChange('reranker', null)
-                onModelChange('classifier', null)
-              }}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Reset to Defaults
-            </button>
+                {/* Reset button */}
+                <button
+                  onClick={() => {
+                    onModelChange('generator', null)
+                    onModelChange('reranker', null)
+                    onModelChange('classifier', null)
+                  }}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Reset to Defaults
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

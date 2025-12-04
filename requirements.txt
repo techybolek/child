@@ -31,3 +31,4 @@ openai-agents
 
 # AWS integrations (Kendra, Bedrock)
 langchain-aws>=0.2.0
+nest-asyncio

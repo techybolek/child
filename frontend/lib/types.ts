@@ -4,7 +4,7 @@
 
 export interface Source {
   doc: string
-  page: number
+  page: number | string
   url: string
 }
 
@@ -28,6 +28,16 @@ export interface Message {
 
 export type RetrievalMode = 'dense' | 'hybrid' | 'kendra'
 
+export type ChatMode = 'rag_pipeline' | 'openai_agent'
+
+export const OPENAI_AGENT_MODELS = [
+  { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+  { id: 'gpt-4o', name: 'GPT-4o' },
+  { id: 'gpt-5-nano', name: 'GPT-5 Nano' },
+  { id: 'gpt-5-mini', name: 'GPT-5 Mini' },
+  { id: 'gpt-5', name: 'GPT-5' },
+] as const
+
 export interface ChatRequest {
   question: string
   session_id?: string
@@ -37,6 +47,8 @@ export interface ChatRequest {
   intent_model?: string
   retrieval_mode?: RetrievalMode
   conversational_mode?: boolean
+  mode?: ChatMode
+  openai_agent_model?: string
 }
 
 export interface ChatResponse {

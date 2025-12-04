@@ -2,7 +2,7 @@
 Pydantic models for request/response validation
 """
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Literal, Optional, Union
 
 
 class ChatRequest(BaseModel):
@@ -41,6 +41,14 @@ class ChatRequest(BaseModel):
         False,
         description="Enable conversational memory for multi-turn conversations"
     )
+    mode: Optional[Literal['rag_pipeline', 'openai_agent']] = Field(
+        None,
+        description="Chat mode: 'rag_pipeline' (default) or 'openai_agent'"
+    )
+    openai_agent_model: Optional[str] = Field(
+        None,
+        description="Model for OpenAI Agent mode (e.g., 'gpt-4o-mini', 'gpt-4o')"
+    )
 
     model_config = {
         "json_schema_extra": {
@@ -59,7 +67,7 @@ class ChatRequest(BaseModel):
 class Source(BaseModel):
     """Source citation model"""
     doc: str = Field(..., description="Document filename")
-    page: int = Field(..., description="Page number")
+    page: Union[int, str] = Field(..., description="Page number or 'N/A'")
     url: str = Field(..., description="Source URL")
 
     model_config = {

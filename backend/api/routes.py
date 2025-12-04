@@ -138,6 +138,27 @@ async def get_available_models(provider: str = 'groq') -> Dict[str, Any]:
         )
 
 
+@router.get("/models/openai-agent")
+async def get_openai_agent_models() -> Dict[str, Any]:
+    """
+    Get available models for OpenAI Agent mode
+
+    Returns:
+        List of models available for OpenAI Agent and the default
+    """
+    chatbot_config = _get_chatbot_config()
+    return {
+        "models": [
+            {"id": "gpt-4o-mini", "name": "GPT-4o Mini"},
+            {"id": "gpt-4o", "name": "GPT-4o"},
+            {"id": "gpt-5-nano", "name": "GPT-5 Nano"},
+            {"id": "gpt-5-mini", "name": "GPT-5 Mini"},
+            {"id": "gpt-5", "name": "GPT-5"},
+        ],
+        "default": chatbot_config.OPENAI_AGENT_MODEL
+    }
+
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> Dict[str, Any]:
     """
@@ -160,7 +181,6 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
         # Add parent directory to path to import chatbot module
         parent_dir = Path(__file__).resolve().parent.parent.parent
         sys.path.insert(0, str(parent_dir))
-        from chatbot.chatbot import TexasChildcareChatbot
 
         # Log the incoming query
         print(f"[Chat] Query: {request.question}")
@@ -168,64 +188,87 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
         # Generate session ID if not provided (needed for conversational mode)
         session_id = request.session_id or str(uuid.uuid4())
 
-        # Validate retrieval_mode if provided
-        if request.retrieval_mode and request.retrieval_mode not in ('dense', 'hybrid', 'kendra'):
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid retrieval_mode. Must be: dense, hybrid, kendra"
-            )
+        # --- OpenAI Agent Mode ---
+        if request.mode == 'openai_agent':
+            from chatbot.handlers.openai_agent_handler import OpenAIAgentHandler
 
-        # Determine if we need a custom chatbot instance
-        # Custom instance needed for: model overrides, provider overrides, retrieval mode, or conversational mode
-        needs_custom_instance = (
-            request.llm_model or
-            request.reranker_model or
-            request.intent_model or
-            request.provider or
-            request.retrieval_mode or
-            request.conversational_mode
-        )
-
-        if needs_custom_instance:
             start_time = time.time()
 
-            if request.conversational_mode:
-                # For conversational mode, reuse cached chatbot to preserve memory
-                if session_id in _conversational_chatbots:
-                    chatbot = _conversational_chatbots[session_id]
-                    print(f"[Chat] Reusing cached chatbot for session: {session_id}")
+            # Cache handler per session for conversation continuity
+            cache_key = f"openai_{session_id}"
+            if cache_key in _conversational_chatbots:
+                handler = _conversational_chatbots[cache_key]
+                print(f"[Chat] Reusing cached OpenAI Agent for session: {session_id}")
+            else:
+                handler = OpenAIAgentHandler(model=request.openai_agent_model)
+                _conversational_chatbots[cache_key] = handler
+                print(f"[Chat] Created new OpenAI Agent for session: {session_id}")
+
+            result = await handler.handle_async(request.question, thread_id=session_id)
+            result['processing_time'] = round(time.time() - start_time, 2)
+
+        # --- RAG Pipeline Mode (default) ---
+        else:
+            from chatbot.chatbot import TexasChildcareChatbot
+
+            # Validate retrieval_mode if provided
+            if request.retrieval_mode and request.retrieval_mode not in ('dense', 'hybrid', 'kendra'):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid retrieval_mode. Must be: dense, hybrid, kendra"
+                )
+
+            # Determine if we need a custom chatbot instance
+            # Custom instance needed for: model overrides, provider overrides, retrieval mode, or conversational mode
+            needs_custom_instance = (
+                request.llm_model or
+                request.reranker_model or
+                request.intent_model or
+                request.provider or
+                request.retrieval_mode or
+                request.conversational_mode
+            )
+
+            if needs_custom_instance:
+                start_time = time.time()
+
+                if request.conversational_mode:
+                    # For conversational mode, reuse cached chatbot to preserve memory
+                    if session_id in _conversational_chatbots:
+                        chatbot = _conversational_chatbots[session_id]
+                        print(f"[Chat] Reusing cached chatbot for session: {session_id}")
+                    else:
+                        # Create new chatbot and cache it
+                        chatbot = TexasChildcareChatbot(
+                            llm_model=request.llm_model,
+                            reranker_model=request.reranker_model,
+                            intent_model=request.intent_model,
+                            provider=request.provider,
+                            retrieval_mode=request.retrieval_mode,
+                            conversational_mode=True
+                        )
+                        _conversational_chatbots[session_id] = chatbot
+                        print(f"[Chat] Created new chatbot for session: {session_id}")
+
+                    result = chatbot.ask(request.question, thread_id=session_id)
                 else:
-                    # Create new chatbot and cache it
+                    # Non-conversational custom instance (model/retrieval overrides only)
                     chatbot = TexasChildcareChatbot(
                         llm_model=request.llm_model,
                         reranker_model=request.reranker_model,
                         intent_model=request.intent_model,
                         provider=request.provider,
                         retrieval_mode=request.retrieval_mode,
-                        conversational_mode=True
+                        conversational_mode=False
                     )
-                    _conversational_chatbots[session_id] = chatbot
-                    print(f"[Chat] Created new chatbot for session: {session_id}")
+                    result = chatbot.ask(request.question)
 
-                result = chatbot.ask(request.question, thread_id=session_id)
+                processing_time = time.time() - start_time
+                result['processing_time'] = round(processing_time, 2)
             else:
-                # Non-conversational custom instance (model/retrieval overrides only)
-                chatbot = TexasChildcareChatbot(
-                    llm_model=request.llm_model,
-                    reranker_model=request.reranker_model,
-                    intent_model=request.intent_model,
-                    provider=request.provider,
-                    retrieval_mode=request.retrieval_mode,
-                    conversational_mode=False
-                )
-                result = chatbot.ask(request.question)
-
-            processing_time = time.time() - start_time
-            result['processing_time'] = round(processing_time, 2)
-        else:
-            # Use singleton service (stateless mode only)
-            service = ChatbotService.get_instance()
-            result = service.ask(request.question)
+                # Use singleton service (stateless mode only)
+                service = ChatbotService.get_instance()
+                result = service.ask(request.question)
 
         # Convert sources to Source models
         sources = [
