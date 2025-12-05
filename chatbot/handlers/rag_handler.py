@@ -5,6 +5,7 @@ from ..retriever import QdrantRetriever
 from ..hybrid_retriever import QdrantHybridRetriever
 from ..reranker import LLMJudgeReranker
 from ..generator import ResponseGenerator
+from ..utils import extract_cited_sources
 from .. import config
 
 
@@ -165,8 +166,8 @@ class RAGHandler(BaseHandler):
         result = self.generator.generate(query, reranked_chunks)
 
         # Step 4: Format response
-        # Extract only the sources that were actually cited in the answer
-        cited_sources = self._extract_cited_sources(result['answer'], reranked_chunks)
+        # Extract cited sources (deduplicated by doc+page)
+        cited_sources = extract_cited_sources(result['answer'], reranked_chunks)
 
         response = {
             'answer': result['answer'],
@@ -180,23 +181,3 @@ class RAGHandler(BaseHandler):
             response['debug_info'] = debug_data
 
         return response
-
-    def _extract_cited_sources(self, answer: str, chunks: list) -> list:
-        """Extract only the sources that were actually cited in the answer"""
-        import re
-
-        # Find all [Doc N] citations in the answer (match both standard and full-width brackets)
-        cited_doc_nums = set(re.findall(r'[\[【]Doc\s*(\d+)[\]】]', answer))
-
-        # Map citation numbers to chunk metadata
-        cited_sources = []
-        for doc_num in sorted(cited_doc_nums, key=int):
-            idx = int(doc_num) - 1  # Convert to 0-based index
-            if 0 <= idx < len(chunks):
-                cited_sources.append({
-                    'doc': chunks[idx]['filename'],
-                    'page': chunks[idx]['page'],
-                    'url': chunks[idx]['source_url']
-                })
-
-        return cited_sources

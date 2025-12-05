@@ -71,7 +71,7 @@ class ChatRequest(BaseModel):
 class Source(BaseModel):
     """Source citation model"""
     doc: str = Field(..., description="Document filename")
-    page: Union[int, str] = Field(..., description="Page number or 'N/A'")
+    pages: List[int] = Field(..., description="Page numbers (sorted)")
     url: str = Field(..., description="Source URL")
 
     model_config = {
@@ -79,7 +79,7 @@ class Source(BaseModel):
             "examples": [
                 {
                     "doc": "TWC_Income_Guidelines_2026.pdf",
-                    "page": 12,
+                    "pages": [12, 15],
                     "url": "https://texaschildcaresolutions.org/files/TWC_Income_Guidelines_2026.pdf"
                 }
             ]
@@ -126,7 +126,7 @@ class ChatResponse(BaseModel):
                     "sources": [
                         {
                             "doc": "TWC_Income_Guidelines_2026.pdf",
-                            "page": 12,
+                            "pages": [12, 15],
                             "url": "https://texaschildcaresolutions.org/files/TWC_Income_Guidelines_2026.pdf"
                         }
                     ],

@@ -312,7 +312,7 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
         sources = [
             Source(
                 doc=source['doc'],
-                page=source['page'],
+                pages=source['pages'],
                 url=source['url']
             )
             for source in result['sources']

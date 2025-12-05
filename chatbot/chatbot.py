@@ -5,6 +5,7 @@ import uuid
 
 from . import config
 from .graph.builder import build_graph
+from .utils import extract_cited_sources
 
 
 class TexasChildcareChatbot:
@@ -212,7 +213,6 @@ class TexasChildcareChatbot:
         Yields:
             tuple: (event_type, data) where event_type is 'token', 'done', or 'error'
         """
-        import re
         from langchain_core.messages import HumanMessage, AIMessage
 
         start_time = time.time()
@@ -346,18 +346,8 @@ class TexasChildcareChatbot:
             yield ("error", {"message": str(e), "partial": True})
             return
 
-        # Extract cited sources (match both standard [Doc N] and full-width【Doc N】brackets)
-        cited_doc_nums = set(re.findall(r'[\[【]Doc\s*(\d+)[\]】]', full_response))
-        sources = []
-        for doc_num in sorted(cited_doc_nums, key=int):
-            idx = int(doc_num) - 1
-            if 0 <= idx < len(reranked_chunks):
-                chunk = reranked_chunks[idx]
-                sources.append({
-                    'doc': chunk['filename'],
-                    'page': chunk['page'],
-                    'url': chunk['source_url']
-                })
+        # Extract cited sources (deduplicated by doc+page)
+        sources = extract_cited_sources(full_response, reranked_chunks)
 
         # Update conversation history
         if self.conversational_mode and self.memory:

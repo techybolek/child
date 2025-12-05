@@ -66,9 +66,11 @@ export function SourceCard({ sources }: SourceCardProps) {
                 ) : (
                   <span className="text-gray-700">{source.doc}</span>
                 )}
-                <span className="ml-1 text-gray-500">
-                  (Page {source.page})
-                </span>
+                {source.pages.length > 0 && (
+                  <span className="ml-1 text-gray-500">
+                    (Page {source.pages.join(', ')})
+                  </span>
+                )}
               </div>
             </li>
           ))}

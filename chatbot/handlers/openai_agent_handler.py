@@ -102,7 +102,7 @@ User query: {query}"""
                     if doc_name:
                         sources.append({
                             'doc': doc_name,
-                            'page': 'N/A',  # OpenAI doesn't provide page numbers
+                            'pages': [],  # OpenAI doesn't provide page numbers
                             'url': ''
                         })
 

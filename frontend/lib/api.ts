@@ -195,9 +195,9 @@ export async function askQuestionStream(
               // Convert to ChatResponse format
               const chatResponse: ChatResponse = {
                 answer: parsed.answer,
-                sources: parsed.sources.map((s: { doc: string; page: string; url: string }) => ({
+                sources: parsed.sources.map((s: { doc: string; pages: number[]; url: string }) => ({
                   doc: s.doc,
-                  page: s.page,
+                  pages: s.pages,
                   url: s.url,
                 })),
                 response_type: parsed.response_type,

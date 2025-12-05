@@ -1,9 +1,9 @@
 """Generation node for LangGraph RAG pipeline"""
 
-import re
 from langchain_core.messages import HumanMessage, AIMessage
 from ... import config
 from ...generator import ResponseGenerator
+from ...utils import extract_cited_sources
 
 
 def _format_recent_history(messages: list, max_turns: int) -> str:
@@ -106,19 +106,8 @@ def generate_node(state: dict) -> dict:
     result = generator.generate(query, reranked_chunks, recent_history=recent_history)
     answer = result['answer']
 
-    # Extract cited sources (same logic as RAGHandler._extract_cited_sources)
-    # Match both standard [Doc N] and full-width【Doc N】brackets (LLM sometimes uses Unicode)
-    cited_doc_nums = set(re.findall(r'[\[【]Doc\s*(\d+)[\]】]', answer))
-    sources = []
-    for doc_num in sorted(cited_doc_nums, key=int):
-        idx = int(doc_num) - 1  # Convert to 0-based index
-        if 0 <= idx < len(reranked_chunks):
-            chunk = reranked_chunks[idx]
-            sources.append({
-                'doc': chunk['filename'],
-                'page': chunk['page'],
-                'url': chunk['source_url']
-            })
+    # Extract cited sources (deduplicated by doc+page)
+    sources = extract_cited_sources(answer, reranked_chunks)
 
     print(f"[Generate Node] Generated answer with {len(sources)} cited sources")
 

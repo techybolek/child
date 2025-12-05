@@ -117,7 +117,7 @@ class VertexAgentHandler(BaseHandler):
                     if doc_name:
                         sources.append({
                             'doc': doc_name,
-                            'page': 'N/A',  # Vertex RAG doesn't provide page numbers
+                            'pages': [],  # Vertex RAG doesn't provide page numbers
                             'url': ''
                         })
 

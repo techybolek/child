@@ -4,7 +4,7 @@
 
 export interface Source {
   doc: string
-  page: number | string
+  pages: number[]
   url: string
 }
 

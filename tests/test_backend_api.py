@@ -232,8 +232,10 @@ class TestSourceValidation:
         if r.status_code == 200:
             data = r.json()
             for source in data.get("sources", []):
-                assert isinstance(source["page"], int), \
-                    f"Source page must be int, got {type(source['page'])}: {source['page']}"
+                pages = source.get("pages", [])
+                for page in pages:
+                    assert isinstance(page, int), \
+                        f"Source page must be int, got {type(page)}: {page}"
         # If Kendra not configured, that's fine - but should NOT be a validation error
         elif r.status_code == 500:
             data = r.json()
@@ -264,6 +266,26 @@ class TestSourceValidation:
             url = source.get("url", "")
             assert url == "" or url.startswith("http"), \
                 f"Source URL should be empty or valid URL, got: {url}"
+
+    def test_source_page_is_one_indexed(self, backend_server):
+        """Page numbers must be 1-indexed (human-readable), not 0-indexed.
+
+        Bug: Internal 0-indexed pages from PyMuPDF were exposed to users.
+        Fix: Convert to 1-indexed when building source citations.
+        """
+        r = requests.post(
+            f"{backend_server}/api/chat",
+            json={"question": "What is CCS?"}
+        )
+        assert r.status_code == 200, f"Expected 200, got {r.status_code}: {r.text}"
+        data = r.json()
+
+        for source in data.get("sources", []):
+            pages = source.get("pages", [])
+            for page in pages:
+                if isinstance(page, int):
+                    assert page >= 1, \
+                        f"Page numbers must be 1-indexed (>= 1), got {page}. Source: {source}"
 
 
 class TestResponseHeaders:
