@@ -188,7 +188,7 @@ class QdrantHybridRetriever:
                 'score': point.score,
                 'filename': point.payload.get('filename', ''),
                 'page': point.payload.get('page', 'N/A'),
-                'source_url': point.payload.get('source_url', ''),
+                'source_url': point.payload.get('source_url') or '',
                 # Include context metadata for generation-time injection
                 'master_context': point.payload.get('master_context'),
                 'document_context': point.payload.get('document_context'),
@@ -234,7 +234,7 @@ class QdrantHybridRetriever:
                 'score': hit.score,
                 'filename': hit.payload.get('filename', ''),
                 'page': hit.payload.get('page', 'N/A'),
-                'source_url': hit.payload.get('source_url', ''),
+                'source_url': hit.payload.get('source_url') or '',
                 'master_context': hit.payload.get('master_context'),
                 'document_context': hit.payload.get('document_context'),
                 'chunk_context': hit.payload.get('chunk_context'),

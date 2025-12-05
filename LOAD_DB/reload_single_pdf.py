@@ -10,8 +10,10 @@ Usage:
 
 import os
 import sys
+import json
+import glob
 import logging
-from typing import List
+from typing import List, Dict, Any, Optional
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
@@ -60,13 +62,8 @@ class SinglePDFReloader:
         self.contextual_mode = contextual_mode
         self.hybrid_mode = hybrid_mode
 
-        # Set collection name based on mode (precedence: hybrid > contextual > standard)
-        if hybrid_mode:
-            self.collection_name = config.HYBRID_COLLECTION_NAME
-        elif contextual_mode:
-            self.collection_name = config.QDRANT_COLLECTION_NAME_CONTEXTUAL
-        else:
-            self.collection_name = config.QDRANT_COLLECTION_NAME
+        # Use unified collection (hybrid schema supports all modes)
+        self.collection_name = config.QDRANT_COLLECTION_NAME
         logger.info(f"Using collection: {self.collection_name}")
 
         # Initialize Qdrant client
@@ -99,6 +96,30 @@ class SinglePDFReloader:
                 groq_api_key=config.GROQ_API_KEY,
                 model=config.GROQ_MODEL
             )
+
+        # Build metadata index for source_url lookup
+        self._metadata_index = self._build_metadata_index()
+
+    def _build_metadata_index(self) -> Dict[str, Dict[str, Any]]:
+        """Build index mapping PDF filenames to their metadata from JSON files."""
+        index = {}
+        json_pattern = os.path.join(config.PDFS_DIR, "*_pdf.json")
+
+        for json_path in glob.glob(json_pattern):
+            try:
+                with open(json_path, 'r') as f:
+                    data = json.load(f)
+                if 'filename' in data:
+                    index[data['filename']] = data
+            except Exception as e:
+                logger.warning(f"Could not load metadata from {json_path}: {e}")
+
+        logger.info(f"Built metadata index with {len(index)} entries")
+        return index
+
+    def load_pdf_metadata(self, pdf_filename: str) -> Optional[Dict[str, Any]]:
+        """Load metadata JSON for a PDF by matching the filename field."""
+        return self._metadata_index.get(pdf_filename)
 
     def delete_pdf_chunks(self):
         """Delete all chunks for this PDF from Qdrant."""
@@ -196,8 +217,13 @@ class SinglePDFReloader:
             # Clean page content
             pages = clean_documents(pages)
 
+            # Load metadata from JSON file if available
+            metadata_json = self.load_pdf_metadata(self.pdf_filename)
+            if metadata_json:
+                logger.info(f"Found metadata: source_url={metadata_json.get('source_url', 'N/A')}")
+
             # Enrich metadata to match bulk loader format
-            pages = enrich_metadata(pages, self.pdf_filename, None, total_pages)
+            pages = enrich_metadata(pages, self.pdf_filename, metadata_json, total_pages)
 
             # Split into chunks
             # Docling PDFs are already chunked at item level
@@ -334,7 +360,7 @@ def main():
     elif args.hybrid:
         hybrid_mode = True
     else:
-        hybrid_mode = config.ENABLE_HYBRID_SEARCH
+        hybrid_mode = True  # Default to hybrid since collection uses hybrid schema
 
     # Find the PDF file
     pdf_dir = config.PDFS_DIR

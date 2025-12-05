@@ -107,7 +107,8 @@ def generate_node(state: dict) -> dict:
     answer = result['answer']
 
     # Extract cited sources (same logic as RAGHandler._extract_cited_sources)
-    cited_doc_nums = set(re.findall(r'\[Doc\s*(\d+)\]', answer))
+    # Match both standard [Doc N] and full-width【Doc N】brackets (LLM sometimes uses Unicode)
+    cited_doc_nums = set(re.findall(r'[\[【]Doc\s*(\d+)[\]】]', answer))
     sources = []
     for doc_num in sorted(cited_doc_nums, key=int):
         idx = int(doc_num) - 1  # Convert to 0-based index

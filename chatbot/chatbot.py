@@ -346,8 +346,8 @@ class TexasChildcareChatbot:
             yield ("error", {"message": str(e), "partial": True})
             return
 
-        # Extract cited sources
-        cited_doc_nums = set(re.findall(r'\[Doc\s*(\d+)\]', full_response))
+        # Extract cited sources (match both standard [Doc N] and full-width【Doc N】brackets)
+        cited_doc_nums = set(re.findall(r'[\[【]Doc\s*(\d+)[\]】]', full_response))
         sources = []
         for doc_num in sorted(cited_doc_nums, key=int):
             idx = int(doc_num) - 1

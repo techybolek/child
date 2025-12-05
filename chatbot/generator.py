@@ -188,9 +188,9 @@ class ResponseGenerator:
 
         # Combine all text from chunks
         combined_text = " ".join([
-            chunk.get('text', '') + " " +
-            chunk.get('chunk_context', '') + " " +
-            chunk.get('document_context', '')
+            (chunk.get('text') or '') + " " +
+            (chunk.get('chunk_context') or '') + " " +
+            (chunk.get('document_context') or '')
             for chunk in chunks
         ])
 

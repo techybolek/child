@@ -143,6 +143,32 @@ class PDFToQdrantLoader:
         # Track filtered chunks for reporting
         self.filtered_chunks = []
 
+        # Build metadata index for source_url lookup
+        self._metadata_index = self._build_metadata_index()
+
+    def _build_metadata_index(self) -> Dict[str, Dict[str, Any]]:
+        """Build index mapping PDF filenames to their metadata from JSON files.
+        
+        The scraper saves JSON files with MD5-hashed names (e.g., 06f9f8bf52017feab8d5d5be266a955f_pdf.json)
+        but stores the original PDF filename inside the 'filename' field.
+        This index allows looking up metadata by the actual PDF filename.
+        """
+        index = {}
+        json_pattern = os.path.join(config.PDFS_DIR, "*_pdf.json")
+        
+        for json_path in glob.glob(json_pattern):
+            try:
+                with open(json_path, 'r') as f:
+                    data = json.load(f)
+                if 'filename' in data:
+                    index[data['filename']] = data
+                    logger.debug(f"Indexed metadata for {data['filename']}")
+            except Exception as e:
+                logger.warning(f"Could not load metadata from {json_path}: {e}")
+        
+        logger.info(f"Built metadata index with {len(index)} entries")
+        return index
+
     def clear_and_recreate_collection(self):
         """Delete and recreate the Qdrant collection (clears all data)."""
         try:
@@ -225,25 +251,14 @@ class PDFToQdrantLoader:
             raise
 
     def load_pdf_metadata(self, pdf_path: str) -> Optional[Dict[str, Any]]:
-        """Load metadata JSON for a PDF if it exists."""
+        """Load metadata JSON for a PDF by matching the filename field in JSON files."""
         pdf_name = os.path.basename(pdf_path)
-        pdf_id = os.path.splitext(pdf_name)[0]
-
-        # Try to find matching metadata JSON
-        metadata_patterns = [
-            os.path.join(config.PDFS_DIR, f"{pdf_id}_pdf.json"),
-            os.path.join(config.PDFS_DIR, pdf_id + ".json")
-        ]
-
-        for metadata_path in metadata_patterns:
-            if os.path.exists(metadata_path):
-                try:
-                    with open(metadata_path, 'r') as f:
-                        return json.load(f)
-                except Exception as e:
-                    logger.warning(f"Could not load metadata from {metadata_path}: {e}")
-
-        return None
+        metadata = self._metadata_index.get(pdf_name)
+        
+        if metadata:
+            logger.debug(f"Found metadata for {pdf_name}: source_url={metadata.get('source_url', 'N/A')}")
+        
+        return metadata
 
     def process_pdf(self, pdf_path: str) -> List[Document]:
         """

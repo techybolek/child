@@ -74,7 +74,7 @@ class QdrantRetriever:
                 'score': hit.score,
                 'filename': hit.payload.get('filename', ''),  # New loader uses 'filename'
                 'page': hit.payload.get('page', 'N/A'),
-                'source_url': hit.payload.get('source_url', ''),
+                'source_url': hit.payload.get('source_url') or '',
                 # Include context metadata for generation-time injection
                 'master_context': hit.payload.get('master_context'),
                 'document_context': hit.payload.get('document_context'),

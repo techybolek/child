@@ -185,8 +185,8 @@ class RAGHandler(BaseHandler):
         """Extract only the sources that were actually cited in the answer"""
         import re
 
-        # Find all [Doc N] citations in the answer
-        cited_doc_nums = set(re.findall(r'\[Doc\s*(\d+)\]', answer))
+        # Find all [Doc N] citations in the answer (match both standard and full-width brackets)
+        cited_doc_nums = set(re.findall(r'[\[【]Doc\s*(\d+)[\]】]', answer))
 
         # Map citation numbers to chunk metadata
         cited_sources = []

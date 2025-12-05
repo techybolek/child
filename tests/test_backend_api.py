@@ -244,6 +244,27 @@ class TestSourceValidation:
             assert "ValidationError" not in error_type and "int_parsing" not in error_msg, \
                 f"Source validation failed - page is likely not an integer: {error_msg}"
 
+    def test_source_url_is_valid_string(self, backend_server):
+        """Source URL must be a string (empty or valid URL), never None.
+
+        Bug: Qdrant returning source_url=None caused string concatenation error.
+        Fix: Retrievers use `or ''` pattern to convert None to empty string.
+        """
+        r = requests.post(
+            f"{backend_server}/api/chat",
+            json={"question": "What is CCS?"}
+        )
+        assert r.status_code == 200, f"Expected 200, got {r.status_code}: {r.text}"
+        data = r.json()
+
+        for source in data.get("sources", []):
+            assert isinstance(source.get("url"), str), \
+                f"Source URL must be string, got {type(source.get('url'))}: {source}"
+            # URL should be either empty string or valid URL starting with http
+            url = source.get("url", "")
+            assert url == "" or url.startswith("http"), \
+                f"Source URL should be empty or valid URL, got: {url}"
+
 
 class TestResponseHeaders:
     def test_process_time_header_present(self, backend_server):
