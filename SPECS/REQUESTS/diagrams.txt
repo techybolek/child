@@ -1,0 +1,13 @@
+Create mermaid diagrams for the dense  mode. It should capture the following:
+
+
+refornulate heuristic. Yes/NO?
+if yes then reformulate, other wise go straight oclassify intent
+classify intent
+if Intent type is location search, return template response with Texax HHS Link othewise the intent is Information
+Information:
+Calculate Embedding (text-embedding-3-small)
+Dense Vector Search (Top-30)
+put a square representing qdrant DB somewhere
+Rerank (llm as a judge)
+Generate response (mark that the generator receives not only the response from reranker but also the memory /message history)

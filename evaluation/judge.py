@@ -64,8 +64,12 @@ class LLMJudge:
     def evaluate(self, question: str, expected_answer: str, chatbot_answer: str, sources: list, debug: bool = False) -> dict:
         """Evaluate chatbot response using LLM judge"""
 
-        # Format sources
-        sources_str = "\n".join([f"- {s['doc']}, Page {s['page']}" for s in sources]) if sources else "None"
+        # Format sources (handle both 'pages' list and 'page' single value)
+        def format_source(s):
+            pages = s.get('pages', [s.get('page', 'N/A')])
+            pages_str = ', '.join(str(p) for p in pages) if isinstance(pages, list) else str(pages)
+            return f"- {s['doc']}, Page(s) {pages_str}"
+        sources_str = "\n".join([format_source(s) for s in sources]) if sources else "None"
 
         # Choose prompt based on citation scoring setting
         if config.DISABLE_CITATION_SCORING:

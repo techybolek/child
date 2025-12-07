@@ -55,15 +55,16 @@ class QdrantRetriever:
         query_vector = self.embeddings.embed_query(query)
 
         # Search (with retry for transient errors)
-        # Use named vector syntax for hybrid collection schema
+        # Use query_points with 'using' parameter for named vectors
         def _do_search():
             print("[Retriever] Performing Qdrant Dense search...")
-            return self.client.search(
+            return self.client.query_points(
                 collection_name=self.collection,
-                query_vector=("dense", query_vector),  # Named vector for hybrid schema
+                query=query_vector,
+                using="dense",  # Named vector for hybrid schema
                 limit=top_k,
                 score_threshold=config.MIN_SCORE_THRESHOLD
-            )
+            ).points
 
         results = _retry_with_backoff(_do_search)
 

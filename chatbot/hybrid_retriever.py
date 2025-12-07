@@ -218,12 +218,13 @@ class QdrantHybridRetriever:
 
         # Search dense vectors only (with retry for transient errors)
         def _do_search():
-            return self.client.search(
+            return self.client.query_points(
                 collection_name=self.collection,
-                query_vector=("dense", query_vector),  # Named vector syntax
+                query=query_vector,
+                using="dense",  # Named vector for hybrid schema
                 limit=top_k,
                 score_threshold=config.MIN_SCORE_THRESHOLD
-            )
+            ).points
 
         results = _retry_with_backoff(_do_search)
 

@@ -288,7 +288,9 @@ class BatchEvaluator:
         if chatbot_response['sources']:
             print("\nSOURCES CITED:")
             for source in chatbot_response['sources']:
-                print(f"  - {source['doc']}, Page {source['page']}")
+                pages = source.get('pages', [source.get('page', 'N/A')])
+                pages_str = ', '.join(str(p) for p in pages) if isinstance(pages, list) else str(pages)
+                print(f"  - {source['doc']}, Page(s) {pages_str}")
         else:
             print("\nSOURCES CITED: None")
 
