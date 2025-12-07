@@ -5,15 +5,13 @@ flowchart TD
     A[User Query] --> B{Reformulate?}
 
     B -->|Yes| C[Reformulate Query]
-    B -->|No| D[Classify Intent]
-    C --> D
-
-    D --> E{Intent?}
+    B -->|No| E{Intent?}
+    C --> E
 
     E -->|location_search| F[Template Response +<br/>Texas HHS Link]
     F --> Z[Response]
 
-    E -->|information| G[Calculate Embedding<br/>OpenAI text-embedding-3-small]
+    E -->|information| G[OpenAI Embedding]
     G --> H[Semantic/Hybrid Search<br/>Top-30]
     QDB[(Qdrant DB<br/>tro-child-hybrid-v1)] <--> H
 
