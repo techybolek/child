@@ -6,9 +6,7 @@ flowchart TD
 
     B <--> VS[(OpenAI<br/>Vector Store)]
 
-    B --> C[Parse Response<br/>ANSWER + SOURCES]
-
-    C --> Z[Response]
+    B --> Z[Response]
 
     HIST[Conversation History] --> B
 

@@ -21,3 +21,6 @@ LOAD_DB/reports
 results
 UTIL/*.txt
 #QUESTIONS
+SPECS/diagrams/*.png
+SPECS/diagrams/*.pptx
+SPECS/diagrams/create_pipeline_pptx.py

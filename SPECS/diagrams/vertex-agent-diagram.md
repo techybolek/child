@@ -6,9 +6,7 @@ flowchart TD
 
     B <--> VS[(Vertex AI<br/>RAG Corpus)]
 
-    B --> C[Parse Response<br/>ANSWER + SOURCES]
-
-    C --> Z[Response]
+    B --> Z[Response]
 
     HIST[Chat Session History] --> B
 
