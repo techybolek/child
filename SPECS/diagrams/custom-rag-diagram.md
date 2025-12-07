@@ -3,19 +3,27 @@
 ```mermaid
 flowchart TD
     A[User Query] --> B{Reformulate?}
+
     B -->|Yes| C[Reformulate Query]
-    B -->|No| D
-    C --> D[Classify Intent]
+    B -->|No| D[Classify Intent]
+    C --> D
 
     D --> E{Intent?}
-    E -->|location_search| F[Template Response + Texas HHS Link] --> Z[Response]
 
-    E -->|information| G[Embedding → Hybrid Search Top-30]
-    QDB[(Qdrant<br/>tro-child-hybrid-v1)] <--> G
-    G --> I[Rerank LLM] --> J[Generate] --> Z
+    E -->|location_search| F[Template Response +<br/>Texas HHS Link]
+    F --> Z[Response]
 
+    E -->|information| G[Calculate Embedding<br/>OpenAI text-embedding-3-small]
+    G --> H[Semantic/Hybrid Search<br/>Top-30]
+    QDB[(Qdrant DB<br/>tro-child-hybrid-v1)] <--> H
+
+    H --> I[Rerank<br/>LLM as a Judge]
+
+    I --> J[Generate Response]
     MEM[Message History] --> C
     MEM --> J
+
+    J --> Z
 
     style A fill:#e1f5fe
     style Z fill:#c8e6c9
