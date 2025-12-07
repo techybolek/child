@@ -2,13 +2,13 @@
 
 ```mermaid
 flowchart TD
-    A[User Query] --> B{Reformulate<br/>Heuristic}
+    A[User Query] --> B{Reformulate?}
 
     B -->|Yes| C[Reformulate Query]
     B -->|No| D[Classify Intent]
     C --> D
 
-    D --> E{Intent Type?}
+    D --> E{Intent?}
 
     E -->|location_search| F[Template Response +<br/>Texas HHS Link]
     F --> Z[Response]
