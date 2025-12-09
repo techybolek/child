@@ -183,7 +183,7 @@ python -m evaluation.run_evaluation --mode kendra --debug --limit 5
 ├── results/                    # Evaluation results by mode
 ├── backend/                    # FastAPI backend
 ├── frontend/                   # Next.js frontend
-├── SCRAPER/                    # Web scraping (legacy)
+├── SCRAPER/                    # Web scraping pipeline
 └── SPECS/                      # Design documentation
 ```
 
