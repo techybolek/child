@@ -1,12 +1,15 @@
 # Custom RAG Pipeline (Conversational)
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 40, 'rankSpacing': 40, 'curve': 'linear'}, 'themeVariables': {'fontSize': '12px'}}}%%
 flowchart TD
     A[User Query] --> B{Reformulate?}
 
     B -->|Yes| C[Reformulate Query]
-    B -->|No| E{Intent?}
-    C --> E
+    B -->|No| D[Classify Intent]
+    C --> D
+
+    D --> E{Intent?}
 
     E -->|location_search| F[Template Response +<br/>Texas HHS Link]
     F --> Z[Response]
@@ -26,7 +29,9 @@ flowchart TD
     style A fill:#e1f5fe
     style Z fill:#c8e6c9
     style QDB fill:#fff3e0,stroke:#ff9800,stroke-width:3px
-    style I fill:#fce4ec
-    style J fill:#f3e5f5
     style MEM fill:#e8f5e9
+    style C fill:#ffcdd2,stroke:#e53935,stroke-width:2px
+    style D fill:#ffcdd2,stroke:#e53935,stroke-width:2px
+    style I fill:#ffcdd2,stroke:#e53935,stroke-width:2px
+    style J fill:#ffcdd2,stroke:#e53935,stroke-width:2px
 ```
