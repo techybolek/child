@@ -23,4 +23,4 @@ UTIL/*.txt
 #QUESTIONS
 SPECS/diagrams/*.png
 SPECS/diagrams/*.pptx
-#SPECS/diagrams/create_pipeline_pptx.py
+SPECS/diagrams/create_pipeline_pptx.py

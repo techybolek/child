@@ -8,7 +8,7 @@ flowchart TD
 
     B --> Z[Response]
 
-    HIST[Conversation History] --> B
+    HIST[Message History] --> B
 
     style A fill:#e1f5fe
     style Z fill:#c8e6c9

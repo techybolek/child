@@ -3,7 +3,7 @@
 ```mermaid
 flowchart TB
     subgraph Input
-        PDF[PDF Files]
+        PDF[42 PDF Files]
     end
 
     PDF --> SELECT{Table PDF?}
@@ -16,5 +16,5 @@ flowchart TB
     CLEAN --> CHUNK[Chunk Text]
     CHUNK --> FILTER[Filter TOC]
     FILTER --> EMBED[Generate Embeddings]
-    EMBED --> STORE[Upload to Qdrant]
+    EMBED --> STORE[Upload to Qdrant<br/>2,800 chunks]
 ```
