@@ -10,14 +10,18 @@ Create a new plan in SPECS/PLANS/*.md to resolve the `Bug` using the exact speci
 - Create the plan in the `SPECS/PLANS/*.md` file. Name it appropriately based on the `Bug`.
 - Use the plan format below to create the plan. 
 - Research the codebase to understand the bug, reproduce it, and put together a plan to fix it.
-- IMPORTANT: Replace every <placeholder> in the `Plan Format` with the requested value. Add as much detail as needed to fix the bug.
+- Replace every <placeholder> in the `Plan Format` with the requested value. Add as much detail as needed to fix the bug.
 - Use your reasoning model: THINK HARD about the bug, its root cause, and the steps to fix it properly.
-- IMPORTANT: Before fixing the bug, see if the bug exposes a bigger issue that calls for refactoring or design descisions. If yes, document it focusing on the bigger issue rather than the bugitself.
+- Before fixing the bug, see if the bug exposes a bigger issue that calls for refactoring or design descisions. If yes, document it focusing on the bigger issue rather than the bugitself.
 - Unless refactoring is necessary, be surgical with your bug fix, solve the bug at hand and don't fall off track. We want the minimal number of changes that will fix and address the bug.
 - Don't use decorators. Keep it simple.
 - If you need a new library, use `uv add` and be sure to report it in the `Notes` section of the `Plan Format`.
+- If the bug affects the UI or user interactions:
+  - Add a task in the `Step by Step Tasks` section to create a separate E2E test file in `.claude/commands/e2e/test_<descriptive_name>.md` based on examples in that directory
+  - Add E2E test validation to your Validation Commands section
+  - IMPORTANT: When you fill out the `Plan Format: Relevant Files` section, add an instruction to read `.claude/commands/test_e2e.md`, and `.claude/commands/e2e/test_basic_query.md` to understand how to create an E2E test file. List your new E2E test file to the `Plan Format: New Files` section.
+  - To be clear, we're not creating a new E2E test file, we're creating a task to create a new E2E test file in the `Plan Format` below
 - Respect requested files in the `Relevant Files` section.
-- Start your research by reading the `README.md` file.
 
 ## Plan Format
 
@@ -49,6 +53,7 @@ IMPORTANT: Execute every step in order, top to bottom.
 
 <list step by step tasks as h3 headers plus bullet points. use as many h3 headers as needed to fix the bug. Order matters, start with the foundational shared changes required to fix the bug then move on to the specific changes required to fix the bug. Include tests that will validate the bug is fixed with zero regressions. Your last step should be running the `Validation Commands` to validate the bug is fixed with zero regressions.>
 
+<If the bug affects UI, include a task to create a E2E test file. Your task should look like: "Read `.claude/commands/e2e/test_basic_query.md` and create a new E2E test file in `.claude/commands/e2e/test_<descriptive_name>.md` that validates the bug is fixed, be specific with the steps to prove the bug is fixed. We want the minimal set of steps to validate the bug is fixed and screen shots to prove it if possible.">
 ## Validation Commands
 Execute every command to validate the bug is fixed with zero regressions.
 

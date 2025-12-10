@@ -17,6 +17,15 @@ const MAX_LENGTH = 500
 export function InputBar({ onSubmit, isLoading }: InputBarProps) {
   const [input, setInput] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const prevIsLoadingRef = useRef(isLoading)
+
+  // Restore focus when loading completes
+  useEffect(() => {
+    if (prevIsLoadingRef.current && !isLoading) {
+      textareaRef.current?.focus()
+    }
+    prevIsLoadingRef.current = isLoading
+  }, [isLoading])
 
   const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault()
