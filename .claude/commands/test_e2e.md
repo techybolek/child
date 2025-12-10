@@ -4,10 +4,9 @@ Execute end-to-end (E2E) tests using Playwright browser automation (MCP Server).
 
 ## Variables
 
-adw_id: $1 if provided, otherwise generate a random 8 character hex string
-agent_name: $2 if provided, otherwise use 'test_e2e'
-e2e_test_file: $3
-application_url: $4 if provided, otherwise use http://localhost:3000
+adw_id: $1 if provided, otherwise generate a current timestamp string
+e2e_test_file: $2
+application_url: $3 if provided, otherwise use http://localhost:3000
 
 ## Instructions
 
@@ -27,9 +26,12 @@ application_url: $4 if provided, otherwise use http://localhost:3000
 - If you encounter an error, mark the test as failed immediately and explain exactly what went wrong and on what step it occurred. For example: '(Step 1 ❌) Failed to find element with selector "query-input" on page "http://localhost:3000"'
 - Use `pwd` or equivalent to get the absolute path to the codebase for writing and displaying the correct paths to the screenshots
 
+## Setup
+- Make sure the server and client are running on a background process before executing the test steps. Read `start.sh` for more information how to start the server and the client.
+
 ## Screenshot Directory
 
-<absolute path to codebase>/agents/<adw_id>/<agent_name>/img/<directory name based on test file name>/*.png
+<absolute path to codebase>/.playwright/<adw_id>/img/<directory name based on test file name>/*.png
 
 Each screenshot should be saved with a descriptive name that reflects what is being captured. The directory structure ensures that:
 - Screenshots are organized by ADW ID (workflow run)
@@ -49,9 +51,8 @@ Each screenshot should be saved with a descriptive name that reflects what is be
   "test_name": "Test Name Here",
   "status": "passed|failed",
   "screenshots": [
-    "<absolute path to codebase>/agents/<adw_id>/<agent_name>/img/<test name>/01_<descriptive name>.png",
-    "<absolute path to codebase>/agents/<adw_id>/<agent_name>/img/<test name>/02_<descriptive name>.png",
-    "<absolute path to codebase>/agents/<adw_id>/<agent_name>/img/<test name>/03_<descriptive name>.png"
+    "<absolute path to codebase>/.playwright/<adw_id>/img/<test name>/01_<descriptive name>.png",
+    "<absolute path to codebase>/.playwright/<adw_id>/img/<test name>/03_<descriptive name>.png"
   ],
   "error": null
 }
