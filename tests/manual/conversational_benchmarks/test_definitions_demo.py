@@ -25,7 +25,7 @@ TESTS = [
         "turns": [
             "How do I apply for CCS?",
             "Wait, first tell me about Texas Rising Star",
-            "Ok back to my application question",
+            "Compare these two"
         ]
     },
     ####################################################################################################

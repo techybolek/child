@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Message, ModelsResponse, RetrievalMode, ChatMode, OPENAI_AGENT_MODELS, VERTEX_AGENT_MODELS } from '@/lib/types'
 import { askQuestion, askQuestionStream, fetchAvailableModels } from '@/lib/api'
 import { generateId } from '@/lib/utils'
@@ -55,10 +55,10 @@ export function ChatInterface() {
     loadModels()
   }, [selectedProvider])
 
-  // Keyboard shortcut: Ctrl+Shift+R to clear chat
+  // Keyboard shortcut: Ctrl+Shift+K to clear chat (not R, that's browser refresh)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+      if (e.ctrlKey && e.shiftKey && e.key === 'K') {
         e.preventDefault()
         setMessages([])
         setError(null)
