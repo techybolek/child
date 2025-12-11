@@ -10,51 +10,33 @@ from pathlib import Path
 # Test definitions
 TESTS = [
     {
-        "id": "test_2b",
         "name": "Multi-Hop Reasoning (Direct)",
         "description": "Tests synthesis without explicit 'based on what you told me' phrase",
         "turns": [
             "What assistance can expect a family of 4?"
             "Calculate the exact income cutoff for that family.",
             "Waht about 5?",
-        ],
-        "success_criteria": [
-            "Retrieves SMI percentage from vector store",
-            "Retrieves SMI dollar amount for family of 4",
-            "Calculates cutoff by applying percentage to SMI (85% x $92,041 = $78,235)",
-            "Applies calculated cutoff to specific scenario and gives yes/no answer",
         ]
     },
+    ####################################################################################################
     {
-        "id": "test_5",
         "name": "Topic Switch & Return",
         "description": "Tests context stack management when switching topics and returning",
         "turns": [
             "How do I apply for CCS?",
             "Wait, first tell me about Texas Rising Star",
             "Ok back to my application question",
-        ],
-        "success_criteria": [
-            "Answers TRS question completely",
-            "Returns to CCS application without re-asking",
         ]
     },
     {
-        "id": "test_3",
         "name": "Negation & Filtering",
         "description": "Tests filtering by negation and ranking results",
         "turns": [
             "What childcare programs require employment to qualify?",
             "Which ones don't require employment?",
-        ],
-        "success_criteria": [
-            "Lists programs requiring employment",
-            "Correctly filters to programs WITHOUT employment requirement",
-            "Ranks filtered programs by income limit",
         ]
     },
     {
-        "id": "test_4",
         "name": "Correction Handling",
         "description": "Tests clean pivot when user corrects prior input",
         "turns": [
@@ -69,22 +51,15 @@ TESTS = [
         ]
     },
     {
-        "id": "test_7",
         "name": "Hypothetical Application",
         "description": "Tests applying rules to specific user scenario",
         "turns": [
             "I'm a single parent with 2 kids, making $35,000/year",
             "Do I qualify for childcare assistance?",
             "What if I get a raise to $45,000?",
-        ],
-        "success_criteria": [
-            "Acknowledges user's specific situation",
-            "Applies eligibility rules to $35k scenario",
-            "Re-evaluates with $45k (not retrieves fresh)",
         ]
     },
     {
-        "id": "test_8",
         "name": "Temporal Process Reasoning",
         "description": "Tests tracking process sequence across turns",
         "turns": [
@@ -92,12 +67,6 @@ TESTS = [
             "How long does that take?",
             "What if they need more documents from me?",
             "And after that?",
-        ],
-        "success_criteria": [
-            "Describes post-submission process",
-            "Resolves 'that' to review/processing step",
-            "Explains document request scenario",
-            "Continues sequence from document submission",
         ]
     }
 ]

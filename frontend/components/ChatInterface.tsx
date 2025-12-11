@@ -217,12 +217,10 @@ export function ChatInterface() {
   }
 
   const handleClearConversation = () => {
-    if (confirm('Are you sure you want to clear the conversation?')) {
-      setMessages([])
-      setError(null)
-      setLastQuestion('')
-      setSessionId(generateId())  // New session resets backend conversation memory
-    }
+    setMessages([])
+    setError(null)
+    setLastQuestion('')
+    setSessionId(generateId())  // New session resets backend conversation memory
   }
 
   return (
