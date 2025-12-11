@@ -26,7 +26,7 @@ export function MessageList({ messages, isLoading, streamingMessageId }: Message
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-6">
-      <div className="mx-auto max-w-3xl space-y-6">
+      <div className="mx-auto max-w-4xl space-y-6">
         {/* Empty state */}
         {messages.length === 0 && !isLoading && (
           <div className="flex flex-col items-center justify-center py-12 text-center">

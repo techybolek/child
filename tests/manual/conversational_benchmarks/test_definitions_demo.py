@@ -15,7 +15,7 @@ TESTS = [
         "turns": [
             "What assistance can expect a family of 4?"
             "Calculate the exact income cutoff for that family.",
-            "Waht about 5?",
+            "What about 5?",
         ]
     },
     ####################################################################################################
@@ -28,6 +28,7 @@ TESTS = [
             "Ok back to my application question",
         ]
     },
+    ####################################################################################################
     {
         "name": "Negation & Filtering",
         "description": "Tests filtering by negation and ranking results",
@@ -36,6 +37,7 @@ TESTS = [
             "Which ones don't require employment?",
         ]
     },
+    ####################################################################################################
     {
         "name": "Correction Handling",
         "description": "Tests clean pivot when user corrects prior input",
@@ -50,15 +52,16 @@ TESTS = [
             "Maintains family of 6 context for document question",
         ]
     },
+    ####################################################################################################
     {
         "name": "Hypothetical Application",
         "description": "Tests applying rules to specific user scenario",
         "turns": [
-            "I'm a single parent with 2 kids, making $35,000/year",
-            "Do I qualify for childcare assistance?",
+            "I'm a single parent with 2 kids, making $35,000/year. Do I qualify for childcare assistance?",
             "What if I get a raise to $45,000?",
         ]
     },
+    ####################################################################################################
     {
         "name": "Temporal Process Reasoning",
         "description": "Tests tracking process sequence across turns",

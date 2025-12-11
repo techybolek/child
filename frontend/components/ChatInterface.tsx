@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Message, ModelsResponse, RetrievalMode, ChatMode, OPENAI_AGENT_MODELS, VERTEX_AGENT_MODELS } from '@/lib/types'
 import { askQuestion, askQuestionStream, fetchAvailableModels } from '@/lib/api'
 import { generateId } from '@/lib/utils'
@@ -54,6 +54,21 @@ export function ChatInterface() {
     }
     loadModels()
   }, [selectedProvider])
+
+  // Keyboard shortcut: Ctrl+Shift+R to clear chat
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+        e.preventDefault()
+        setMessages([])
+        setError(null)
+        setLastQuestion('')
+        setSessionId(generateId())
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const handleProviderChange = (provider: string) => {
     console.log('[ChatInterface] handleProviderChange called with:', provider)
@@ -227,7 +242,7 @@ export function ChatInterface() {
     <div className="flex h-screen flex-col bg-gray-50">
       {/* Header */}
       <header className="border-b border-gray-200 bg-white px-4 py-4 shadow-sm">
-        <div className="mx-auto flex max-w-3xl items-center justify-between">
+        <div className="mx-auto flex max-w-4xl items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold text-gray-900">
               Texas Childcare Chatbot
@@ -271,7 +286,7 @@ export function ChatInterface() {
       {/* Error banner */}
       {error && (
         <div className="border-b border-red-200 px-4 py-3">
-          <div className="mx-auto max-w-3xl">
+          <div className="mx-auto max-w-4xl">
             <ErrorMessage
               message={error}
               onRetry={lastQuestion ? handleRetry : undefined}

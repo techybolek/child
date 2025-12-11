@@ -21,7 +21,7 @@ export function MessageBubble({ message, isStreaming = false }: MessageBubblePro
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`max-w-[80%] ${isUser ? 'order-2' : 'order-1'}`}>
+      <div className={`max-w-full ${isUser ? 'order-2' : 'order-1'}`}>
         <div
           className={`rounded-lg px-4 py-3 ${
             isUser

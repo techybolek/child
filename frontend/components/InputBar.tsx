@@ -61,7 +61,7 @@ export function InputBar({ onSubmit, isLoading }: InputBarProps) {
 
   return (
     <form onSubmit={handleSubmit} className="border-t border-gray-200 bg-white p-4">
-      <div className="flex flex-col gap-2">
+      <div className="mx-auto flex max-w-4xl flex-col gap-2">
         <div className="flex gap-2">
           <textarea
             ref={textareaRef}
