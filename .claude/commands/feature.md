@@ -6,13 +6,14 @@ Create a new plan in specs/*.md to implement the `Feature` using the exact speci
 
 - IMPORTANT: You're writing a plan to implement a net new feature based on the `Feature` that will add value to the application.
 - IMPORTANT: The `Feature` describes the feature that will be implemented but remember we're not implementing a new feature, we're creating the plan that will be used to implement the feature based on the `Plan Format` below.
-- Create the plan in the `specs/*.md` file. Name it appropriately based on the `Feature`.
+- Create the plan in the `SPECS/PLANS/*.md` file. Name it appropriately based on the `Feature`.
 - Use the `Plan Format` below to create the plan. 
 - Research the codebase to understand existing patterns, architecture, and conventions before planning the feature.
 - IMPORTANT: Replace every <placeholder> in the `Plan Format` with the requested value. Add as much detail as needed to implement the feature successfully.
 - Use your reasoning model: THINK HARD about the feature requirements, design, and implementation approach.
 - Follow existing patterns and conventions in the codebase. Don't reinvent the wheel.
 - Design for extensibility and maintainability.
+- Avoid mocking when creating unit tests.
 - If you need a new library, use `uv add` and be sure to report it in the `Notes` section of the `Plan Format`.
 - Respect requested files in the `Relevant Files` section.
 - Start your research by reading the `CLAUDE.md` file for project architecture.
@@ -67,7 +68,7 @@ Use these files to implement the feature:
 <describe how the feature will integrate with existing functionality>
 
 ## Step by Step Tasks
-IMPORTANT: Execute every step in order, top to bottom.
+Execute every step in order, top to bottom.
 
 <list step by step tasks as h3 headers plus bullet points. use as many h3 headers as needed to implement the feature. Order matters, start with the foundational shared changes required then move on to the specific implementation. Include creating tests throughout the implementation process. Your last step should be running the `Validation Commands` to validate the feature works correctly with zero regressions.>
 
@@ -87,8 +88,8 @@ IMPORTANT: Execute every step in order, top to bottom.
 ## Validation Commands
 Execute every command to validate the feature works correctly with zero regressions.
 
-<list commands you'll use to validate with 100% confidence the feature is implemented correctly with zero regressions. every command must execute without errors so be specific about what you want to run to validate the feature works as expected. Include commands to test the feature end-to-end.>
-- `python -m evaluation.run_evaluation --mode hybrid --test --limit 3` - Quick evaluation test
+<list commands you'll use to validate with 100% confidence the feature is implemented correctly with zero regressions. every command must execute without errors so be specific about what you want to run to validate the feature works as expected. Include all the unit tests and commands to test the feature end-to-end>
+- `python -m evaluation.run_evaluation --mode <mode> --test --limit 3` - Quick evaluation test
 - `python interactive_chat.py` - Test chatbot CLI interactively (if chatbot changes)
 - `cd backend && python main.py` - Verify backend starts (if backend changes)
 - `cd frontend && npm run build` - Verify frontend builds (if frontend changes)

@@ -2,8 +2,8 @@
 > Execute the following sections to understand the loading and the evaluation process, then summarize your understanding.
 
 ## Read
-SPECS/loading_pipeline.md
-SPECS/evaluation_system.md
+SPECS/DOC/loading_pipeline.md
+SPECS/DOC/evaluation_system.md
 
 ## Remember
 Use skills to search Qdrant DB

@@ -26,8 +26,8 @@ class BedrockKBEvaluator:
         self.kb_id = os.getenv('BEDROCK_KB_ID', '371M2G58TV')
         self.region = os.getenv('AWS_REGION', 'us-east-1')
         self.client = boto3.client('bedrock-agent-runtime', region_name=self.region)
-        # Model for generation (Claude or Titan)
-        self.model_arn = f"arn:aws:bedrock:{self.region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+        # Model for generation (Claude 3.5 Haiku)
+        self.model_arn = f"arn:aws:bedrock:{self.region}::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0"
 
     def query(self, question: str, debug: bool = False) -> dict:
         """Query Bedrock KB and return response with timing"""
@@ -100,7 +100,7 @@ elif mode == 'bedrock':
     except ImportError:
         from evaluation.bedrock_evaluator import BedrockKBEvaluator
     custom_evaluator = BedrockKBEvaluator()
-    print("Evaluator: Amazon Bedrock Knowledge Base (Titan Embeddings + Claude Haiku)")
+    print("Evaluator: Amazon Bedrock Knowledge Base (Titan Embeddings + Claude 3.5 Haiku)")
 ```
 
 ### 4. Environment Variable
@@ -131,7 +131,7 @@ Results will be saved to: `results/bedrock/RUN_<timestamp>/`
 ## Notes
 
 1. **No page numbers** - Bedrock KB doesn't preserve PDF page metadata, so sources will show `page: N/A`
-2. **Model choice** - Using Claude Haiku for generation (fast, cheap). Can switch to Claude Sonnet for better quality.
+2. **Model choice** - Using Claude 3.5 Haiku for generation (fast, cheap). Can switch to Claude Sonnet for better quality.
 3. **boto3 dependency** - Already installed (used by Kendra evaluator)
 4. **AWS credentials** - Same credentials used for Kendra should work
 
