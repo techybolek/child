@@ -1,0 +1,7 @@
+#!/bin/bash
+# Start Claude Code and execute the prime_eval custom command
+# This reads the loading pipeline and evaluation system docs
+
+cd "$(dirname "$0")/.." || exit 1
+
+claude "/prime_eval" --dangerously-skip-permissions

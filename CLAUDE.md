@@ -92,7 +92,7 @@ Query → Classify Intent → [information] → Retrieve → Rerank → Generate
 
 ### 3. Evaluation System (evaluation/)
 
-**4 Modes:** `hybrid`, `dense`, `openai`, `kendra`
+**6 Modes:** `hybrid`, `dense`, `openai`, `kendra`, `vertex`, `bedrock`
 
 **Output Structure:** `results/<mode>/RUN_<timestamp>/`
 
@@ -100,7 +100,7 @@ Query → Classify Intent → [information] → Retrieve → Rerank → Generate
 ```bash
 python -m evaluation.run_evaluation --mode hybrid
 python -m evaluation.run_evaluation --mode hybrid --resume --resume-limit 1
-python -m evaluation.run_evaluation --mode kendra --debug --limit 5
+python -m evaluation.run_evaluation --mode bedrock --limit 5
 ```
 
 **Key Options:**
@@ -144,7 +144,7 @@ python -m evaluation.run_evaluation --mode kendra --debug --limit 5
 ### evaluation/config.py
 | Setting | Value |
 |---------|-------|
-| `VALID_MODES` | `['hybrid', 'dense', 'openai', 'kendra']` |
+| `VALID_MODES` | `['hybrid', 'dense', 'openai', 'kendra', 'vertex', 'bedrock']` |
 | `JUDGE_MODEL` | `'openai/gpt-oss-20b'` |
 | `DISABLE_CITATION_SCORING` | `True` |
 
@@ -189,10 +189,10 @@ python -m evaluation.run_evaluation --mode kendra --debug --limit 5
 
 ## Documentation
 
-Detailed specs in `SPECS/`:
+Detailed specs in `SPECS/DOC/`:
 - `loading_pipeline.md` - Vector DB loading details
 - `evaluation_system.md` - Evaluation framework details
-- `README.md` - Full documentation index
+- `bedrock_kb_evaluator.md` - Bedrock KB evaluator details
 
 ## Important
 

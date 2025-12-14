@@ -97,6 +97,13 @@ def main():
             from evaluation.vertex_evaluator import VertexAgentEvaluator
         custom_evaluator = VertexAgentEvaluator()
         print("Evaluator: Vertex AI Agent (Gemini + RAG)")
+    elif mode == 'bedrock':
+        try:
+            from .bedrock_evaluator import BedrockKBEvaluator
+        except ImportError:
+            from evaluation.bedrock_evaluator import BedrockKBEvaluator
+        custom_evaluator = BedrockKBEvaluator()
+        print(f"Evaluator: Amazon Bedrock Knowledge Base (Titan Embeddings + {custom_evaluator.model_display_name})")
     else:
         # hybrid or dense mode - use ChatbotEvaluator with retrieval_mode
         try:

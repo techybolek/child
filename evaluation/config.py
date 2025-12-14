@@ -39,7 +39,7 @@ STOP_ON_FAIL_THRESHOLD = 60
 DISABLE_CITATION_SCORING = True  # Set True to evaluate without citation scoring
 
 # Valid evaluation modes
-VALID_MODES = ['hybrid', 'dense', 'openai', 'kendra', 'vertex']
+VALID_MODES = ['hybrid', 'dense', 'openai', 'kendra', 'vertex', 'bedrock']
 
 def get_results_dir(mode: str = None):
     """Get mode-specific results directory, creating if needed.

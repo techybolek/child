@@ -1,0 +1,5 @@
+#rm -f results/vertex/*
+
+
+python -m evaluation.run_evaluation  --no-stop-on-fail --mode bedrock
+finished
