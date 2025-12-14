@@ -1,0 +1,1 @@
+Examine the file and generate 10 questions and answers about its content. The document contains information about childcare in Texas. Think of the type of questions that be asked by a parent using a chatbot. Output the questions to QUESTIONS/NEW
