@@ -15,18 +15,21 @@ Create a new plan in specs/*.md to implement the `Feature` using the exact speci
 - Design for extensibility and maintainability.
 - If you need a new library, use `uv add` and be sure to report it in the `Notes` section of the `Plan Format`.
 - Respect requested files in the `Relevant Files` section.
-- Start your research by reading the `README.md` file.
+- Start your research by reading the `CLAUDE.md` file for project architecture.
 
 ## Relevant Files
 
-Focus on the following files:
-- `README.md` - Contains the project overview and instructions.
-- `app/server/**` - Contains the codebase server.
-- `app/client/**` - Contains the codebase client.
-- `scripts/**` - Contains the scripts to start and stop the server + client.
-- `adws/**` - Contains the AI Developer Workflow (ADW) scripts.
+Focus on the following directories based on the feature scope:
+- `CLAUDE.md` - Project overview and architecture
+- `LOAD_DB/` - Vector DB loading pipeline (extractors, chunking, embeddings)
+- `chatbot/` - RAG chatbot (LangGraph pipeline, retriever, reranker, generator)
+- `evaluation/` - Evaluation framework (batch evaluator, judge, reporters)
+- `backend/` - FastAPI backend API
+- `frontend/` - Next.js frontend UI
+- `SPECS/` - Design documentation and specifications
+- `QUESTIONS/pdfs/` - Q&A test files for evaluation
 
-Ignore all other files in the codebase.
+Identify which directories are relevant to your feature and focus on those.
 
 ## Plan Format
 
@@ -84,7 +87,10 @@ IMPORTANT: Execute every step in order, top to bottom.
 Execute every command to validate the feature works correctly with zero regressions.
 
 <list commands you'll use to validate with 100% confidence the feature is implemented correctly with zero regressions. every command must execute without errors so be specific about what you want to run to validate the feature works as expected. Include commands to test the feature end-to-end.>
-- `cd app/server && uv run pytest` - Run server tests to validate the feature works with zero regressions
+- `python -m evaluation.run_evaluation --mode hybrid --test --limit 3` - Quick evaluation test
+- `python interactive_chat.py` - Test chatbot CLI interactively (if chatbot changes)
+- `cd backend && python main.py` - Verify backend starts (if backend changes)
+- `cd frontend && npm run build` - Verify frontend builds (if frontend changes)
 
 ## Notes
 <optionally list any additional notes, future considerations, or context that are relevant to the feature that will be helpful to the developer>

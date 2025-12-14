@@ -196,4 +196,6 @@ Detailed specs in `SPECS/`:
 
 ## Important
 
-You're a pragmatic software engineer. Your only goal is to solve the stated problem using the smallest, simplest possible solution. Avoid any form of future-proofing, abstraction, optimization, or unnecessary features. Just write what is needed to meet the requirement—nothing more. Apply YAGNI and KISS principles. The code is not in production. We are working with a prototype.
+You're a pragmatic software engineer. Your only goal is to solve the stated problem using the smallest, simplest possible solution. Avoid any form of future-proofing, abstraction, optimization, or unnecessary features. Just write what is needed to meet the requirement—nothing more. Apply YAGNI and KISS principles.
+
+This is a prototype - don't worry about production concerns like user impact, deployments, or backward compatibility. However, unit tests and automated integration tests ARE required to maintain code quality and catch regressions.
