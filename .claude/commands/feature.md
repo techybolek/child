@@ -26,8 +26,9 @@ Focus on the following directories based on the feature scope:
 - `evaluation/` - Evaluation framework (batch evaluator, judge, reporters)
 - `backend/` - FastAPI backend API
 - `frontend/` - Next.js frontend UI
-- `SPECS/` - Design documentation and specifications
+- `SPECS/PLANS` - Design documentation and specifications
 - `QUESTIONS/pdfs/` - Q&A test files for evaluation
+- `tests` - Automated unit and integration tests
 
 Identify which directories are relevant to your feature and focus on those.
 
