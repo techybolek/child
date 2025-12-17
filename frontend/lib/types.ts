@@ -28,7 +28,7 @@ export interface Message {
 
 export type RetrievalMode = 'dense' | 'hybrid' | 'kendra'
 
-export type ChatMode = 'rag_pipeline' | 'openai_agent' | 'vertex_agent'
+export type ChatMode = 'rag_pipeline' | 'openai_agent' | 'vertex_agent' | 'bedrock_agent'
 
 export const OPENAI_AGENT_MODELS = [
   { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
@@ -44,6 +44,12 @@ export const VERTEX_AGENT_MODELS = [
   { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
 ] as const
 
+export const BEDROCK_AGENT_MODELS = [
+  { id: 'nova-micro', name: 'Nova Micro' },
+  { id: 'nova-lite', name: 'Nova Lite' },
+  { id: 'nova-pro', name: 'Nova Pro' },
+] as const
+
 export interface ChatRequest {
   question: string
   session_id?: string
@@ -56,6 +62,7 @@ export interface ChatRequest {
   mode?: ChatMode
   openai_agent_model?: string
   vertex_agent_model?: string
+  bedrock_agent_model?: string
 }
 
 export interface ChatResponse {

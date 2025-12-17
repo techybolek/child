@@ -41,9 +41,9 @@ class ChatRequest(BaseModel):
         False,
         description="Enable conversational memory for multi-turn conversations"
     )
-    mode: Optional[Literal['rag_pipeline', 'openai_agent', 'vertex_agent']] = Field(
+    mode: Optional[Literal['rag_pipeline', 'openai_agent', 'vertex_agent', 'bedrock_agent']] = Field(
         None,
-        description="Chat mode: 'rag_pipeline' (default), 'openai_agent', or 'vertex_agent'"
+        description="Chat mode: 'rag_pipeline' (default), 'openai_agent', 'vertex_agent', or 'bedrock_agent'"
     )
     openai_agent_model: Optional[str] = Field(
         None,
@@ -52,6 +52,10 @@ class ChatRequest(BaseModel):
     vertex_agent_model: Optional[str] = Field(
         None,
         description="Model for Vertex Agent mode (e.g., 'gemini-2.5-flash', 'gemini-2.5-pro')"
+    )
+    bedrock_agent_model: Optional[str] = Field(
+        None,
+        description="Model for Bedrock Agent mode (e.g., 'nova-micro', 'nova-lite', 'nova-pro')"
     )
 
     model_config = {

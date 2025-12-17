@@ -6,7 +6,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Model, RetrievalMode, ChatMode, OPENAI_AGENT_MODELS, VERTEX_AGENT_MODELS } from '@/lib/types'
+import { Model, RetrievalMode, ChatMode, OPENAI_AGENT_MODELS, VERTEX_AGENT_MODELS, BEDROCK_AGENT_MODELS } from '@/lib/types'
 
 interface ModelSettingsProps {
   availableModels: {
@@ -39,6 +39,8 @@ interface ModelSettingsProps {
   onOpenaiAgentModelChange: (model: string) => void
   vertexAgentModel: string
   onVertexAgentModelChange: (model: string) => void
+  bedrockAgentModel: string
+  onBedrockAgentModelChange: (model: string) => void
 }
 
 export function ModelSettings({
@@ -58,7 +60,9 @@ export function ModelSettings({
   openaiAgentModel,
   onOpenaiAgentModelChange,
   vertexAgentModel,
-  onVertexAgentModelChange
+  onVertexAgentModelChange,
+  bedrockAgentModel,
+  onBedrockAgentModelChange
 }: ModelSettingsProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -120,10 +124,10 @@ export function ModelSettings({
               <label className="mb-1 block text-xs font-medium text-gray-700">
                 Chat Mode
               </label>
-              <div className="flex rounded-md border border-gray-300">
+              <div className="grid grid-cols-2 gap-1 rounded-md border border-gray-300 p-1">
                 <button
                   onClick={() => onChatModeChange('rag_pipeline')}
-                  className={`flex-1 px-2 py-2 text-xs rounded-l-md ${
+                  className={`px-2 py-2 text-xs rounded-md ${
                     chatMode === 'rag_pipeline'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -134,7 +138,7 @@ export function ModelSettings({
                 </button>
                 <button
                   onClick={() => onChatModeChange('openai_agent')}
-                  className={`flex-1 px-2 py-2 text-xs ${
+                  className={`px-2 py-2 text-xs rounded-md ${
                     chatMode === 'openai_agent'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -145,7 +149,7 @@ export function ModelSettings({
                 </button>
                 <button
                   onClick={() => onChatModeChange('vertex_agent')}
-                  className={`flex-1 px-2 py-2 text-xs rounded-r-md ${
+                  className={`px-2 py-2 text-xs rounded-md ${
                     chatMode === 'vertex_agent'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -154,13 +158,26 @@ export function ModelSettings({
                 >
                   Vertex Agent
                 </button>
+                <button
+                  onClick={() => onChatModeChange('bedrock_agent')}
+                  className={`px-2 py-2 text-xs rounded-md ${
+                    chatMode === 'bedrock_agent'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  title="Amazon Bedrock KB with Nova models"
+                >
+                  Bedrock Agent
+                </button>
               </div>
               <p className="mt-1 text-xs text-gray-500">
                 {chatMode === 'rag_pipeline'
                   ? 'Custom retrieval with hybrid search + reranking'
                   : chatMode === 'openai_agent'
                     ? 'OpenAI Agents SDK with native FileSearch'
-                    : 'Google Vertex AI with Gemini + RAG'}
+                    : chatMode === 'vertex_agent'
+                      ? 'Google Vertex AI with Gemini + RAG'
+                      : 'Amazon Bedrock KB with AWS managed RAG'}
               </p>
             </div>
 
@@ -213,6 +230,33 @@ export function ModelSettings({
                 <div className="rounded-md bg-green-50 p-2">
                   <p className="text-xs text-green-700">
                     Vertex Agent mode is always conversational and uses Google&apos;s RAG retrieval with Gemini.
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* Bedrock Agent Settings */}
+            {chatMode === 'bedrock_agent' && (
+              <>
+                <div className="border-t border-gray-200 pt-3">
+                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                    Nova Model
+                  </label>
+                  <select
+                    value={bedrockAgentModel}
+                    onChange={(e) => onBedrockAgentModelChange(e.target.value)}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    {BEDROCK_AGENT_MODELS.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="rounded-md bg-orange-50 p-2">
+                  <p className="text-xs text-orange-700">
+                    Bedrock Agent mode is always conversational and uses AWS managed RAG with Amazon Bedrock Knowledge Base.
                   </p>
                 </div>
               </>

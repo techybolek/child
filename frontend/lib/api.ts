@@ -13,9 +13,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
  * @param sessionId - Optional session ID for conversation tracking
  * @param models - Optional model selection, provider, and retrieval mode
  * @param conversationalMode - Enable conversational memory
- * @param mode - Chat mode: 'rag_pipeline', 'openai_agent', or 'vertex_agent'
+ * @param mode - Chat mode: 'rag_pipeline', 'openai_agent', 'vertex_agent', or 'bedrock_agent'
  * @param openaiAgentModel - Model for OpenAI Agent mode
  * @param vertexAgentModel - Model for Vertex Agent mode
+ * @param bedrockAgentModel - Model for Bedrock Agent mode
  * @returns Promise with the chatbot response
  * @throws Error if the request fails
  */
@@ -32,7 +33,8 @@ export async function askQuestion(
   conversationalMode?: boolean,
   mode?: ChatMode,
   openaiAgentModel?: string,
-  vertexAgentModel?: string
+  vertexAgentModel?: string,
+  bedrockAgentModel?: string
 ): Promise<ChatResponse> {
   const response = await fetch(`${API_BASE_URL}/api/chat`, {
     method: 'POST',
@@ -47,6 +49,7 @@ export async function askQuestion(
       mode,
       openai_agent_model: openaiAgentModel,
       vertex_agent_model: vertexAgentModel,
+      bedrock_agent_model: bedrockAgentModel,
     } as ChatRequest),
   })
 

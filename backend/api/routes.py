@@ -178,6 +178,25 @@ async def get_vertex_agent_models() -> Dict[str, Any]:
     }
 
 
+@router.get("/models/bedrock-agent")
+async def get_bedrock_agent_models() -> Dict[str, Any]:
+    """
+    Get available models for Bedrock Agent mode
+
+    Returns:
+        List of models available for Bedrock Agent and the default
+    """
+    chatbot_config = _get_chatbot_config()
+    return {
+        "models": [
+            {"id": "nova-micro", "name": "Nova Micro"},
+            {"id": "nova-lite", "name": "Nova Lite"},
+            {"id": "nova-pro", "name": "Nova Pro"},
+        ],
+        "default": chatbot_config.BEDROCK_AGENT_MODEL
+    }
+
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> Dict[str, Any]:
     """
@@ -241,6 +260,25 @@ async def chat(request: ChatRequest) -> Dict[str, Any]:
                 handler = VertexAgentHandler(model=request.vertex_agent_model)
                 _conversational_chatbots[cache_key] = handler
                 print(f"[Chat] Created new Vertex Agent for session: {session_id}")
+
+            result = await handler.handle_async(request.question, thread_id=session_id)
+            result['processing_time'] = round(time.time() - start_time, 2)
+
+        # --- Bedrock Agent Mode ---
+        elif request.mode == 'bedrock_agent':
+            from chatbot.handlers.bedrock_kb_handler import BedrockKBHandler
+
+            start_time = time.time()
+
+            # Cache handler per session for conversation continuity
+            cache_key = f"bedrock_{session_id}"
+            if cache_key in _conversational_chatbots:
+                handler = _conversational_chatbots[cache_key]
+                print(f"[Chat] Reusing cached Bedrock Agent for session: {session_id}")
+            else:
+                handler = BedrockKBHandler(model=request.bedrock_agent_model)
+                _conversational_chatbots[cache_key] = handler
+                print(f"[Chat] Created new Bedrock Agent for session: {session_id}")
 
             result = await handler.handle_async(request.question, thread_id=session_id)
             result['processing_time'] = round(time.time() - start_time, 2)

@@ -6,6 +6,7 @@ from .response_generation_prompt import RESPONSE_GENERATION_PROMPT, CONVERSATION
 from .location_search_prompt import LOCATION_SEARCH_TEMPLATE
 from .vertex_agent_prompt import VERTEX_SYSTEM_INSTRUCTION
 from .openai_agent_prompt import get_openai_instructions
+from .bedrock_agent_prompt import BEDROCK_AGENT_PROMPT
 
 __all__ = [
     'INTENT_CLASSIFICATION_PROMPT',
@@ -15,4 +16,5 @@ __all__ = [
     'LOCATION_SEARCH_TEMPLATE',
     'VERTEX_SYSTEM_INSTRUCTION',
     'get_openai_instructions',
+    'BEDROCK_AGENT_PROMPT',
 ]

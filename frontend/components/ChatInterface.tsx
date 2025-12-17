@@ -6,7 +6,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Message, ModelsResponse, RetrievalMode, ChatMode, OPENAI_AGENT_MODELS, VERTEX_AGENT_MODELS } from '@/lib/types'
+import { Message, ModelsResponse, RetrievalMode, ChatMode, OPENAI_AGENT_MODELS, VERTEX_AGENT_MODELS, BEDROCK_AGENT_MODELS } from '@/lib/types'
 import { askQuestion, askQuestionStream, fetchAvailableModels } from '@/lib/api'
 import { generateId } from '@/lib/utils'
 import { MessageList } from './MessageList'
@@ -38,6 +38,7 @@ export function ChatInterface() {
   const [chatMode, setChatMode] = useState<ChatMode>('rag_pipeline')
   const [openaiAgentModel, setOpenaiAgentModel] = useState<string>(OPENAI_AGENT_MODELS[2].id) // gpt-5-nano default
   const [vertexAgentModel, setVertexAgentModel] = useState<string>(VERTEX_AGENT_MODELS[0].id) // gemini-2.5-flash default
+  const [bedrockAgentModel, setBedrockAgentModel] = useState<string>(BEDROCK_AGENT_MODELS[0].id) // nova-micro default
 
   // Fetch available models on mount and when provider changes
   useEffect(() => {
@@ -129,7 +130,7 @@ export function ChatInterface() {
       retrieval_mode: retrievalMode,
     } : {}
 
-    // OpenAI Agent mode doesn't support streaming
+    // Agent modes don't support streaming
     if (streamingMode && chatMode === 'rag_pipeline') {
       // Streaming mode
       const assistantMessageId = generateId()
@@ -186,7 +187,7 @@ export function ChatInterface() {
         }
       )
     } else {
-      // Non-streaming mode (or OpenAI Agent mode which doesn't support streaming)
+      // Non-streaming mode (or agent modes which don't support streaming)
       try {
         const response = await askQuestion(
           question,
@@ -195,7 +196,8 @@ export function ChatInterface() {
           chatMode === 'rag_pipeline' ? conversationalMode : undefined,
           chatMode,
           chatMode === 'openai_agent' ? openaiAgentModel : undefined,
-          chatMode === 'vertex_agent' ? vertexAgentModel : undefined
+          chatMode === 'vertex_agent' ? vertexAgentModel : undefined,
+          chatMode === 'bedrock_agent' ? bedrockAgentModel : undefined
         )
 
         // Add assistant message
@@ -270,6 +272,8 @@ export function ChatInterface() {
               onOpenaiAgentModelChange={setOpenaiAgentModel}
               vertexAgentModel={vertexAgentModel}
               onVertexAgentModelChange={setVertexAgentModel}
+              bedrockAgentModel={bedrockAgentModel}
+              onBedrockAgentModelChange={setBedrockAgentModel}
             />
             {messages.length > 0 && (
               <button

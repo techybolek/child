@@ -95,6 +95,11 @@ VERTEX_CORPUS_NAME = os.getenv('VERTEX_CORPUS_NAME', 'projects/112470053465/loca
 VERTEX_AGENT_MODEL = os.getenv('VERTEX_AGENT_MODEL', 'gemini-2.5-flash')
 VERTEX_SIMILARITY_TOP_K = 10
 
+# ===== BEDROCK KB AGENT SETTINGS =====
+BEDROCK_KB_ID = os.getenv('BEDROCK_KB_ID', '371M2G58TV')
+BEDROCK_AGENT_MODEL = os.getenv('BEDROCK_MODEL', 'nova-micro')
+AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
+
 # ===== LANGGRAPH SETTINGS =====
 # When True (default): Enables conversation memory with query reformulation
 # When False: Uses LangGraph with stateless behavior (no memory between turns)
