@@ -139,3 +139,74 @@ class TestBedrockKBAPI:
             assert response.status_code == 200
             data = response.json()
             assert len(data['answer']) > 0
+
+
+class TestBedrockCitationURLs:
+    """Real integration tests for verifying full URLs in Bedrock citations.
+
+    These tests call the live Bedrock API and verify that after metadata
+    is uploaded to S3, citations include full source URLs.
+
+    Prerequisites:
+        1. Run LOAD_DB/generate_bedrock_metadata.py
+        2. Run LOAD_DB/upload_bedrock_metadata.py
+        3. Wait for KB resync to complete
+
+    Run with: pytest tests/test_bedrock_kb_integration.py -v -k "citation"
+    """
+
+    def test_handler_returns_full_source_urls(self):
+        """Verify BedrockKBHandler returns full clickable URLs in citations"""
+        from chatbot.handlers.bedrock_kb_handler import BedrockKBHandler
+
+        handler = BedrockKBHandler(model='nova-micro')
+        response = handler.handle("What is the income eligibility for childcare assistance?")
+
+        # Must have at least one source
+        assert response['sources'], "Expected at least one source citation"
+
+        # Verify ALL sources have full URLs (not empty, not just filenames)
+        for source in response['sources']:
+            assert source['url'], f"Source {source['doc']} has empty URL"
+            assert source['url'].startswith('https://'), \
+                f"Expected full URL starting with https://, got: {source['url']}"
+            assert 'twc.texas.gov' in source['url'], \
+                f"Expected TWC URL, got: {source['url']}"
+
+    def test_evaluator_returns_full_source_urls(self):
+        """Verify BedrockKBEvaluator returns full clickable URLs in citations"""
+        from evaluation.bedrock_evaluator import BedrockKBEvaluator
+
+        evaluator = BedrockKBEvaluator()
+        result = evaluator.query("What documents do I need for childcare eligibility?")
+
+        # Must have at least one source
+        assert result['sources'], "Expected at least one source citation"
+
+        # Verify ALL sources have full URLs
+        for source in result['sources']:
+            assert source.get('url'), f"Source {source['doc']} has empty URL"
+            assert source['url'].startswith('https://'), \
+                f"Expected full URL starting with https://, got: {source['url']}"
+
+    def test_handler_and_evaluator_urls_match_format(self):
+        """Verify handler and evaluator return URLs in same format"""
+        from chatbot.handlers.bedrock_kb_handler import BedrockKBHandler
+        from evaluation.bedrock_evaluator import BedrockKBEvaluator
+
+        handler = BedrockKBHandler(model='nova-micro')
+        evaluator = BedrockKBEvaluator()
+
+        question = "What is TWC childcare assistance?"
+
+        handler_response = handler.handle(question)
+        evaluator_response = evaluator.query(question)
+
+        # Both should return sources with full URLs
+        if handler_response['sources'] and evaluator_response['sources']:
+            handler_url = handler_response['sources'][0].get('url', '')
+            evaluator_url = evaluator_response['sources'][0].get('url', '')
+
+            # Both should be full URLs or both empty (if metadata not indexed yet)
+            assert (handler_url.startswith('https://') == evaluator_url.startswith('https://')), \
+                f"Handler and evaluator URL formats don't match: {handler_url} vs {evaluator_url}"

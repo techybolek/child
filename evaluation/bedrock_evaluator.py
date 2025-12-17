@@ -65,8 +65,9 @@ class BedrockKBEvaluator:
         # Extract answer
         answer = response.get('output', {}).get('text', '')
 
-        # Extract sources from citations
+        # Extract sources from citations (must stay in sync with BedrockKBHandler)
         sources = []
+        seen_docs = set()  # Deduplicate sources
         citations = response.get('citations', [])
         for citation in citations:
             for ref in citation.get('retrievedReferences', []):
@@ -77,10 +78,20 @@ class BedrockKBEvaluator:
                 # Extract filename from S3 URI
                 doc_name = uri.split('/')[-1] if uri else 'unknown'
 
-                # Bedrock KB doesn't preserve page numbers
+                # Skip empty or duplicate docs
+                if not doc_name or doc_name in seen_docs:
+                    continue
+
+                seen_docs.add(doc_name)
+
+                # Extract source_url from metadata (if available from .metadata.json)
+                metadata = ref.get('metadata', {})
+                source_url = metadata.get('source_url', '')
+
                 sources.append({
                     'doc': doc_name,
-                    'page': 'N/A',
+                    'page': 'N/A',  # Bedrock KB doesn't preserve page numbers
+                    'url': source_url,
                     'text': ref.get('content', {}).get('text', '')[:200]
                 })
 

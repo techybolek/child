@@ -77,10 +77,15 @@ class BedrockKBHandler(BaseHandler):
                     continue
 
                 seen_docs.add(doc_name)
+
+                # Extract source_url from metadata (if available from .metadata.json)
+                metadata = ref.get('metadata', {})
+                source_url = metadata.get('source_url', '')
+
                 sources.append({
                     'doc': doc_name,
                     'pages': [],  # Bedrock KB doesn't preserve page numbers
-                    'url': ''
+                    'url': source_url
                 })
 
         return sources

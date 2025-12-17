@@ -1,6 +1,6 @@
 # Amazon Bedrock Knowledge Base Integration
 
-AWS managed RAG using Amazon Bedrock Knowledge Bases with Nova models. Uses a pre-configured Knowledge Base with OpenSearch Serverless backend.
+AWS managed RAG using Amazon Bedrock Knowledge Bases with Nova models. Uses a pre-configured Knowledge Base.
 
 ## Quick Start
 
@@ -76,8 +76,7 @@ AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
 
 **Knowledge Base ID:** `371M2G58TV`
 **Data Source ID:** `V4C2EUGYSY`
-**S3 Bucket:** `cohort-tx-1` (24 PDFs)
-**Vector Store:** OpenSearch Serverless
+**S3 Bucket:** `cohort-tx-1` (28 PDFs)
 **Embeddings:** Titan Text Embeddings V2
 
 ### Sync Documents
@@ -90,6 +89,43 @@ client.start_ingestion_job(
     dataSourceId='V4C2EUGYSY'
 )
 ```
+
+### Document Metadata (Source URLs)
+
+To enable full clickable source URLs in citations (instead of just filenames), each PDF needs a companion `.metadata.json` file in S3:
+
+**S3 Structure:**
+```
+s3://cohort-tx-1/
+├── wd-24-23-att1-twc.pdf
+├── wd-24-23-att1-twc.pdf.metadata.json    ← Metadata file
+└── ...
+```
+
+**Metadata File Format:**
+```json
+{
+  "metadataAttributes": {
+    "source_url": "https://www.twc.texas.gov/sites/default/files/ccel/docs/wd-24-23-att1-twc.pdf"
+  }
+}
+```
+
+**Scripts:**
+```bash
+cd LOAD_DB
+
+# Generate metadata files from scraper data
+python generate_bedrock_metadata.py
+
+# Upload to S3 and resync KB
+python upload_bedrock_metadata.py
+
+# Or dry-run first
+python upload_bedrock_metadata.py --dry-run
+```
+
+After resync, `_extract_citations()` extracts `source_url` from `ref.get('metadata', {}).get('source_url', '')`.
 
 ## Components
 
@@ -309,17 +345,20 @@ python -m evaluation.run_evaluation --mode bedrock --test --limit 3
 | `TestBedrockKBErrorHandling` | 1 | Error responses |
 | `TestBedrockKBCitations` | 4 | Citation extraction |
 | `TestBedrockKBAPI` | 5 | API integration |
+| `TestBedrockCitationURLs` | 3 | Full source URL verification |
 
 ## Key Files
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `chatbot/handlers/bedrock_kb_handler.py` | 283 | Main handler class |
+| `chatbot/handlers/bedrock_kb_handler.py` | ~290 | Main handler class |
 | `chatbot/prompts/bedrock_agent_prompt.py` | ~55 | Custom prompt template |
-| `evaluation/bedrock_evaluator.py` | 104 | Evaluation framework evaluator |
+| `evaluation/bedrock_evaluator.py` | ~110 | Evaluation framework evaluator |
 | `evaluation/bedrock_model_resolver.py` | 127 | Model name resolution |
+| `LOAD_DB/generate_bedrock_metadata.py` | ~160 | Generate .metadata.json files |
+| `LOAD_DB/upload_bedrock_metadata.py` | ~180 | Upload to S3 and resync KB |
 | `tests/test_bedrock_kb_handler.py` | 246 | Handler unit tests |
-| `tests/test_bedrock_kb_integration.py` | 141 | API integration tests |
+| `tests/test_bedrock_kb_integration.py` | ~210 | API and citation URL tests |
 | `backend/api/routes.py` | - | API endpoints (bedrock_agent mode) |
 | `frontend/components/ModelSettings.tsx` | - | UI settings panel |
 
@@ -361,3 +400,6 @@ BEDROCK_MODEL=nova-micro python -m evaluation.run_evaluation --mode bedrock
 ### Session Not Persisting
 
 Ensure same `thread_id` is passed across requests. Handler caches Bedrock session ID internally.
+
+### AWS MCP Server
+Feel free to use AWS MCP Server as necessary

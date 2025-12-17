@@ -4,6 +4,4 @@
 ## Read
 SPECS/DOC/loading_pipeline.md
 SPECS/DOC/evaluation_system.md
-
-## Remember
-Use skills to search Qdrant DB
+SPECS/DOC/bedrock_kb.md
