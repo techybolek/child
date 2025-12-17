@@ -51,42 +51,57 @@ class BedrockKBHandler(BaseHandler):
         # Session storage for conversation continuity
         self._sessions: dict[str, dict] = {}
 
-    def _parse_response(self, output_text: str) -> tuple[str, list]:
-        """Parse structured response into answer and sources
+    def _extract_citations(self, citations: list) -> list:
+        """Extract sources from Bedrock API citations array
 
         Args:
-            output_text: Raw output from Bedrock with ANSWER/SOURCES sections
+            citations: Raw citations array from Bedrock retrieve_and_generate response
 
         Returns:
-            Tuple of (answer_text, sources_list)
+            List of source dicts with keys: doc, pages, url
         """
-        answer = output_text
         sources = []
+        seen_docs = set()  # Deduplicate sources
 
-        # Try to parse ANSWER: and SOURCES: sections
+        for citation in citations:
+            for ref in citation.get('retrievedReferences', []):
+                location = ref.get('location', {})
+                s3_loc = location.get('s3Location', {})
+                uri = s3_loc.get('uri', '')
+
+                # Extract filename from S3 URI
+                doc_name = uri.split('/')[-1] if uri else ''
+
+                # Skip empty or duplicate docs
+                if not doc_name or doc_name in seen_docs:
+                    continue
+
+                seen_docs.add(doc_name)
+                sources.append({
+                    'doc': doc_name,
+                    'pages': [],  # Bedrock KB doesn't preserve page numbers
+                    'url': ''
+                })
+
+        return sources
+
+    def _parse_response(self, output_text: str) -> str:
+        """Parse LLM output to extract answer text only
+
+        Args:
+            output_text: Raw output from Bedrock LLM
+
+        Returns:
+            Answer text (stripped of ANSWER:/SOURCES: formatting if present)
+        """
+        # Try to extract ANSWER: section if present
         answer_match = re.search(r'ANSWER:\s*\n(.*?)(?=\nSOURCES:|$)', output_text, re.DOTALL)
-        sources_match = re.search(r'SOURCES:\s*\n(.*?)$', output_text, re.DOTALL)
 
         if answer_match:
-            answer = answer_match.group(1).strip()
+            return answer_match.group(1).strip()
 
-        if sources_match:
-            sources_text = sources_match.group(1).strip()
-            # Parse each line starting with "- "
-            for line in sources_text.split('\n'):
-                line = line.strip()
-                if line.startswith('- ') and line != '- None':
-                    doc_name = line[2:].strip()
-                    # Remove brackets if present
-                    doc_name = doc_name.strip('[]')
-                    if doc_name:
-                        sources.append({
-                            'doc': doc_name,
-                            'pages': [],  # Bedrock KB doesn't preserve page numbers
-                            'url': ''
-                        })
-
-        return answer, sources
+        # No ANSWER: section found - return full text
+        return output_text.strip()
 
     def _query_bedrock(self, query: str, session_id: str | None = None) -> dict:
         """Query Bedrock KB with optional session for conversation continuity
@@ -96,7 +111,7 @@ class BedrockKBHandler(BaseHandler):
             session_id: Optional session ID for conversation continuity
 
         Returns:
-            dict with output_text, session_id, turn_count
+            dict with output_text, session_id, turn_count, citations
         """
         # Generate session_id if not provided
         if session_id is None:
@@ -112,7 +127,7 @@ class BedrockKBHandler(BaseHandler):
                     'modelArn': self.model_arn,
                     'generationConfiguration': {
                         'promptTemplate': {
-                            'textPromptTemplate': BEDROCK_AGENT_PROMPT + '\n\nQuestion: $query$\n\nSearch results:\n$search_results$'
+                            'textPromptTemplate': BEDROCK_AGENT_PROMPT + '\n\n$output_format_instructions$\n\nQuestion: $query$\n\nSearch results:\n$search_results$'
                         }
                     }
                 }
@@ -144,7 +159,8 @@ class BedrockKBHandler(BaseHandler):
         return {
             'output_text': response.get('output', {}).get('text', ''),
             'session_id': session_id,  # Return client session ID, not Bedrock's
-            'turn_count': self._sessions[session_id]['turn_count']
+            'turn_count': self._sessions[session_id]['turn_count'],
+            'citations': response.get('citations', [])
         }
 
     async def handle_async(self, query: str, thread_id: str | None = None, debug: bool = False) -> dict:
@@ -162,8 +178,11 @@ class BedrockKBHandler(BaseHandler):
             # Run Bedrock query in thread pool (boto3 is sync-only)
             result = await asyncio.to_thread(self._query_bedrock, query, thread_id)
 
-            # Parse structured response
-            answer, sources = self._parse_response(result['output_text'])
+            # Parse answer from LLM output
+            answer = self._parse_response(result['output_text'])
+
+            # Extract citations from API response (not from LLM text)
+            sources = self._extract_citations(result['citations'])
 
             response = {
                 'answer': answer,
@@ -207,8 +226,11 @@ class BedrockKBHandler(BaseHandler):
             # Run Bedrock query directly
             result = self._query_bedrock(query, thread_id)
 
-            # Parse structured response
-            answer, sources = self._parse_response(result['output_text'])
+            # Parse answer from LLM output
+            answer = self._parse_response(result['output_text'])
+
+            # Extract citations from API response (not from LLM text)
+            sources = self._extract_citations(result['citations'])
 
             response = {
                 'answer': answer,

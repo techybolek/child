@@ -81,6 +81,10 @@ class TestBedrockKBHandlerQuery:
             assert 'doc' in source
             assert 'pages' in source
             assert 'url' in source
+            # Verify source filenames are real KB filenames (lowercase with dashes)
+            doc = source['doc']
+            assert ' ' not in doc, f"Source filename should not contain spaces: {doc}"
+            assert doc == doc.lower(), f"Source filename should be lowercase: {doc}"
 
     def test_async_query(self):
         """Test async version of query handler"""
@@ -172,3 +176,71 @@ class TestBedrockKBErrorHandling:
         assert 'raw_output' in response['debug_info']
         assert 'model' in response['debug_info']
         assert 'kb_id' in response['debug_info']
+
+
+class TestBedrockKBCitations:
+    """Test citation extraction from Bedrock API (not from LLM text)"""
+
+    def test_citations_match_kb_filename_pattern(self):
+        """Test that citations are real KB filenames, not hallucinated titles"""
+        handler = BedrockKBHandler()
+
+        response = handler.handle("What is TWC and what programs does it offer?")
+
+        # Verify all returned sources follow KB filename pattern
+        # (may return 0 sources for some queries, which is valid)
+        for source in response['sources']:
+            doc = source['doc']
+            # Real KB filenames are lowercase with dashes, ending in .pdf
+            assert ' ' not in doc, f"Hallucinated filename (has spaces): {doc}"
+            assert doc == doc.lower(), f"Hallucinated filename (has capitals): {doc}"
+            assert doc.endswith('.pdf'), f"Expected .pdf extension: {doc}"
+
+    def test_no_hallucinated_citations(self):
+        """Test that sources come from API, not from LLM text output"""
+        handler = BedrockKBHandler()
+
+        response = handler.handle("What is CCS?", debug=True)
+
+        # Verify response structure
+        assert 'sources' in response
+        assert 'debug_info' in response
+        assert 'raw_output' in response['debug_info']
+
+        # Verify each source follows KB filename pattern
+        for source in response['sources']:
+            doc = source['doc']
+            # Real KB filenames don't have spaces or capital letters
+            assert ' ' not in doc, f"Hallucinated filename (has spaces): {doc}"
+            assert doc == doc.lower(), f"Hallucinated filename (has capitals): {doc}"
+            # Common patterns for real KB filenames
+            assert '-' in doc or doc == 'unknown', f"Expected dashes in filename: {doc}"
+
+    def test_async_citations_match_sync(self):
+        """Test that async handler also returns real KB filenames"""
+        import asyncio
+        handler = BedrockKBHandler()
+
+        response = asyncio.run(handler.handle_async("What is CCS?"))
+
+        for source in response['sources']:
+            doc = source['doc']
+            assert ' ' not in doc, f"Async: Hallucinated filename (has spaces): {doc}"
+            assert doc == doc.lower(), f"Async: Hallucinated filename (has capitals): {doc}"
+
+    def test_citations_returned_with_custom_prompt(self):
+        """Test that citations are returned when using custom prompt template.
+
+        Regression test for: Bedrock KB returns no citations with custom prompt
+        Root cause: Missing $output_format_instructions$ placeholder in template.
+        """
+        handler = BedrockKBHandler()
+
+        response = handler.handle("What is TWC?")
+
+        # With the fix, we should get at least 1 source
+        # Note: May vary by query, but "What is TWC?" should always return sources
+        assert len(response['sources']) > 0, (
+            "Expected sources from Bedrock KB. "
+            "If empty, check that $output_format_instructions$ is in the prompt template."
+        )

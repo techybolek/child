@@ -37,19 +37,5 @@ RESPONSE STYLE:
 - Enumeration questions ("what are the requirements"): Provide complete lists
 - Policy questions: Include all eligibility criteria and conditions
 - Match response length to question complexity
-
-OUTPUT FORMAT:
-Your response MUST follow this exact structure:
-
-ANSWER:
-[Your response here - think through the question carefully before answering]
-
-SOURCES:
-- [filename1.pdf]
-- [filename2.pdf]
-
-Rules for sources:
-- List each source document filename on its own line, prefixed with "- "
-- Only include files that directly contributed to your answer
-- If no sources were used, write "- None"
+- Your response should be clear and concise
 """
