@@ -42,7 +42,7 @@ TESTS = [
         "name": "Correction Handling",
         "description": "Tests clean pivot when user corrects prior input",
         "turns": [
-            "What are the income limits for a family of 4?",
+            "What's the yearly income limit for a family of 4?",
             "Sorry, I meant 6",
             "And what documents do I need to prove that income?",
         ],
