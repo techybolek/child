@@ -78,6 +78,10 @@ EXCLUDED_PDF_FILENAMES = [
     'child-care-provider-desk-aid-twc.pdf',
     'trs-parent-brochure-vie.pdf',
     'trs-parent-brochure-spa.pdf',
+    # Administrative/procurement documents
+    '3202600043-eccs-rfp-twc.pdf',
+    'tx-ccdf-state-plan-ffy2025-2027-approved.pdf',
+    'trs-parent-brochure.pdf',
 ]
 
 # ===== CONTENT PROCESSING =====
