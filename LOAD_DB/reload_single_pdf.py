@@ -15,10 +15,10 @@ import glob
 import logging
 from typing import List, Dict, Any, Optional
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.document_loaders import PyMuPDFLoader
-from langchain.docstore.document import Document
+from langchain_core.documents import Document
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from docling.document_converter import DocumentConverter

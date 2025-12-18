@@ -4,8 +4,8 @@ Docling PDF extractor for tables and structured content with item-level chunking
 
 import logging
 from typing import List, Dict, Tuple
-from langchain.docstore.document import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from docling.document_converter import DocumentConverter
 
 logger = logging.getLogger(__name__)

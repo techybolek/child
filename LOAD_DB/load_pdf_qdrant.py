@@ -13,10 +13,10 @@ from typing import List, Dict, Any, Optional
 import glob
 
 try:
-    from langchain.text_splitter import RecursiveCharacterTextSplitter
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
     from langchain_openai import OpenAIEmbeddings
     from langchain_community.document_loaders import PyMuPDFLoader
-    from langchain.docstore.document import Document
+    from langchain_core.documents import Document
     from qdrant_client import QdrantClient
     from qdrant_client.models import Distance, VectorParams, PointStruct, PayloadSchemaType, SparseVectorParams
     from docling.document_converter import DocumentConverter

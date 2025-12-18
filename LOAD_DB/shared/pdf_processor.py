@@ -5,7 +5,7 @@ Shared PDF processing utilities for document cleaning, filtering, and metadata e
 import os
 import logging
 from typing import List, Dict, Any, Optional, Tuple
-from langchain.docstore.document import Document
+from langchain_core.documents import Document
 from text_cleaner import clean_text, is_likely_toc
 
 logger = logging.getLogger(__name__)

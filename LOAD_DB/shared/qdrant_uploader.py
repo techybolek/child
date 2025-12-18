@@ -4,7 +4,7 @@ Shared Qdrant upload utilities with contextual embeddings and hybrid search supp
 
 import logging
 from typing import List, Optional
-from langchain.docstore.document import Document
+from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct, SparseVector
