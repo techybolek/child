@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy necessary application code
 COPY backend ./backend/
 COPY chatbot ./chatbot/
+COPY LOAD_DB ./LOAD_DB/
 
 # Set Python path for imports
 ENV PYTHONPATH=/app

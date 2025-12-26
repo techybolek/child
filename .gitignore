@@ -26,3 +26,4 @@ SPECS/diagrams/*.pptx
 SPECS/diagrams/create_pipeline_pptx.py
 .playwright-mcp/
 .pytest_cache/
+.env
